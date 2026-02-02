@@ -785,8 +785,8 @@ function UnderperformersSection({
 }
 
 const DISCOVERY_POSITIONS = [
-  { key: "cf", title: "Centre-Forwards" },
   { key: "forward", title: "All Forwards" },
+  { key: "cf", title: "Centre-Forwards" },
 ] as const;
 
 export default function PlayerFormPage() {
