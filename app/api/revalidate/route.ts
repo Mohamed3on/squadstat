@@ -9,8 +9,9 @@ export async function POST() {
     revalidatePath("/api/player-form", "page");
     revalidatePath("/api/player-minutes/[playerId]", "page");
 
-    // Revalidate underperformers cache (uses unstable_cache with tags)
+    // Revalidate caches (uses unstable_cache with tags)
     revalidateTag("underperformers");
+    revalidateTag("injured");
 
     return NextResponse.json({
       success: true,

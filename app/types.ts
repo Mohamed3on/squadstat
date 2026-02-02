@@ -62,3 +62,17 @@ export interface ManagerInfo {
   name: string;
   profileUrl: string;
 }
+
+export interface InjuredPlayer {
+  name: string;
+  position: string;
+  club: string;
+  clubLogoUrl: string;
+  injury: string;
+  returnDate: string;
+  marketValue: string;
+  marketValueNum: number;
+  imageUrl: string;
+  profileUrl: string;
+  league: string;
+}

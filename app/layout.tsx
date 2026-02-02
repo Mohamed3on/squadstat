@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Transfermarkt Form Analyzer",
-  description: "Analyze team form across top 5 leagues",
+  title: {
+    default: "FormTracker",
+    template: "%s",
+  },
+  description: "Track form, injuries, and player stats across Europe's top 5 leagues",
 };
 
 export default function RootLayout({

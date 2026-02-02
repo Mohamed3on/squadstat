@@ -30,6 +30,7 @@ export function Header() {
 
   const isHome = pathname === "/";
   const isPlayerScout = pathname === "/player-form";
+  const isInjured = pathname === "/injured";
 
   return (
     <header
@@ -72,6 +73,16 @@ export function Header() {
               }}
             >
               Players
+            </Link>
+            <Link
+              href="/injured"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: isInjured ? "var(--bg-elevated)" : "transparent",
+                color: isInjured ? "var(--text-primary)" : "var(--text-muted)",
+              }}
+            >
+              Injured
             </Link>
           </nav>
         </div>
