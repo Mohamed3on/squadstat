@@ -12,6 +12,7 @@ export async function POST() {
     // Revalidate caches (uses unstable_cache with tags)
     revalidateTag("underperformers");
     revalidateTag("injured");
+    revalidateTag("team-form");
 
     return NextResponse.json({
       success: true,

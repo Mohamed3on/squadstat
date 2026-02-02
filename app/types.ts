@@ -76,3 +76,17 @@ export interface InjuredPlayer {
   profileUrl: string;
   league: string;
 }
+
+export interface TeamFormEntry {
+  name: string;
+  league: string;
+  leaguePosition: number;
+  points: number;
+  marketValue: string;
+  marketValueNum: number;
+  marketValueRank: number;
+  expectedPoints: number;
+  deltaPts: number;
+  logoUrl: string;
+  clubUrl: string;
+}

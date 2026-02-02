@@ -28,3 +28,4 @@ This ensures the header refresh button properly busts all caches.
 
 - `underperformers` - Player underperformer candidates
 - `injured` - Injured players across all leagues
+- `team-form` - Team over/underperformers based on market value

@@ -29,6 +29,7 @@ export function Header() {
   };
 
   const isHome = pathname === "/";
+  const isTeamForm = pathname === "/team-form";
   const isPlayerScout = pathname === "/player-form";
   const isInjured = pathname === "/injured";
 
@@ -63,6 +64,16 @@ export function Header() {
               }}
             >
               Teams
+            </Link>
+            <Link
+              href="/team-form"
+              className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all"
+              style={{
+                background: isTeamForm ? "var(--bg-elevated)" : "transparent",
+                color: isTeamForm ? "var(--text-primary)" : "var(--text-muted)",
+              }}
+            >
+              Δ Pts
             </Link>
             <Link
               href="/player-form"
