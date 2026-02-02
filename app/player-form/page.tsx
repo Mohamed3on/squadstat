@@ -579,18 +579,15 @@ function UnderperformerListCard({
 
 function UnderperformersSection({
   title,
-  position,
+  candidates,
+  isLoading,
+  error,
 }: {
   title: string;
-  position: string;
+  candidates: PlayerStats[];
+  isLoading: boolean;
+  error: Error | null;
 }) {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["underperformers", position],
-    queryFn: ({ signal }) => fetchUnderperformers(position, signal),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const candidates = data?.underperformers || [];
   const playerIds = candidates.map((p) => p.playerId);
 
   // Fetch minutes for all candidates in parallel
@@ -711,10 +708,25 @@ function UnderperformersSection({
   );
 }
 
+const DISCOVERY_POSITIONS = [
+  { key: "cf", title: "Centre-Forwards" },
+  { key: "forward", title: "All Forwards" },
+] as const;
+
 export default function PlayerFormPage() {
   const [playerName, setPlayerName] = useState("");
   const [position, setPosition] = useState("forward");
   const [searchParams, setSearchParams] = useState<{ name: string; position: string } | null>(null);
+
+  // Fetch both positions in parallel for discovery view
+  const discoveryQueries = useQueries({
+    queries: DISCOVERY_POSITIONS.map((pos) => ({
+      queryKey: ["underperformers", pos.key],
+      queryFn: ({ signal }: { signal: AbortSignal }) => fetchUnderperformers(pos.key, signal),
+      staleTime: 5 * 60 * 1000,
+      enabled: !searchParams, // Only fetch when not searching
+    })),
+  });
 
   const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["player-form", searchParams],
@@ -995,8 +1007,15 @@ export default function PlayerFormPage() {
         {/* Default Discovery View */}
         {!isLoading && !data && (
           <div className="space-y-10">
-            <UnderperformersSection title="Centre-Forwards" position="cf" />
-            <UnderperformersSection title="All Forwards" position="forward" />
+            {DISCOVERY_POSITIONS.map((pos, idx) => (
+              <UnderperformersSection
+                key={pos.key}
+                title={pos.title}
+                candidates={discoveryQueries[idx]?.data?.underperformers || []}
+                isLoading={discoveryQueries[idx]?.isLoading ?? true}
+                error={discoveryQueries[idx]?.error ?? null}
+              />
+            ))}
           </div>
         )}
       </div>
