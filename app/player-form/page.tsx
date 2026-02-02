@@ -30,6 +30,17 @@ interface PlayerFormResult {
   searchedName?: string;
 }
 
+interface UnderperformersResult {
+  underperformers: PlayerStats[];
+  cached: boolean;
+  cacheAge?: number;
+}
+
+async function fetchUnderperformers(position: string, signal?: AbortSignal): Promise<UnderperformersResult> {
+  const res = await fetch(`/api/underperformers?position=${position}`, { signal });
+  return res.json();
+}
+
 async function fetchPlayerForm(
   name: string,
   position: string,
@@ -411,6 +422,243 @@ function SearchSkeleton() {
   );
 }
 
+function DiscoverySkeleton() {
+  return (
+    <div className="space-y-3 animate-fade-in">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div
+          key={i}
+          className="rounded-xl p-4"
+          style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-subtle)",
+            opacity: 1 - i * 0.1,
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="skeleton w-8 h-8 rounded-lg" />
+            <div className="skeleton w-12 h-12 rounded-lg" />
+            <div className="flex-1 space-y-2">
+              <div className="skeleton h-5 w-36" />
+              <div className="skeleton h-3 w-48" />
+            </div>
+            <div className="flex gap-3">
+              <div className="skeleton h-10 w-16" />
+              <div className="skeleton h-10 w-14" />
+              <div className="skeleton h-10 w-16" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function UnderperformerListCard({
+  player,
+  index = 0,
+}: {
+  player: PlayerStats;
+  index?: number;
+}) {
+  return (
+    <div
+      className="group rounded-xl p-4 transition-all duration-200 animate-slide-up hover:translate-x-1"
+      style={{
+        background: "linear-gradient(135deg, rgba(255, 71, 87, 0.06) 0%, var(--bg-card) 100%)",
+        border: "1px solid rgba(255, 71, 87, 0.15)",
+        animationDelay: `${index * 0.04}s`,
+        animationFillMode: "backwards",
+      }}
+    >
+      <div className="flex items-center gap-4">
+        {/* Rank indicator */}
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+          style={{
+            background: "rgba(255, 71, 87, 0.15)",
+            color: "#ff6b7a",
+          }}
+        >
+          {index + 1}
+        </div>
+
+        {/* Player image */}
+        <div className="relative shrink-0">
+          {player.imageUrl ? (
+            <img
+              src={player.imageUrl}
+              alt={player.name}
+              className="w-12 h-12 rounded-lg object-cover"
+              style={{
+                background: "var(--bg-elevated)",
+                border: "1px solid rgba(255, 71, 87, 0.2)",
+              }}
+            />
+          ) : (
+            <div
+              className="w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold"
+              style={{
+                background: "var(--bg-elevated)",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              {player.name.charAt(0)}
+            </div>
+          )}
+        </div>
+
+        {/* Player info */}
+        <div className="flex-1 min-w-0">
+          <a
+            href={`https://www.transfermarkt.com${player.profileUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold hover:underline block truncate transition-colors"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {player.name}
+          </a>
+          <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            <span>{player.position}</span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            <span className="truncate">{player.club}</span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            <span>{player.age}y</span>
+          </div>
+        </div>
+
+        {/* Metrics */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
+              {player.marketValueDisplay}
+            </div>
+            <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+              value
+            </div>
+          </div>
+
+          <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+
+          <div className="text-right min-w-[3rem]">
+            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
+              {player.points} pts
+            </div>
+            <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+              G+A
+            </div>
+          </div>
+
+          <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+
+          <div className="text-right min-w-[4rem]">
+            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>
+              {player.minutes?.toLocaleString() || "—"}&apos;
+            </div>
+            <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+              mins
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="flex items-center gap-3 mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+        <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.goals}G</span>
+        <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.assists}A</span>
+        <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.matches} apps</span>
+        <span className="ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+          {player.league}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function UnderperformersSection({
+  title,
+  position,
+}: {
+  title: string;
+  position: string;
+}) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["underperformers", position],
+    queryFn: ({ signal }) => fetchUnderperformers(position, signal),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-1 h-5 rounded-full"
+            style={{ background: "#ff4757" }}
+          />
+          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "#ff6b7a" }}>
+            {title}
+          </h2>
+          {data?.cached && (
+            <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}>
+              cached {data.cacheAge}m ago
+            </span>
+          )}
+        </div>
+        {data?.underperformers && (
+          <span
+            className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums"
+            style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}
+          >
+            {data.underperformers.length}
+          </span>
+        )}
+      </div>
+
+      {isLoading && <DiscoverySkeleton />}
+
+      {error && (
+        <div
+          className="rounded-xl p-5 animate-fade-in"
+          style={{ background: "rgba(255, 71, 87, 0.1)", border: "1px solid rgba(255, 71, 87, 0.3)" }}
+        >
+          <p className="font-medium" style={{ color: "#ff6b7a" }}>
+            Error loading data. Please refresh.
+          </p>
+        </div>
+      )}
+
+      {data?.underperformers && data.underperformers.length === 0 && (
+        <div
+          className="rounded-xl p-8 text-center animate-fade-in"
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+        >
+          <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+            No underperformers found
+          </p>
+          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+            All players are performing as expected for their market value
+          </p>
+        </div>
+      )}
+
+      {data?.underperformers && data.underperformers.length > 0 && (
+        <div className="space-y-3">
+          {data.underperformers.map((player, index) => (
+            <UnderperformerListCard
+              key={player.playerId}
+              player={player}
+              index={index}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function PlayerFormPage() {
   const [playerName, setPlayerName] = useState("");
   const [position, setPosition] = useState("forward");
@@ -491,10 +739,10 @@ export default function PlayerFormPage() {
             className="text-xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Player<span style={{ color: "#ffd700" }}>Scout</span>
+            Under<span style={{ color: "#ff6b7a" }}>performers</span>
           </h2>
           <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Find overpriced players with fewer goal contributions
+            Expensive players underdelivering on goal contributions
           </p>
         </div>
         {/* Search Form */}
@@ -692,19 +940,11 @@ export default function PlayerFormPage() {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Default Discovery View */}
         {!isLoading && !data && (
-          <div
-            className="rounded-2xl p-16 text-center"
-            style={{ background: "var(--bg-card)", border: "1px dashed var(--border-medium)" }}
-          >
-            <div className="text-6xl mb-4">⚽</div>
-            <p className="text-xl font-semibold" style={{ color: "var(--text-secondary)" }}>
-              Scout a player
-            </p>
-            <p className="text-sm mt-2 max-w-xs mx-auto" style={{ color: "var(--text-muted)" }}>
-              Enter a player name to find who&apos;s overpriced with fewer goal contributions
-            </p>
+          <div className="space-y-10">
+            <UnderperformersSection title="Centre-Forwards" position="cf" />
+            <UnderperformersSection title="All Forwards" position="forward" />
           </div>
         )}
       </div>
