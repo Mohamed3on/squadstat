@@ -101,7 +101,7 @@ function TargetPlayerCard({
 }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-6 animate-scale-in"
+      className="relative overflow-hidden rounded-2xl p-4 sm:p-6 animate-scale-in"
       style={{
         background: "linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 165, 0, 0.04) 100%)",
         border: "1px solid rgba(255, 215, 0, 0.3)",
@@ -116,50 +116,70 @@ function TargetPlayerCard({
         }}
       />
 
-      <div className="relative flex items-start gap-5">
-        {/* Player image with gold ring */}
-        <div className="relative shrink-0">
-          <div
-            className="absolute -inset-1 rounded-xl opacity-60"
-            style={{
-              background: "linear-gradient(135deg, #ffd700, #ff8c00)",
-              filter: "blur(4px)",
-            }}
-          />
-          {player.imageUrl ? (
-            <img
-              src={player.imageUrl}
-              alt={player.name}
-              className="relative w-20 h-20 rounded-xl object-cover"
-              style={{ border: "2px solid rgba(255, 215, 0, 0.5)" }}
-            />
-          ) : (
+      <div className="relative flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
+        {/* Player image with gold ring and mobile key metrics */}
+        <div className="flex items-start gap-4 sm:block">
+          <div className="relative shrink-0">
             <div
-              className="relative w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold"
+              className="absolute -inset-1 rounded-xl opacity-60"
               style={{
-                background: "var(--bg-elevated)",
-                color: "#ffd700",
-                border: "2px solid rgba(255, 215, 0, 0.5)",
+                background: "linear-gradient(135deg, #ffd700, #ff8c00)",
+                filter: "blur(4px)",
+              }}
+            />
+            {player.imageUrl ? (
+              <img
+                src={player.imageUrl}
+                alt={player.name}
+                className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover"
+                style={{ border: "2px solid rgba(255, 215, 0, 0.5)" }}
+              />
+            ) : (
+              <div
+                className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex items-center justify-center text-xl sm:text-2xl font-bold"
+                style={{
+                  background: "var(--bg-elevated)",
+                  color: "#ffd700",
+                  border: "2px solid rgba(255, 215, 0, 0.5)",
+                }}
+              >
+                {player.name.charAt(0)}
+              </div>
+            )}
+            <div
+              className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs"
+              style={{
+                background: "linear-gradient(135deg, #ffd700, #ff8c00)",
+                color: "#000",
+                fontWeight: 700,
+                boxShadow: "0 2px 8px rgba(255, 215, 0, 0.4)",
               }}
             >
-              {player.name.charAt(0)}
+              ★
             </div>
-          )}
-          <div
-            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs"
-            style={{
-              background: "linear-gradient(135deg, #ffd700, #ff8c00)",
-              color: "#000",
-              fontWeight: 700,
-              boxShadow: "0 2px 8px rgba(255, 215, 0, 0.4)",
-            }}
-          >
-            ★
+          </div>
+
+          {/* Mobile-only: player name and position */}
+          <div className="flex-1 min-w-0 sm:hidden">
+            <a
+              href={`https://www.transfermarkt.com${player.profileUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-lg hover:underline block truncate"
+              style={{ color: "#ffd700" }}
+            >
+              {player.name}
+            </a>
+            <div className="flex items-center gap-2 mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
+              <span className="font-medium">{player.position}</span>
+              <span style={{ opacity: 0.4 }}>•</span>
+              <span className="truncate opacity-80">{player.club}</span>
+            </div>
           </div>
         </div>
 
-        {/* Player info */}
-        <div className="flex-1 min-w-0">
+        {/* Player info - desktop */}
+        <div className="hidden sm:block flex-1 min-w-0">
           <a
             href={`https://www.transfermarkt.com${player.profileUrl}`}
             target="_blank"
@@ -175,7 +195,7 @@ function TargetPlayerCard({
             <span className="truncate opacity-80">{player.club}</span>
           </div>
 
-          {/* Stats row */}
+          {/* Stats row - desktop */}
           <div className="flex items-center gap-4 mt-4 text-sm" style={{ color: "var(--text-secondary)" }}>
             <span className="tabular-nums">{player.goals}G</span>
             <span className="tabular-nums">{player.assists}A</span>
@@ -184,8 +204,8 @@ function TargetPlayerCard({
           </div>
         </div>
 
-        {/* Key metrics */}
-        <div className="flex gap-6 shrink-0">
+        {/* Key metrics - desktop */}
+        <div className="hidden sm:flex gap-6 shrink-0">
           <div className="text-center">
             <div className="text-2xl font-black tabular-nums" style={{ color: "#ffd700" }}>
               {player.marketValueDisplay}
@@ -203,11 +223,33 @@ function TargetPlayerCard({
             </div>
           </div>
         </div>
+
+        {/* Mobile: stats and key metrics row */}
+        <div className="sm:hidden flex items-center justify-between gap-3 pt-3" style={{ borderTop: "1px solid rgba(255, 215, 0, 0.15)" }}>
+          <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-secondary)" }}>
+            <span className="tabular-nums">{player.goals}G</span>
+            <span className="tabular-nums">{player.assists}A</span>
+            <span className="tabular-nums">{player.matches} apps</span>
+            <span className="opacity-60">Age {player.age}</span>
+          </div>
+          <div className="flex gap-4 shrink-0">
+            <div className="text-center">
+              <div className="text-lg font-black tabular-nums" style={{ color: "#ffd700" }}>
+                {player.marketValueDisplay}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-black tabular-nums" style={{ color: "#00ff87" }}>
+                {player.points}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Minutes row */}
       <div
-        className="mt-4 pt-4 flex items-center justify-between"
+        className="mt-3 sm:mt-4 pt-3 sm:pt-4 flex items-center justify-between"
         style={{ borderTop: "1px solid rgba(255, 215, 0, 0.15)" }}
       >
         <span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
@@ -216,7 +258,7 @@ function TargetPlayerCard({
         {minutesLoading ? (
           <div className="skeleton h-5 w-16" />
         ) : (
-          <span className="text-lg font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>
+          <span className="text-base sm:text-lg font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>
             {minutes?.toLocaleString() || "—"}&apos;
           </span>
         )}
@@ -248,7 +290,7 @@ function UnderperformerCard({
 
   return (
     <div
-      className="group rounded-xl p-4 transition-all duration-200 animate-slide-up hover:translate-x-1"
+      className="group rounded-xl p-3 sm:p-4 transition-all duration-200 animate-slide-up hover:translate-x-1"
       style={{
         background: "linear-gradient(135deg, rgba(255, 71, 87, 0.06) 0%, var(--bg-card) 100%)",
         border: "1px solid rgba(255, 71, 87, 0.15)",
@@ -256,10 +298,10 @@ function UnderperformerCard({
         animationFillMode: "backwards",
       }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Rank indicator */}
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold shrink-0"
           style={{
             background: "rgba(255, 71, 87, 0.15)",
             color: "#ff6b7a",
@@ -274,7 +316,7 @@ function UnderperformerCard({
             <img
               src={player.imageUrl}
               alt={player.name}
-              className="w-12 h-12 rounded-lg object-cover"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
               style={{
                 background: "var(--bg-elevated)",
                 border: "1px solid rgba(255, 71, 87, 0.2)",
@@ -282,7 +324,7 @@ function UnderperformerCard({
             />
           ) : (
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold"
               style={{
                 background: "var(--bg-elevated)",
                 color: "var(--text-muted)",
@@ -300,22 +342,22 @@ function UnderperformerCard({
             href={`https://www.transfermarkt.com${player.profileUrl}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold hover:underline block truncate transition-colors"
+            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
             style={{ color: "var(--text-primary)" }}
           >
             {player.name}
           </a>
-          <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
             <span>{player.position}</span>
             <span style={{ opacity: 0.4 }}>•</span>
-            <span className="truncate">{player.club}</span>
-            <span style={{ opacity: 0.4 }}>•</span>
-            <span>{player.age}y</span>
+            <span className="truncate max-w-[100px] sm:max-w-none">{player.club}</span>
+            <span className="hidden sm:inline" style={{ opacity: 0.4 }}>•</span>
+            <span className="hidden sm:inline">{player.age}y</span>
           </div>
         </div>
 
-        {/* Comparison metrics */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Comparison metrics - desktop */}
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
           {/* Value comparison */}
           <div className="text-right">
             <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
@@ -355,14 +397,33 @@ function UnderperformerCard({
             />
           </div>
         </div>
+
+        {/* Mobile: just value */}
+        <div className="sm:hidden text-right shrink-0">
+          <div className="text-xs font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
+            {player.marketValueDisplay}
+          </div>
+          <div className="text-[10px] tabular-nums" style={{ color: "var(--text-primary)" }}>
+            {player.points} pts
+          </div>
+        </div>
       </div>
 
-      {/* Stats row on mobile / additional context */}
-      <div className="flex items-center gap-3 mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+      {/* Stats row - more info on mobile */}
+      <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 sm:pt-3 text-[10px] sm:text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.goals}G</span>
         <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.assists}A</span>
         <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.matches} apps</span>
-        <span className="ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-muted)" }}>{player.age}y</span>
+        {/* Mobile: show minutes inline */}
+        <div className="sm:hidden ml-auto">
+          <MinutesDisplay
+            minutes={minutes}
+            isLoading={minutesLoading}
+            isFiltered={passesMinutesFilter}
+          />
+        </div>
+        <span className="hidden sm:block ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
           {player.league}
         </span>
       </div>
@@ -463,7 +524,7 @@ function UnderperformerListCard({
 }) {
   return (
     <div
-      className="group rounded-xl p-4 transition-all duration-200 animate-slide-up hover:translate-x-1"
+      className="group rounded-xl p-3 sm:p-4 transition-all duration-200 animate-slide-up hover:translate-x-1"
       style={{
         background: "linear-gradient(135deg, rgba(255, 71, 87, 0.06) 0%, var(--bg-card) 100%)",
         border: "1px solid rgba(255, 71, 87, 0.15)",
@@ -471,10 +532,10 @@ function UnderperformerListCard({
         animationFillMode: "backwards",
       }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Rank indicator */}
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold shrink-0"
           style={{
             background: "rgba(255, 71, 87, 0.15)",
             color: "#ff6b7a",
@@ -489,7 +550,7 @@ function UnderperformerListCard({
             <img
               src={player.imageUrl}
               alt={player.name}
-              className="w-12 h-12 rounded-lg object-cover"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
               style={{
                 background: "var(--bg-elevated)",
                 border: "1px solid rgba(255, 71, 87, 0.2)",
@@ -497,7 +558,7 @@ function UnderperformerListCard({
             />
           ) : (
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold"
               style={{
                 background: "var(--bg-elevated)",
                 color: "var(--text-muted)",
@@ -515,22 +576,22 @@ function UnderperformerListCard({
             href={`https://www.transfermarkt.com${player.profileUrl}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold hover:underline block truncate transition-colors"
+            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
             style={{ color: "var(--text-primary)" }}
           >
             {player.name}
           </a>
-          <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
             <span>{player.position}</span>
             <span style={{ opacity: 0.4 }}>•</span>
-            <span className="truncate">{player.club}</span>
-            <span style={{ opacity: 0.4 }}>•</span>
-            <span>{player.age}y</span>
+            <span className="truncate max-w-[100px] sm:max-w-none">{player.club}</span>
+            <span className="hidden sm:inline" style={{ opacity: 0.4 }}>•</span>
+            <span className="hidden sm:inline">{player.age}y</span>
           </div>
         </div>
 
-        {/* Metrics */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Metrics - desktop */}
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
           <div className="text-right">
             <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
               {player.marketValueDisplay}
@@ -562,14 +623,29 @@ function UnderperformerListCard({
             </div>
           </div>
         </div>
+
+        {/* Metrics - mobile */}
+        <div className="sm:hidden text-right shrink-0">
+          <div className="text-xs font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
+            {player.marketValueDisplay}
+          </div>
+          <div className="text-[10px] tabular-nums" style={{ color: "var(--text-primary)" }}>
+            {player.points} pts
+          </div>
+        </div>
       </div>
 
       {/* Stats row */}
-      <div className="flex items-center gap-3 mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+      <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 sm:pt-3 text-[10px] sm:text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.goals}G</span>
         <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.assists}A</span>
         <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.matches} apps</span>
-        <span className="ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-muted)" }}>{player.age}y</span>
+        {/* Mobile: show minutes */}
+        <span className="sm:hidden ml-auto tabular-nums" style={{ color: "var(--accent-blue)" }}>
+          {player.minutes?.toLocaleString() || "—"}&apos;
+        </span>
+        <span className="hidden sm:block ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
           {player.league}
         </span>
       </div>
@@ -796,33 +872,33 @@ export default function PlayerFormPage() {
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <Header />
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Page title */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <h2
-            className="text-xl font-bold"
+            className="text-lg sm:text-xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
             Under<span style={{ color: "#ff6b7a" }}>performers</span>
           </h2>
-          <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
+          <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
             Expensive players underdelivering on goal contributions
           </p>
         </div>
         {/* Search Form */}
         <div
-          className="rounded-xl p-4 mb-8"
+          className="rounded-xl p-3 sm:p-4 mb-6 sm:mb-8"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
         >
-          <div className="flex flex-wrap gap-3">
-            <div className="flex-1 min-w-[240px] relative">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="flex-1 relative">
               <input
                 type="text"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="Search player (e.g. Kenan Yildiz)"
-                className="w-full px-4 py-3 rounded-lg transition-all focus:outline-none focus:ring-2"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm transition-all focus:outline-none focus:ring-2"
                 style={{
                   background: "var(--bg-elevated)",
                   border: "1px solid var(--border-subtle)",
@@ -839,35 +915,37 @@ export default function PlayerFormPage() {
               )}
             </div>
 
-            <select
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              className="px-4 py-3 rounded-lg transition-colors focus:outline-none"
-              style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
-                color: "var(--text-primary)"
-              }}
-            >
-              <option value="forward">All Forwards</option>
-              <option value="cf">Centre-Forward</option>
-              <option value="rw">Right Winger</option>
-              <option value="lw">Left Winger</option>
-              <option value="all">All Positions</option>
-            </select>
+            <div className="flex gap-2 sm:gap-3">
+              <select
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm transition-colors focus:outline-none"
+                style={{
+                  background: "var(--bg-elevated)",
+                  border: "1px solid var(--border-subtle)",
+                  color: "var(--text-primary)"
+                }}
+              >
+                <option value="forward">All Forwards</option>
+                <option value="cf">Centre-Forward</option>
+                <option value="rw">Right Winger</option>
+                <option value="lw">Left Winger</option>
+                <option value="all">All Positions</option>
+              </select>
 
-            <button
-              onClick={handleSearch}
-              disabled={!playerName.trim() || isLoading}
-              className="px-6 py-3 rounded-lg font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                background: "linear-gradient(135deg, #ffd700, #ff8c00)",
-                color: "#000",
-                boxShadow: !playerName.trim() || isLoading ? "none" : "0 4px 20px rgba(255, 215, 0, 0.3)",
-              }}
-            >
-              Scout
-            </button>
+              <button
+                onClick={handleSearch}
+                disabled={!playerName.trim() || isLoading}
+                className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: "linear-gradient(135deg, #ffd700, #ff8c00)",
+                  color: "#000",
+                  boxShadow: !playerName.trim() || isLoading ? "none" : "0 4px 20px rgba(255, 215, 0, 0.3)",
+                }}
+              >
+                Scout
+              </button>
+            </div>
           </div>
         </div>
 

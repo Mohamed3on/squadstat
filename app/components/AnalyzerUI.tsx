@@ -129,11 +129,11 @@ function MatchedTeamsSection({ teams, type }: { teams: QualifiedTeam[]; type: "t
   return (
     <div>
       <h3
-        className="font-bold text-lg mb-4 flex items-center gap-3"
+        className="font-bold text-base sm:text-lg mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3"
         style={{ color: accentColor }}
       >
         <span
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-xl"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-lg sm:text-xl"
           style={{
             background: isTop ? "var(--accent-hot-glow)" : "var(--accent-cold-glow)",
           }}
@@ -142,7 +142,7 @@ function MatchedTeamsSection({ teams, type }: { teams: QualifiedTeam[]; type: "t
         </span>
         {isTop ? "Best Form" : "Worst Form"}
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {teams.map((t, index) => (
           <div
             key={t.clubId}
@@ -165,7 +165,7 @@ function MatchedTeamsSection({ teams, type }: { teams: QualifiedTeam[]; type: "t
 function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }) {
   return (
     <div
-      className="rounded-2xl p-6 transition-all duration-300 hover:scale-[1.01] animate-slide-up"
+      className="rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-[1.01] animate-slide-up"
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-subtle)",
@@ -173,18 +173,18 @@ function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }
         animationDelay: `${index * 150}ms`,
       }}
     >
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span
-            className="text-3xl font-black"
+            className="text-2xl sm:text-3xl font-black"
             style={{ color: "var(--text-primary)" }}
           >
             {period.period}
           </span>
-          <span style={{ color: "var(--text-secondary)" }}>games</span>
+          <span className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>games</span>
         </div>
         <span
-          className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
+          className="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider"
           style={{
             background: period.hasMatch ? "var(--accent-hot-glow)" : "var(--bg-elevated)",
             color: period.hasMatch ? "var(--accent-hot)" : "var(--text-muted)",
@@ -196,13 +196,13 @@ function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }
       </div>
 
       {/* Leaders Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <LeaderCard type="top" leaders={period.leaders.top} />
         <LeaderCard type="bottom" leaders={period.leaders.bottom} />
       </div>
 
       {/* Qualified Teams */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {period.topTeams.length > 0 ? (
           <div>
             <h4
@@ -284,11 +284,11 @@ function LeaderCard({
 
   return (
     <div
-      className="rounded-xl p-4"
+      className="rounded-xl p-3 sm:p-4"
       style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)" }}
     >
       <h4
-        className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2"
+        className="text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2"
         style={{ color: accentColor }}
       >
         <span
@@ -297,22 +297,22 @@ function LeaderCard({
         />
         {isTop ? "Top Leaders" : "Bottom Leaders"}
       </h4>
-      <div className="space-y-2">
+      <div className="space-y-1.5 sm:space-y-2">
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex justify-between items-center text-sm py-1"
+            className="flex justify-between items-center text-xs sm:text-sm py-0.5 sm:py-1"
             style={{ borderBottom: "1px solid var(--border-subtle)" }}
           >
             <span style={{ color: "var(--text-muted)" }}>{row.label}</span>
             <div className="text-right">
               <span
-                className="font-bold mr-2"
+                className="font-bold mr-1 sm:mr-2"
                 style={{ color: accentColor }}
               >
                 {row.value}
               </span>
-              <span style={{ color: "var(--text-secondary)" }} className="text-xs">
+              <span style={{ color: "var(--text-secondary)" }} className="text-[10px] sm:text-xs truncate max-w-[80px] sm:max-w-none inline-block align-bottom">
                 {row.teams.slice(0, 1).join(", ")}
               </span>
             </div>
@@ -339,7 +339,7 @@ export function AnalyzerUI() {
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <Header />
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Loading State */}
         {isBusy && !data && (
           <div className="space-y-8">
@@ -353,20 +353,20 @@ export function AnalyzerUI() {
         {/* Error State */}
         {error && (
           <div
-            className="rounded-2xl p-8 text-center animate-scale-in"
+            className="rounded-2xl p-6 sm:p-8 text-center animate-scale-in"
             style={{
               background: "var(--accent-cold-glow)",
               border: "1px solid var(--accent-cold)",
             }}
           >
-            <div className="text-4xl mb-4">⚠️</div>
+            <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">⚠️</div>
             <h2
-              className="text-xl font-bold mb-2"
+              className="text-lg sm:text-xl font-bold mb-2"
               style={{ color: "var(--accent-cold)" }}
             >
               Analysis Failed
             </h2>
-            <p style={{ color: "var(--text-secondary)" }} className="mb-4">
+            <p style={{ color: "var(--text-secondary)" }} className="mb-4 text-sm sm:text-base">
               Unable to fetch data from Transfermarkt
             </p>
             <button
@@ -388,7 +388,7 @@ export function AnalyzerUI() {
             {/* Hero Section - Match Result */}
             {data.success && data.analysis.find((p) => p.hasMatch) ? (
               <div
-                className="rounded-2xl p-8 animate-scale-in relative overflow-hidden"
+                className="rounded-2xl p-4 sm:p-8 animate-scale-in relative overflow-hidden"
                 style={{
                   background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%)",
                   border: "1px solid var(--accent-hot)",
@@ -402,21 +402,21 @@ export function AnalyzerUI() {
                 />
 
                 <div className="relative">
-                  <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center gap-3 mb-4 sm:mb-6">
                     <span
-                      className="text-3xl font-black"
+                      className="text-2xl sm:text-3xl font-black"
                       style={{ color: "var(--accent-hot)" }}
                     >
                       ✓
                     </span>
                     <div>
                       <h2
-                        className="text-2xl font-bold"
+                        className="text-xl sm:text-2xl font-bold"
                         style={{ color: "var(--text-primary)" }}
                       >
                         Match Found
                       </h2>
-                      <p style={{ color: "var(--text-secondary)" }}>
+                      <p className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
                         Last{" "}
                         <span
                           className="font-bold"
@@ -429,7 +429,7 @@ export function AnalyzerUI() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <MatchedTeamsSection
                       teams={data.analysis.find((p) => p.hasMatch)?.topTeams || []}
                       type="top"
@@ -443,20 +443,20 @@ export function AnalyzerUI() {
               </div>
             ) : (
               <div
-                className="rounded-2xl p-8 text-center animate-scale-in"
+                className="rounded-2xl p-6 sm:p-8 text-center animate-scale-in"
                 style={{
                   background: "var(--bg-card)",
                   border: "1px solid var(--accent-cold)",
                 }}
               >
-                <div className="text-4xl mb-4">📊</div>
+                <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📊</div>
                 <h2
-                  className="text-xl font-bold mb-2"
+                  className="text-lg sm:text-xl font-bold mb-2"
                   style={{ color: "var(--accent-cold)" }}
                 >
                   No Clear Match Found
                 </h2>
-                <p style={{ color: "var(--text-secondary)" }}>
+                <p className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
                   No period has both clear top and bottom qualifying teams
                 </p>
               </div>
