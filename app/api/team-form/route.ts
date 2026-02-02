@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { TeamFormEntry } from "@/app/types";
 
@@ -171,32 +170,28 @@ async function fetchLeagueData(league: typeof LEAGUES[number]): Promise<TeamForm
   }
 }
 
-const getTeamFormData = unstable_cache(
-  async () => {
-    const results = await Promise.all(LEAGUES.map(fetchLeagueData));
-    const allTeams = results.flat();
+async function getTeamFormData() {
+  const results = await Promise.all(LEAGUES.map(fetchLeagueData));
+  const allTeams = results.flat();
 
-    const overperformers = [...allTeams]
-      .filter((t) => t.deltaPts > 0)
-      .sort((a, b) => b.deltaPts - a.deltaPts)
-      .slice(0, 20);
+  const overperformers = [...allTeams]
+    .filter((t) => t.deltaPts > 0)
+    .sort((a, b) => b.deltaPts - a.deltaPts)
+    .slice(0, 20);
 
-    const underperformers = [...allTeams]
-      .filter((t) => t.deltaPts < 0)
-      .sort((a, b) => a.deltaPts - b.deltaPts)
-      .slice(0, 20);
+  const underperformers = [...allTeams]
+    .filter((t) => t.deltaPts < 0)
+    .sort((a, b) => a.deltaPts - b.deltaPts)
+    .slice(0, 20);
 
-    return {
-      success: true,
-      overperformers,
-      underperformers,
-      totalTeams: allTeams.length,
-      leagues: LEAGUES.map((l) => l.name),
-    };
-  },
-  ["team-form"],
-  { revalidate: 86400, tags: ["team-form"] }
-);
+  return {
+    success: true,
+    overperformers,
+    underperformers,
+    totalTeams: allTeams.length,
+    leagues: LEAGUES.map((l) => l.name),
+  };
+}
 
 export async function GET() {
   try {
