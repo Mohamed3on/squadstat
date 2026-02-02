@@ -35,16 +35,16 @@ function getLeagueColor(league: string): string {
 function PlayerCard({ player, rank }: { player: InjuredPlayer; rank: number }) {
   return (
     <div
-      className="rounded-xl p-4 transition-all hover:scale-[1.01]"
+      className="rounded-xl p-3 sm:p-4 transition-all hover:scale-[1.01]"
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-subtle)",
       }}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 sm:gap-4">
         {/* Rank */}
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm shrink-0"
           style={{
             background: rank <= 3 ? "var(--accent-hot)" : "var(--bg-elevated)",
             color: rank <= 3 ? "var(--bg-base)" : "var(--text-muted)",
@@ -54,11 +54,11 @@ function PlayerCard({ player, rank }: { player: InjuredPlayer; rank: number }) {
         </div>
 
         {/* Player Image */}
-        <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0" style={{ background: "var(--bg-elevated)" }}>
+        <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-lg overflow-hidden shrink-0" style={{ background: "var(--bg-elevated)" }}>
           {player.imageUrl && !player.imageUrl.includes("data:image") ? (
             <img src={player.imageUrl} alt={player.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-2xl" style={{ color: "var(--text-muted)" }}>
+            <div className="w-full h-full flex items-center justify-center text-xl sm:text-2xl" style={{ color: "var(--text-muted)" }}>
               ?
             </div>
           )}
@@ -72,17 +72,17 @@ function PlayerCard({ player, rank }: { player: InjuredPlayer; rank: number }) {
                 href={player.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-bold text-base hover:underline block truncate"
+                className="font-bold text-sm sm:text-base hover:underline block truncate"
                 style={{ color: "var(--text-primary)" }}
               >
                 {player.name}
               </a>
-              <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>
+              <p className="text-xs sm:text-sm truncate" style={{ color: "var(--text-muted)" }}>
                 {player.position}
               </p>
             </div>
             <div
-              className="text-lg font-black shrink-0"
+              className="text-sm sm:text-lg font-black shrink-0"
               style={{ color: "var(--accent-hot)" }}
             >
               {formatValue(player.marketValue)}
@@ -90,15 +90,15 @@ function PlayerCard({ player, rank }: { player: InjuredPlayer; rank: number }) {
           </div>
 
           {/* Club & League */}
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
             {player.clubLogoUrl && (
-              <img src={player.clubLogoUrl} alt={player.club} className="w-5 h-5 object-contain" />
+              <img src={player.clubLogoUrl} alt={player.club} className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
             )}
-            <span className="text-sm truncate" style={{ color: "var(--text-secondary)" }}>
+            <span className="text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none" style={{ color: "var(--text-secondary)" }}>
               {player.club}
             </span>
             <span
-              className="px-2 py-0.5 rounded text-xs font-semibold shrink-0"
+              className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold shrink-0"
               style={{
                 background: getLeagueColor(player.league),
                 color: player.league === "Ligue 1" ? "#000" : "#fff",
@@ -109,15 +109,15 @@ function PlayerCard({ player, rank }: { player: InjuredPlayer; rank: number }) {
           </div>
 
           {/* Injury Info */}
-          <div className="flex items-center gap-3 mt-2 text-sm">
-            <span className="flex items-center gap-1.5">
-              <svg className="w-4 h-4" style={{ color: "#ef4444" }} fill="currentColor" viewBox="0 0 20 20">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs sm:text-sm">
+            <span className="flex items-center gap-1 sm:gap-1.5">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#ef4444" }} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <span style={{ color: "var(--text-secondary)" }}>{player.injury}</span>
+              <span className="truncate max-w-[150px] sm:max-w-none" style={{ color: "var(--text-secondary)" }}>{player.injury}</span>
             </span>
             {player.returnDate && (
-              <span className="text-xs px-2 py-0.5 rounded" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}>
+              <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}>
                 Until {player.returnDate}
               </span>
             )}
@@ -168,13 +168,13 @@ export default function InjuredPage() {
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <Header />
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-black mb-2" style={{ color: "var(--text-primary)" }}>
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black mb-1 sm:mb-2" style={{ color: "var(--text-primary)" }}>
             Injured Players
           </h1>
-          <p className="text-lg" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm sm:text-lg" style={{ color: "var(--text-muted)" }}>
             Highest value injured players across Europe&apos;s top 5 leagues
           </p>
         </div>
@@ -182,38 +182,38 @@ export default function InjuredPage() {
         {/* Stats */}
         {data && (
           <div
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 p-4 rounded-xl"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-8 p-3 sm:p-4 rounded-xl"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
           >
             <div className="text-center">
-              <div className="text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
+              <div className="text-xl sm:text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
                 {data.totalPlayers}
               </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+              <div className="text-[10px] sm:text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                 Players
               </div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
+              <div className="text-xl sm:text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
                 {data.leagues.length}
               </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+              <div className="text-[10px] sm:text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                 Leagues
               </div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
+              <div className="text-xl sm:text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
                 {data.players[0]?.marketValue || "-"}
               </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+              <div className="text-[10px] sm:text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                 Highest
               </div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
+              <div className="text-xl sm:text-2xl font-black" style={{ color: "var(--accent-hot)" }}>
                 {formattedTotalValue}
               </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+              <div className="text-[10px] sm:text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                 Total Value
               </div>
             </div>

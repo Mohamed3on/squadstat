@@ -108,7 +108,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
 
   return (
     <div
-      className="rounded-xl p-4 transition-all duration-200 hover:scale-[1.01]"
+      className="rounded-xl p-3 sm:p-4 transition-all duration-200 hover:scale-[1.01]"
       style={{
         background: "var(--bg-elevated)",
         border: `1px solid ${accentColor}`,
@@ -116,10 +116,10 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
       }}
     >
       {/* Team header with logo */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {team.logoUrl && (
           <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center"
+            className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "var(--bg-card)" }}
           >
             <Image
@@ -127,13 +127,13 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               alt={team.name}
               width={40}
               height={40}
-              className="object-contain"
+              className="object-contain w-8 h-8 sm:w-10 sm:h-10"
               unoptimized
             />
           </div>
         )}
-        <div className="flex-1">
-          <div className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-base sm:text-lg truncate" style={{ color: "var(--text-primary)" }}>
             {team.clubUrl ? (
               <a
                 href={`https://www.transfermarkt.com${team.clubUrl}`}
@@ -148,18 +148,18 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               team.name
             )}
           </div>
-          <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <div className="text-xs sm:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
             {team.league}
           </div>
         </div>
       </div>
 
       {/* Criteria tags */}
-      <div className="flex flex-wrap gap-2 mt-4">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-3 sm:mt-4">
         {team.criteria.map((c) => (
           <span
             key={c}
-            className="px-3 py-1 rounded-full text-xs font-semibold"
+            className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold"
             style={{
               background: glowColor,
               color: accentColor,
@@ -173,7 +173,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
 
       {/* Stats */}
       <div
-        className="text-xs mt-4 flex gap-4"
+        className="text-[10px] sm:text-xs mt-3 sm:mt-4 flex flex-wrap gap-2 sm:gap-4"
         style={{ color: "var(--text-muted)" }}
       >
         <span>
@@ -206,7 +206,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
       {/* Manager info */}
       {showManager && team.clubId && (
         <div
-          className="mt-4 pt-3 text-sm"
+          className="mt-3 sm:mt-4 pt-2 sm:pt-3 text-xs sm:text-sm"
           style={{ borderTop: "1px solid var(--border-subtle)" }}
         >
           {managerLoading ? (
@@ -221,13 +221,13 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               <span style={{ color: "var(--text-muted)" }}>Loading manager...</span>
             </div>
           ) : manager ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span style={{ color: "var(--text-muted)" }}>Manager:</span>
               <a
                 href={manager.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold hover:underline transition-colors"
+                className="font-semibold hover:underline transition-colors truncate"
                 style={{ color: "var(--accent-blue)" }}
               >
                 {manager.name}
