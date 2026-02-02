@@ -56,10 +56,12 @@ function parseStartseitePage($: cheerio.CheerioAPI): { standings: LeagueTeam[]; 
   const standings: LeagueTeam[] = [];
   const marketValues: MarketValueTeam[] = [];
 
-  // Find standings table (has "Pts" in header)
+  // Find standings table (has "Pts" but NOT "market value" in header)
   const standingsTable = $("table.items").filter((_, table) => {
     const headerText = $(table).find("thead").text().toLowerCase();
-    return headerText.includes("pts") || headerText.includes("pkte");
+    const hasPts = headerText.includes("pts") || headerText.includes("pkte");
+    const hasMarketValue = headerText.includes("market value") || headerText.includes("marktwert");
+    return hasPts && !hasMarketValue;
   }).first();
 
   standingsTable.find("tbody > tr").each((_, row) => {
@@ -103,7 +105,7 @@ function parseStartseitePage($: cheerio.CheerioAPI): { standings: LeagueTeam[]; 
     const clubIdMatch = clubUrl.match(/\/verein\/(\d+)/);
     const clubId = clubIdMatch ? clubIdMatch[1] : "";
 
-    const mvCell = $(cells[cells.length - 1]);
+    const mvCell = $(cells[cells.length - 2]);
     const marketValue = mvCell.text().trim();
     const marketValueNum = parseMarketValue(marketValue);
 
