@@ -795,7 +795,7 @@ const DISCOVERY_POSITIONS = [
 
 export function PlayerFormUI() {
   const [playerName, setPlayerName] = useState("");
-  const [position, setPosition] = useState("forward");
+  const [position, setPosition] = useState("all");
   const [searchParams, setSearchParams] = useState<{ name: string; position: string } | null>(null);
 
   // Fetch both positions in parallel for discovery view
@@ -915,6 +915,7 @@ export function PlayerFormUI() {
                 onChange={(e) => setPosition(e.target.value)}
                 className="h-11 flex-1 sm:w-auto sm:flex-none"
               >
+                <option value="all">All Players</option>
                 <option value="forward">All Forwards</option>
                 <option value="cf">Centre-Forward</option>
                 <option value="midfielder">Midfielders</option>

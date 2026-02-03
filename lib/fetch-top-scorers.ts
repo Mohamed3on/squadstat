@@ -11,6 +11,9 @@ export async function fetchTopScorers(positionType: string = "forward"): Promise
 
   let positionPath = "";
   switch (positionType) {
+    case "all":
+      positionPath = "ausrichtung//spielerposition_id/";
+      break;
     case "cf":
       positionPath = "ausrichtung//spielerposition_id/14";
       break;
