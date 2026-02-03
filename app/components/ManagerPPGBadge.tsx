@@ -6,7 +6,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
 
 interface ManagerPPGBadgeProps {
   manager: ManagerInfo;
@@ -23,7 +29,26 @@ export function ManagerSkeleton() {
   );
 }
 
+function useIsTouchDevice() {
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    const checkTouch = () => {
+      setIsTouch(
+        "ontouchstart" in window ||
+          navigator.maxTouchPoints > 0 ||
+          window.matchMedia("(pointer: coarse)").matches
+      );
+    };
+    checkTouch();
+  }, []);
+
+  return isTouch;
+}
+
 export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
+  const isTouchDevice = useIsTouchDevice();
+
   if (manager.matches === 0) {
     return (
       <span
@@ -71,77 +96,100 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
     </span>
   );
 
+  const tooltipContent = (
+    <div className="space-y-2 text-xs sm:text-sm">
+      <div style={{ color: "var(--text-secondary)" }}>
+        {isBest ? "Best" : isWorst ? "Worst" : `#${manager.ppgRank}`} PPG among{" "}
+        <span style={{ color: "var(--text-primary)" }}>{manager.totalComparableManagers}</span> managers
+        with {manager.matches}+ games since 1995
+      </div>
+      {manager.bestManager && manager.worstManager && (
+        <div
+          className="pt-2 space-y-1.5"
+          style={{ borderTop: "1px solid var(--border-subtle)" }}
+        >
+          <div className="flex items-start gap-1.5">
+            <span>🏆</span>
+            <div>
+              <a
+                href={manager.bestManager.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium hover:underline"
+                style={{ color: "#22c55e" }}
+              >
+                {manager.bestManager.name}
+              </a>
+              <span className="ml-1" style={{ color: "var(--text-muted)" }}>
+                {manager.bestManager.ppg.toFixed(2)} PPG · {manager.bestManager.years}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-start gap-1.5">
+            <span>⚠️</span>
+            <div>
+              <a
+                href={manager.worstManager.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium hover:underline"
+                style={{ color: "#ef4444" }}
+              >
+                {manager.worstManager.name}
+              </a>
+              <span className="ml-1" style={{ color: "var(--text-muted)" }}>
+                {manager.worstManager.ppg.toFixed(2)} PPG · {manager.worstManager.years}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const contentStyles = {
+    background: "var(--bg-card)",
+    color: "var(--text-primary)",
+    border: "1px solid var(--border-subtle)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+  };
+
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
       <span className="text-[10px] sm:text-xs" style={{ color: "var(--text-secondary)" }}>
         ({manager.matches} {manager.matches === 1 ? "game" : "games"})
       </span>
-      <Tooltip>
-        <TooltipTrigger asChild>{badge}</TooltipTrigger>
-        <TooltipContent
-          side="bottom"
-          align="center"
-          sideOffset={8}
-          avoidCollisions={true}
-          collisionPadding={16}
-          className="max-w-[280px] sm:max-w-xs p-3"
-          style={{
-            background: "var(--bg-card)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--border-subtle)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          }}
-        >
-          <div className="space-y-2 text-xs sm:text-sm">
-            <div style={{ color: "var(--text-secondary)" }}>
-              {isBest ? "Best" : isWorst ? "Worst" : `#${manager.ppgRank}`} PPG among{" "}
-              <span style={{ color: "var(--text-primary)" }}>{manager.totalComparableManagers}</span> managers
-              with {manager.matches}+ games since 1995
-            </div>
-            {manager.bestManager && manager.worstManager && (
-              <div
-                className="pt-2 space-y-1.5"
-                style={{ borderTop: "1px solid var(--border-subtle)" }}
-              >
-                <div className="flex items-start gap-1.5">
-                  <span>🏆</span>
-                  <div>
-                    <a
-                      href={manager.bestManager.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:underline"
-                      style={{ color: "#22c55e" }}
-                    >
-                      {manager.bestManager.name}
-                    </a>
-                    <span className="ml-1" style={{ color: "var(--text-muted)" }}>
-                      {manager.bestManager.ppg.toFixed(2)} PPG · {manager.bestManager.years}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-start gap-1.5">
-                  <span>⚠️</span>
-                  <div>
-                    <a
-                      href={manager.worstManager.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:underline"
-                      style={{ color: "#ef4444" }}
-                    >
-                      {manager.worstManager.name}
-                    </a>
-                    <span className="ml-1" style={{ color: "var(--text-muted)" }}>
-                      {manager.worstManager.ppg.toFixed(2)} PPG · {manager.worstManager.years}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
+      {isTouchDevice ? (
+        <Popover>
+          <PopoverTrigger asChild>{badge}</PopoverTrigger>
+          <PopoverContent
+            side="bottom"
+            align="center"
+            sideOffset={8}
+            avoidCollisions={true}
+            collisionPadding={16}
+            className="max-w-[280px] sm:max-w-xs p-3"
+            style={contentStyles}
+          >
+            {tooltipContent}
+          </PopoverContent>
+        </Popover>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>{badge}</TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            align="center"
+            sideOffset={8}
+            avoidCollisions={true}
+            collisionPadding={16}
+            className="max-w-[280px] sm:max-w-xs p-3"
+            style={contentStyles}
+          >
+            {tooltipContent}
+          </TooltipContent>
+        </Tooltip>
+      )}
     </span>
   );
 }
