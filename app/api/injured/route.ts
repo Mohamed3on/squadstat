@@ -92,7 +92,7 @@ async function fetchLeagueInjured(league: typeof LEAGUES[number]): Promise<Injur
   }
 }
 
-const getInjuredPlayers = unstable_cache(
+export const getInjuredPlayers = unstable_cache(
   async () => {
     // Fetch all leagues in parallel for maximum speed
     const results = await Promise.all(LEAGUES.map(fetchLeagueInjured));

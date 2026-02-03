@@ -1,5 +1,7 @@
 # FormTracker Development Guide
 
+Use `bun` for all commands (not npm/yarn).
+
 ## Caching Strategy
 
 All API routes that fetch from Transfermarkt should use `unstable_cache` for daily caching:

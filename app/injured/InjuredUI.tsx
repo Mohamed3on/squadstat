@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Header } from "@/app/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,17 +17,15 @@ interface TeamInjuryGroup {
   count: number;
 }
 
-interface InjuredResponse {
+export interface InjuredResponse {
   success: boolean;
   players: InjuredPlayer[];
   totalPlayers: number;
   leagues: string[];
 }
 
-async function fetchInjuredPlayers(): Promise<InjuredResponse> {
-  const res = await fetch("/api/injured");
-  if (!res.ok) throw new Error("Failed to fetch injured players");
-  return res.json();
+interface InjuredUIProps {
+  initialData: InjuredResponse;
 }
 
 function formatValue(value: string): string {
@@ -231,28 +228,6 @@ function TeamInjuryCard({ team, rank }: { team: TeamInjuryGroup; rank: number })
   );
 }
 
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <Card key={i} className="animate-pulse">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)]" />
-              <div className="w-14 h-14 rounded-lg bg-[var(--bg-elevated)]" />
-              <div className="flex-1 space-y-2">
-                <div className="h-5 rounded w-1/3 bg-[var(--bg-elevated)]" />
-                <div className="h-4 rounded w-1/4 bg-[var(--bg-elevated)]" />
-                <div className="h-4 rounded w-1/2 bg-[var(--bg-elevated)]" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 function StatCard({ value, label }: { value: string | number; label: string }) {
   return (
     <div className="text-center">
@@ -266,21 +241,15 @@ function StatCard({ value, label }: { value: string | number; label: string }) {
   );
 }
 
-export function InjuredUI() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["injured"],
-    queryFn: fetchInjuredPlayers,
-    staleTime: 1000 * 60 * 30,
-  });
+export function InjuredUI({ initialData }: InjuredUIProps) {
+  const data = initialData;
 
-  const totalValue = data?.players.reduce((sum, p) => sum + p.marketValueNum, 0) || 0;
+  const totalValue = data.players.reduce((sum, p) => sum + p.marketValueNum, 0);
   const formattedTotalValue = totalValue >= 1_000_000_000
     ? `€${(totalValue / 1_000_000_000).toFixed(2)}B`
     : `€${(totalValue / 1_000_000).toFixed(0)}M`;
 
   const teamGroups = useMemo(() => {
-    if (!data?.players) return [];
-
     const groupMap = new Map<string, TeamInjuryGroup>();
 
     data.players.forEach((player) => {
@@ -302,7 +271,7 @@ export function InjuredUI() {
     });
 
     return Array.from(groupMap.values()).sort((a, b) => b.totalValue - a.totalValue);
-  }, [data?.players]);
+  }, [data.players]);
 
   const mostInjuredTeam = useMemo(() => {
     if (!teamGroups.length) return null;
@@ -325,18 +294,16 @@ export function InjuredUI() {
         </div>
 
         {/* Stats */}
-        {data && (
-          <Card className="mb-4 sm:mb-6">
-            <CardContent className="p-3 sm:p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                <StatCard value={data.totalPlayers} label="Players" />
-                <StatCard value={teamGroups.length} label="Teams" />
-                <StatCard value={mostInjuredTeam?.count || 0} label="Most Injured" />
-                <StatCard value={formattedTotalValue} label="Total Value" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="p-3 sm:p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <StatCard value={data.totalPlayers} label="Players" />
+              <StatCard value={teamGroups.length} label="Teams" />
+              <StatCard value={mostInjuredTeam?.count || 0} label="Most Injured" />
+              <StatCard value={formattedTotalValue} label="Total Value" />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs defaultValue="players" className="w-full">
@@ -345,34 +312,20 @@ export function InjuredUI() {
             <TabsTrigger value="teams">By Team</TabsTrigger>
           </TabsList>
 
-          {isLoading && <LoadingSkeleton />}
-
-          {error && (
-            <Card className="border-red-500/30 bg-red-500/10">
-              <CardContent className="p-4 text-center">
-                <p className="text-red-500">Failed to load injured players. Please try again.</p>
-              </CardContent>
-            </Card>
-          )}
-
           <TabsContent value="players">
-            {data && (
-              <div className="space-y-3">
-                {data.players.map((player, idx) => (
-                  <PlayerCard key={`${player.name}-${player.club}`} player={player} rank={idx + 1} />
-                ))}
-              </div>
-            )}
+            <div className="space-y-3">
+              {data.players.map((player, idx) => (
+                <PlayerCard key={`${player.name}-${player.club}`} player={player} rank={idx + 1} />
+              ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="teams">
-            {data && (
-              <div className="space-y-3">
-                {teamGroups.map((team, idx) => (
-                  <TeamInjuryCard key={team.club} team={team} rank={idx + 1} />
-                ))}
-              </div>
-            )}
+            <div className="space-y-3">
+              {teamGroups.map((team, idx) => (
+                <TeamInjuryCard key={team.club} team={team} rank={idx + 1} />
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </main>
