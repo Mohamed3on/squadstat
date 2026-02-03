@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
 import type { ManagerInfo } from "@/app/types";
-
-const BASE_URL = "https://www.transfermarkt.com";
+import { BASE_URL } from "@/lib/constants";
 
 async function fetchManagerInfo(clubId: string): Promise<ManagerInfo | null> {
   try {

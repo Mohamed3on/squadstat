@@ -1,166 +1,24 @@
 import { NextResponse } from "next/server";
 import { unstable_cache, revalidateTag } from "next/cache";
-import * as cheerio from "cheerio";
-
-const BASE_URL = "https://www.transfermarkt.com";
-
-interface PlayerStats {
-  name: string;
-  position: string;
-  age: number;
-  club: string;
-  league: string;
-  matches: number;
-  goals: number;
-  assists: number;
-  points: number;
-  marketValue: number;
-  marketValueDisplay: string;
-  profileUrl: string;
-  imageUrl: string;
-  playerId: string;
-  minutes?: number;
-}
-
-async function fetchPage(url: string): Promise<string> {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    },
-    next: { revalidate: 43200 },
-  });
-  return response.text();
-}
-
-function parseMarketValue(valueStr: string): number {
-  const cleaned = valueStr.replace(/[€,]/g, "").trim();
-  const match = cleaned.match(/([\d.]+)(m|k)?/i);
-  if (!match) return 0;
-  const num = parseFloat(match[1]);
-  const unit = (match[2] || "").toLowerCase();
-  if (unit === "m") return num * 1_000_000;
-  if (unit === "k") return num * 1_000;
-  return num;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parsePlayerRow($: cheerio.CheerioAPI, row: any): PlayerStats | null {
-  const cells = $(row).find("> td");
-  if (cells.length < 10) return null;
-
-  const nameCell = $(cells[1]);
-  const inlineTable = nameCell.find(".inline-table");
-  const nameLink = inlineTable.find("td.hauptlink a");
-  const name = nameLink.attr("title") || nameLink.text().trim();
-  const profileUrl = nameLink.attr("href") || "";
-  const position = inlineTable.find("tr").eq(1).find("td").text().trim();
-  const imgEl = inlineTable.find("img").first();
-  const imageUrl = imgEl.attr("data-src") || imgEl.attr("src") || "";
-
-  const playerIdMatch = profileUrl.match(/\/spieler\/(\d+)/);
-  const playerId = playerIdMatch ? playerIdMatch[1] : "";
-
-  const age = parseInt($(cells[2]).text().trim()) || 0;
-
-  const clubCell = $(cells[4]);
-  const clubInline = clubCell.find(".inline-table");
-  const clubLink = clubInline.find("td.hauptlink a");
-  const club = clubLink.attr("title") || clubLink.text().trim();
-  const leagueLink = clubInline.find("tr").eq(1).find("a");
-  const league = leagueLink.text().trim();
-
-  const matches = parseInt($(cells[5]).find("a").text().trim()) || parseInt($(cells[5]).text().trim()) || 0;
-  const goals = parseInt($(cells[6]).text().trim()) || 0;
-  const assists = parseInt($(cells[7]).text().trim()) || 0;
-  const points = parseInt($(cells[8]).text().trim()) || 0;
-  const marketValueDisplay = $(cells[9]).text().trim();
-  const marketValue = parseMarketValue(marketValueDisplay);
-
-  if (!name) return null;
-  return { name, position, age, club, league, matches, goals, assists, points, marketValue, marketValueDisplay, profileUrl, imageUrl, playerId };
-}
-
-function getCurrentSeasonId(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  return month < 9 ? String(year - 1) : String(year);
-}
-
-async function fetchTopScorers(positionType: string): Promise<PlayerStats[]> {
-  const seasonId = getCurrentSeasonId();
-
-  let positionPath = "";
-  switch (positionType) {
-    case "cf":
-      positionPath = "ausrichtung//spielerposition_id/14";
-      break;
-    case "midfielder":
-      positionPath = "ausrichtung/Mittelfeld/spielerposition_id/";
-      break;
-    case "forward":
-    default:
-      positionPath = "ausrichtung/Sturm/spielerposition_id/";
-      break;
-  }
-
-  const baseUrl = `${BASE_URL}/scorer/topscorer/statistik/${seasonId}/saison_id/${seasonId}/selectedOptionKey/6/land_id/0/altersklasse//${positionPath}/filter/0/yt0/Show/plus/1/galerie/0/sort/marktwert.desc`;
-
-  const pageUrls = Array.from({ length: 10 }, (_, i) => {
-    const page = i + 1;
-    return page === 1 ? `${baseUrl}?ajax=yw1` : `${baseUrl}/page/${page}?ajax=yw1`;
-  });
-
-  const pageResults = await Promise.allSettled(pageUrls.map(fetchPage));
-
-  const players: PlayerStats[] = [];
-  for (const result of pageResults) {
-    if (result.status === "fulfilled") {
-      const $ = cheerio.load(result.value);
-      const rows = $("table.items > tbody > tr");
-      rows.each((_, row) => {
-        const player = parsePlayerRow($, row);
-        if (player?.name) players.push(player);
-      });
-    }
-  }
-
-  // Sort by market value descending
-  return players.sort((a, b) => b.marketValue - a.marketValue);
-}
-
-async function fetchPlayerMinutes(playerId: string): Promise<number> {
-  if (!playerId) return 0;
-  try {
-    const url = `${BASE_URL}/x/leistungsdaten/spieler/${playerId}`;
-    const htmlContent = await fetchPage(url);
-    const $ = cheerio.load(htmlContent);
-    const minutesText = $("table.items tfoot tr td.rechts").last().text().trim();
-    const cleaned = minutesText.replace(/[.']/g, "").replace(/,/g, "");
-    return parseInt(cleaned) || 0;
-  } catch {
-    return 0;
-  }
-}
+import type { PlayerStats } from "@/app/types";
+import { fetchTopScorers } from "@/lib/fetch-top-scorers";
 
 const MIN_MARKET_VALUE = 10_000_000; // €10m minimum to be considered
 const MAX_RESULTS = 50; // Return top candidates, client filters further
 
 /**
- * Step 1: Find candidates - players who seem to underperform based on points vs cheaper players
+ * Find candidates - players who seem to underperform based on points vs cheaper players
  * A player is a candidate if there exists a cheaper player with more points
  */
 function findCandidates(players: PlayerStats[]): PlayerStats[] {
+  const sorted = [...players].sort((a, b) => b.marketValue - a.marketValue);
   const candidates: PlayerStats[] = [];
 
-  for (let i = 0; i < players.length; i++) {
-    const player = players[i];
-    // Skip low-value players
+  for (let i = 0; i < sorted.length; i++) {
+    const player = sorted[i];
     if (player.marketValue < MIN_MARKET_VALUE) continue;
 
-    // Check if any cheaper player (later in the sorted list) has more points
-    const cheaperWithMorePoints = players.slice(i + 1).some(p => p.points > player.points);
+    const cheaperWithMorePoints = sorted.slice(i + 1).some(p => p.points > player.points);
     if (cheaperWithMorePoints) {
       candidates.push(player);
     }
@@ -169,40 +27,16 @@ function findCandidates(players: PlayerStats[]): PlayerStats[] {
   return candidates;
 }
 
-/**
- * Step 2: After fetching minutes, find real underperformers
- * A player is a real underperformer if NO player with >= market value AND >= minutes has fewer points
- */
-function findRealUnderperformers(players: PlayerStats[]): PlayerStats[] {
-  return players.filter(player => {
-    // Check if there's anyone with >= value and >= minutes who has fewer points
-    const dominatedBy = players.some(other =>
-      other.playerId !== player.playerId &&
-      other.marketValue >= player.marketValue &&
-      (other.minutes ?? 0) >= (player.minutes ?? 0) &&
-      other.points < player.points
-    );
-    // Real underperformer = NOT dominated by anyone
-    return !dominatedBy;
-  });
-}
-
 async function computeUnderperformers(positionType: string): Promise<PlayerStats[]> {
-  // Fetch all players sorted by market value desc
   const allPlayers = await fetchTopScorers(positionType);
-
-  // Find candidates - players where a cheaper player has more points
   const candidates = findCandidates(allPlayers);
-
-  // Return top candidates by market value (client will fetch minutes and filter further)
   return candidates.sort((a, b) => b.marketValue - a.marketValue).slice(0, MAX_RESULTS);
 }
 
-// Cached version using Next.js cache (works on Vercel)
 const getCachedUnderperformers = unstable_cache(
   async (positionType: string) => computeUnderperformers(positionType),
   ["underperformers"],
-  { revalidate: 86400, tags: ["underperformers"] } // 24 hours
+  { revalidate: 86400, tags: ["underperformers"] }
 );
 
 export async function GET(request: Request) {
@@ -214,7 +48,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid position type" }, { status: 400 });
   }
 
-  // Bust cache if requested
   if (bustCache) {
     revalidateTag("underperformers");
     return NextResponse.json({ cleared: true });
@@ -222,10 +55,7 @@ export async function GET(request: Request) {
 
   try {
     const underperformers = await getCachedUnderperformers(positionType);
-
-    return NextResponse.json({
-      underperformers,
-    });
+    return NextResponse.json({ underperformers });
   } catch (error) {
     console.error("Error computing underperformers:", error);
     return NextResponse.json({ error: "Failed to compute underperformers" }, { status: 500 });

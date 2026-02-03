@@ -1,39 +1,10 @@
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { TeamFormEntry } from "@/app/types";
-
-const BASE_URL = "https://www.transfermarkt.com";
-
-const LEAGUES = [
-  { code: "GB1", name: "Premier League", slug: "premier-league" },
-  { code: "ES1", name: "La Liga", slug: "laliga" },
-  { code: "L1", name: "Bundesliga", slug: "bundesliga" },
-  { code: "IT1", name: "Serie A", slug: "serie-a" },
-  { code: "FR1", name: "Ligue 1", slug: "ligue-1" },
-];
-
-async function fetchPage(url: string): Promise<string> {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    },
-  });
-  return response.text();
-}
-
-function parseMarketValue(value: string): number {
-  if (!value || value === "-") return 0;
-  const cleaned = value.replace(/[€,]/g, "").trim();
-  const match = cleaned.match(/([\d.]+)(k|m|bn)?/i);
-  if (!match) return 0;
-  const num = parseFloat(match[1]);
-  const unit = (match[2] || "").toLowerCase();
-  if (unit === "bn") return num * 1_000_000_000;
-  if (unit === "m") return num * 1_000_000;
-  if (unit === "k") return num * 1_000;
-  return num;
-}
+import { BASE_URL } from "./constants";
+import { LEAGUES } from "./leagues";
+import { fetchPage } from "./fetch";
+import { parseMarketValue } from "./parse-market-value";
 
 interface LeagueTeam {
   name: string;

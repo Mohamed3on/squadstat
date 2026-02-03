@@ -94,3 +94,21 @@ export interface TeamFormEntry {
   clubUrl: string;
   clubId: string;
 }
+
+export interface PlayerStats {
+  name: string;
+  position: string;
+  age: number;
+  club: string;
+  league: string;
+  matches: number;
+  goals: number;
+  assists: number;
+  points: number;
+  marketValue: number;
+  marketValueDisplay: string;
+  profileUrl: string;
+  imageUrl: string;
+  playerId: string;
+  minutes?: number;
+}
