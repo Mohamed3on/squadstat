@@ -89,4 +89,5 @@ export interface TeamFormEntry {
   deltaPts: number;
   logoUrl: string;
   clubUrl: string;
+  clubId: string;
 }
