@@ -232,6 +232,11 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               >
                 {manager.name}
               </a>
+              {manager.appointedDate && (
+                <span style={{ color: "var(--text-muted)" }} className="text-xs">
+                  (since {manager.appointedDate})
+                </span>
+              )}
             </div>
           ) : (
             <span style={{ color: "var(--text-muted)" }}>Manager info not available</span>

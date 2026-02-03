@@ -32,11 +32,14 @@ async function fetchManagerInfo(clubId: string): Promise<ManagerInfo | null> {
         const link = inlineTable.find(".hauptlink a");
         const name = link.attr("title") || link.text().trim();
         const profileUrl = link.attr("href") || "";
+        const cells = row.find("> td");
+        const appointedDate = $(cells[3]).text().trim();
 
         if (name) {
           return {
             name,
             profileUrl: profileUrl.startsWith("/") ? BASE_URL + profileUrl : profileUrl,
+            appointedDate: appointedDate || undefined,
           };
         }
       }

@@ -61,6 +61,7 @@ export interface AnalysisResult {
 export interface ManagerInfo {
   name: string;
   profileUrl: string;
+  appointedDate?: string;
 }
 
 export interface InjuredPlayer {
