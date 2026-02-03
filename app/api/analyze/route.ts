@@ -25,11 +25,12 @@ function parseTeamRow($: cheerio.CheerioAPI, row: any): TeamStats | null {
   const clubLink = nameCell.find(".inline-table a").first();
   const name = clubLink.attr("title") || nameCell.find(".hauptlink a").first().text().trim();
   const league = nameCell.find("table tr:last-child a").text().trim();
+  const leaguePosition = parseInt($(cells[2]).text().trim()) || 0;
   const country = $(cells[3]).find("img").attr("title") || "";
 
   // Extract logo URL and club URL
   const logoImg = nameCell.find(".inline-table img").first();
-  const logoUrl = logoImg.attr("src") || "";
+  const logoUrl = (logoImg.attr("src") || "").replace("/verysmall/", "/head/");
   const clubUrl = clubLink.attr("href") || "";
   const clubIdMatch = clubUrl.match(/\/verein\/(\d+)/);
   const clubId = clubIdMatch ? clubIdMatch[1] : "";
@@ -45,7 +46,7 @@ function parseTeamRow($: cheerio.CheerioAPI, row: any): TeamStats | null {
   const points = parseInt($(cells[10]).text().trim()) || 0;
 
   if (!name) return null;
-  return { name, league, country, wins, draws, losses, goalsScored: scored, goalsConceded: conceded, goalDiff, points, logoUrl, clubUrl, clubId };
+  return { name, league, country, leaguePosition, wins, draws, losses, goalsScored: scored, goalsConceded: conceded, goalDiff, points, logoUrl, clubUrl, clubId };
 }
 
 async function fetchAllTeams(period: number): Promise<TeamStats[]> {
@@ -146,6 +147,7 @@ const getAnalysis = unstable_cache(
           name: team.name,
           league: team.league,
           country: team.country,
+          leaguePosition: team.leaguePosition,
           criteria,
           stats: { points: team.points, goalDiff: team.goalDiff, goalsScored: team.goalsScored, goalsConceded: team.goalsConceded },
           logoUrl: team.logoUrl,
@@ -156,6 +158,7 @@ const getAnalysis = unstable_cache(
           name: team.name,
           league: team.league,
           country: team.country,
+          leaguePosition: team.leaguePosition,
           criteria,
           stats: { points: team.points, goalDiff: team.goalDiff, goalsScored: team.goalsScored, goalsConceded: team.goalsConceded },
           logoUrl: team.logoUrl,

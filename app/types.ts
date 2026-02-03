@@ -2,6 +2,7 @@ export interface TeamStats {
   name: string;
   league: string;
   country: string;
+  leaguePosition: number;
   wins: number;
   draws: number;
   losses: number;
@@ -18,6 +19,7 @@ export interface QualifiedTeam {
   name: string;
   league: string;
   country: string;
+  leaguePosition: number;
   criteria: string[];
   stats: {
     points: number;

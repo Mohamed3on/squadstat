@@ -97,7 +97,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               )}
             </div>
             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-              {team.stats.points} pts • GD: {team.stats.goalDiff > 0 ? "+" : ""}
+              {team.leaguePosition}{team.leaguePosition === 1 ? "st" : team.leaguePosition === 2 ? "nd" : team.leaguePosition === 3 ? "rd" : "th"} • {team.stats.points} pts • GD: {team.stats.goalDiff > 0 ? "+" : ""}
               {team.stats.goalDiff}
             </div>
           </div>
@@ -149,7 +149,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
             )}
           </div>
           <div className="text-xs sm:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
-            {team.league}
+            {team.league} • {team.leaguePosition}{team.leaguePosition === 1 ? "st" : team.leaguePosition === 2 ? "nd" : team.leaguePosition === 3 ? "rd" : "th"}
           </div>
         </div>
       </div>
