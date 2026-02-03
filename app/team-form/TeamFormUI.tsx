@@ -1,8 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { Header } from "@/app/components/Header";
-import type { TeamFormEntry } from "@/app/types";
+import type { TeamFormEntry, ManagerInfo } from "@/app/types";
 
 interface TeamFormResponse {
   success: boolean;
@@ -15,6 +16,11 @@ interface TeamFormResponse {
 async function fetchTeamForm(): Promise<TeamFormResponse> {
   const res = await fetch("/api/team-form");
   if (!res.ok) throw new Error("Failed to fetch team form data");
+  return res.json();
+}
+
+async function fetchManager(clubId: string): Promise<{ clubId: string; manager: ManagerInfo | null }> {
+  const res = await fetch(`/api/manager/${clubId}`);
   return res.json();
 }
 
@@ -33,8 +39,17 @@ function formatValue(value: string): string {
   return value || "-";
 }
 
-function TeamCard({ team, rank, type }: { team: TeamFormEntry; rank: number; type: "over" | "under" }) {
+interface TeamCardProps {
+  team: TeamFormEntry;
+  rank: number;
+  type: "over" | "under";
+  manager?: ManagerInfo | null;
+  managerLoading?: boolean;
+}
+
+function TeamCard({ team, rank, type, manager, managerLoading }: TeamCardProps) {
   const isOver = type === "over";
+  const showManager = manager !== undefined;
 
   return (
     <div
@@ -114,7 +129,101 @@ function TeamCard({ team, rank, type }: { team: TeamFormEntry; rank: number; typ
               <span style={{ color: "var(--text-secondary)" }}>Value:</span> {formatValue(team.marketValue)}
             </span>
           </div>
+
+          {/* Manager info */}
+          {showManager && team.clubId && (
+            <div className="mt-2 text-[11px] sm:text-sm" style={{ color: "var(--text-muted)" }}>
+              {managerLoading ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border animate-spin inline-block"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      borderTopColor: "var(--accent-blue)",
+                    }}
+                  />
+                  <span>Manager...</span>
+                </span>
+              ) : manager ? (
+                <span>
+                  Manager:{" "}
+                  <a
+                    href={manager.profileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold hover:underline"
+                    style={{ color: "var(--accent-blue)" }}
+                  >
+                    {manager.name}
+                  </a>
+                </span>
+              ) : null}
+            </div>
+          )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Component that handles parallel manager fetching for a list of teams
+function TeamListSection({
+  teams,
+  type,
+  title,
+  icon,
+}: {
+  teams: TeamFormEntry[];
+  type: "over" | "under";
+  title: string;
+  icon: React.ReactNode;
+}) {
+  const clubIds = useMemo(() => teams.map((t) => t.clubId).filter(Boolean), [teams]);
+
+  const managerQueries = useQueries({
+    queries: clubIds.map((clubId) => ({
+      queryKey: ["manager", clubId],
+      queryFn: () => fetchManager(clubId),
+      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      gcTime: 7 * 24 * 60 * 60 * 1000, // Keep in cache for 7 days
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    })),
+  });
+
+  const managersMap = useMemo(() => {
+    const map: Record<string, ManagerInfo | null> = {};
+    managerQueries.forEach((q, i) => {
+      if (q.data) {
+        map[clubIds[i]] = q.data.manager;
+      }
+    });
+    return map;
+  }, [managerQueries, clubIds]);
+
+  const isOver = type === "over";
+
+  return (
+    <div>
+      <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center gap-2" style={{ color: isOver ? "#16a34a" : "#dc2626" }}>
+        {icon}
+        {title}
+      </h2>
+      <div className="space-y-3">
+        {teams.map((team, idx) => {
+          const clubIdIndex = clubIds.indexOf(team.clubId);
+          const managerQuery = clubIdIndex >= 0 ? managerQueries[clubIdIndex] : null;
+          return (
+            <TeamCard
+              key={`${team.name}-${team.league}`}
+              team={team}
+              rank={idx + 1}
+              type={type}
+              manager={managersMap[team.clubId]}
+              managerLoading={managerQuery?.isLoading}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -236,34 +345,28 @@ export function TeamFormUI() {
         {data && (
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             {/* Overperformers */}
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center gap-2" style={{ color: "#16a34a" }}>
+            <TeamListSection
+              teams={data.overperformers}
+              type="over"
+              title="Overperformers"
+              icon={
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
-                Overperformers
-              </h2>
-              <div className="space-y-3">
-                {data.overperformers.map((team, idx) => (
-                  <TeamCard key={`${team.name}-${team.league}`} team={team} rank={idx + 1} type="over" />
-                ))}
-              </div>
-            </div>
+              }
+            />
 
             {/* Underperformers */}
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center gap-2" style={{ color: "#dc2626" }}>
+            <TeamListSection
+              teams={data.underperformers}
+              type="under"
+              title="Underperformers"
+              icon={
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Underperformers
-              </h2>
-              <div className="space-y-3">
-                {data.underperformers.map((team, idx) => (
-                  <TeamCard key={`${team.name}-${team.league}`} team={team} rank={idx + 1} type="under" />
-                ))}
-              </div>
-            </div>
+              }
+            />
           </div>
         )}
       </main>

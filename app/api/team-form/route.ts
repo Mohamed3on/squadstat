@@ -160,6 +160,7 @@ async function fetchLeagueData(league: typeof LEAGUES[number]): Promise<TeamForm
         deltaPts,
         logoUrl: team.logoUrl,
         clubUrl: team.clubUrl,
+        clubId: team.clubId,
       });
     }
 
