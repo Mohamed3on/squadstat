@@ -41,8 +41,6 @@ function formatValue(value: string): string {
   return value || "-";
 }
 
-const toggleItemClass = "px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border-2 data-[state=on]:shadow-md data-[state=off]:opacity-60 data-[state=off]:scale-95 hover:opacity-80 hover:scale-100";
-
 function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: string; onValueChange: (value: string) => void }) {
   return (
     <div className="mb-4 sm:mb-6">
@@ -57,11 +55,12 @@ function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: strin
       >
         <ToggleGroupItem
           value="all"
-          className={toggleItemClass}
+          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
           style={{
-            backgroundColor: selectedLeague === "all" ? "var(--text-primary)" : "transparent",
-            borderColor: "var(--text-muted)",
-            color: selectedLeague === "all" ? "var(--bg-base)" : "var(--text-muted)",
+            backgroundColor: selectedLeague === "all" ? "var(--bg-card)" : "transparent",
+            border: selectedLeague === "all" ? "1px solid var(--accent-blue)" : "1px solid var(--border-subtle)",
+            color: selectedLeague === "all" ? "var(--accent-blue)" : "var(--text-muted)",
+            boxShadow: selectedLeague === "all" ? "0 0 12px rgba(88, 166, 255, 0.2)" : "none",
           }}
         >
           All Leagues
@@ -75,11 +74,12 @@ function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: strin
             <ToggleGroupItem
               key={league.code}
               value={league.name}
-              className={toggleItemClass}
+              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
               style={{
-                backgroundColor: isSelected ? color : "transparent",
-                borderColor: color,
-                color: isSelected ? (league.name === "Ligue 1" ? "#000" : "#fff") : color,
+                backgroundColor: isSelected ? color : "var(--bg-card)",
+                border: `1px solid ${isSelected ? color : "var(--border-subtle)"}`,
+                color: isSelected ? (league.name === "Ligue 1" ? "#000" : "#fff") : "var(--text-secondary)",
+                boxShadow: isSelected ? `0 0 12px ${color}40` : "none",
               }}
             >
               {league.name}
