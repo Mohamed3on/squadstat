@@ -6,6 +6,7 @@ import type { TeamFormEntry, ManagerInfo } from "@/app/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ManagerPPGBadge, ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
 import { LEAGUES } from "@/lib/leagues";
 
@@ -42,15 +43,15 @@ function formatValue(value: string): string {
 }
 
 interface LeagueFilterProps {
-  selectedLeagues: Set<string>;
-  onToggleLeague: (league: string) => void;
+  selectedLeagues: string[];
+  onValueChange: (value: string[]) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
 }
 
-function LeagueFilter({ selectedLeagues, onToggleLeague, onSelectAll, onClearAll }: LeagueFilterProps) {
-  const allSelected = selectedLeagues.size === LEAGUES.length;
-  const noneSelected = selectedLeagues.size === 0;
+function LeagueFilter({ selectedLeagues, onValueChange, onSelectAll, onClearAll }: LeagueFilterProps) {
+  const allSelected = selectedLeagues.length === LEAGUES.length;
+  const noneSelected = selectedLeagues.length === 0;
 
   return (
     <div className="mb-4 sm:mb-6">
@@ -79,38 +80,34 @@ function LeagueFilter({ selectedLeagues, onToggleLeague, onSelectAll, onClearAll
           </Button>
         </div>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <ToggleGroup
+        type="multiple"
+        value={selectedLeagues}
+        onValueChange={onValueChange}
+        className="flex flex-wrap gap-2"
+      >
         {LEAGUES.map((league) => {
-          const isSelected = selectedLeagues.has(league.name);
+          const isSelected = selectedLeagues.includes(league.name);
           const color = getLeagueColor(league.name);
           const isLigue1 = league.name === "Ligue 1";
 
           return (
-            <button
+            <ToggleGroupItem
               key={league.code}
-              onClick={() => onToggleLeague(league.name)}
-              className={`
-                px-3 py-1.5 rounded-full text-sm font-medium
-                transition-all duration-200 ease-out
-                border-2 cursor-pointer
-                ${isSelected
-                  ? "scale-100 shadow-md"
-                  : "scale-95 opacity-60 hover:opacity-80 hover:scale-100"
-                }
-              `}
+              value={league.name}
+              aria-label={`Toggle ${league.name}`}
+              className="px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ease-out border-2 data-[state=on]:shadow-md data-[state=off]:opacity-60 data-[state=off]:scale-95 hover:opacity-80 hover:scale-100"
               style={{
                 backgroundColor: isSelected ? color : "transparent",
                 borderColor: color,
-                color: isSelected
-                  ? (isLigue1 ? "#000" : "#fff")
-                  : color,
+                color: isSelected ? (isLigue1 ? "#000" : "#fff") : color,
               }}
             >
               {league.name}
-            </button>
+            </ToggleGroupItem>
           );
         })}
-      </div>
+      </ToggleGroup>
     </div>
   );
 }
@@ -370,51 +367,45 @@ export function TeamFormUI({ initialData }: TeamFormUIProps) {
   const data = initialData;
 
   // Initialize with all leagues selected
-  const [selectedLeagues, setSelectedLeagues] = useState<Set<string>>(
-    () => new Set(LEAGUES.map((l) => l.name))
+  const [selectedLeagues, setSelectedLeagues] = useState<string[]>(
+    () => LEAGUES.map((l) => l.name)
   );
 
-  const handleToggleLeague = (league: string) => {
-    setSelectedLeagues((prev) => {
-      const next = new Set(prev);
-      if (next.has(league)) {
-        next.delete(league);
-      } else {
-        next.add(league);
-      }
-      return next;
-    });
+  const handleValueChange = (value: string[]) => {
+    setSelectedLeagues(value);
   };
 
   const handleSelectAll = () => {
-    setSelectedLeagues(new Set(LEAGUES.map((l) => l.name)));
+    setSelectedLeagues(LEAGUES.map((l) => l.name));
   };
 
   const handleClearAll = () => {
-    setSelectedLeagues(new Set());
+    setSelectedLeagues([]);
   };
 
   // Filter teams based on selected leagues
+  const selectedSet = useMemo(() => new Set(selectedLeagues), [selectedLeagues]);
+
   const filteredOverperformers = useMemo(
-    () => data.overperformers.filter((team) => selectedLeagues.has(team.league)),
-    [data.overperformers, selectedLeagues]
+    () => data.overperformers.filter((team) => selectedSet.has(team.league)),
+    [data.overperformers, selectedSet]
   );
 
   const filteredUnderperformers = useMemo(
-    () => data.underperformers.filter((team) => selectedLeagues.has(team.league)),
-    [data.underperformers, selectedLeagues]
+    () => data.underperformers.filter((team) => selectedSet.has(team.league)),
+    [data.underperformers, selectedSet]
   );
 
   return (
     <>
       <LeagueFilter
         selectedLeagues={selectedLeagues}
-        onToggleLeague={handleToggleLeague}
+        onValueChange={handleValueChange}
         onSelectAll={handleSelectAll}
         onClearAll={handleClearAll}
       />
 
-      {selectedLeagues.size === 0 ? (
+      {selectedLeagues.length === 0 ? (
         <div className="text-center py-12" style={{ color: "var(--text-muted)" }}>
           <p className="text-lg">Select at least one league to view teams</p>
         </div>
