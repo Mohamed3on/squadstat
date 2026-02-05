@@ -1,26 +1,29 @@
-import { revalidatePath, revalidateTag } from "next/cache";
-import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
+const ALL_TAGS = [
+  "form-analysis",
+  "underperformers",
+  "manager",
+  "team-form",
+  "player-minutes",
+  "injured",
+  "minutes-value",
+];
+
+export async function POST(request: NextRequest) {
   try {
-    // Revalidate all API routes
-    revalidatePath("/api/analyze", "page");
-    revalidatePath("/api/manager/[clubId]", "page");
-    revalidatePath("/api/player-form", "page");
-    revalidatePath("/api/player-minutes/[playerId]", "page");
+    const body = await request.json().catch(() => null);
+    const tags: string[] =
+      Array.isArray(body?.tags) && body.tags.length > 0 ? body.tags : ALL_TAGS;
 
-    // Revalidate caches (uses unstable_cache with tags)
-    revalidateTag("underperformers");
-    revalidateTag("injured");
-    revalidateTag("team-form");
-    revalidateTag("form-analysis");
-    revalidateTag("manager");
-    revalidateTag("minutes-value");
-    revalidateTag("player-minutes");
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
 
     return NextResponse.json({
       success: true,
-      revalidated: true,
+      revalidated: tags,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

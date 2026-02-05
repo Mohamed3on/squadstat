@@ -16,8 +16,21 @@ import {
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 
-async function revalidateAllCaches(): Promise<boolean> {
-  const res = await fetch("/api/revalidate", { method: "POST" });
+const PAGE_TAGS: Record<string, string[]> = {
+  "/": ["form-analysis", "underperformers", "manager"],
+  "/team-form": ["team-form"],
+  "/player-form": ["player-minutes"],
+  "/injured": ["injured"],
+  "/minutes-value": ["minutes-value"],
+};
+
+async function revalidateCaches(pathname: string): Promise<boolean> {
+  const tags = PAGE_TAGS[pathname];
+  const res = await fetch("/api/revalidate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(tags ? { tags } : {}),
+  });
   return res.ok;
 }
 
@@ -54,7 +67,7 @@ export function Header() {
   const handleBustCache = async () => {
     setIsRevalidating(true);
     try {
-      await revalidateAllCaches();
+      await revalidateCaches(pathname);
       queryClient.clear();
       window.location.reload();
     } catch {
