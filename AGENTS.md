@@ -6,6 +6,17 @@ Use `bun` for all commands (not npm/yarn).
 
 Don't run `bun run build` during development - the dev server is already running.
 
+## UI Components
+
+Use [shadcn/ui](https://ui.shadcn.com) for all UI components. Install new components with `npx shadcn@latest add <component>`. Never build custom UI primitives when a shadcn component exists.
+
+## Performance
+
+- **Parallel fetching:** Use `Promise.all` / `Promise.allSettled` for independent data fetches.
+- **Caching:** All API routes that fetch from Transfermarkt must use `unstable_cache` (see below).
+- **Retries:** Wrap external fetches with retry logic (exponential backoff, max 3 attempts) for rate-limited or flaky responses.
+- **Client:** Prefer server components. Only use `"use client"` when interactivity is required.
+
 ## Caching Strategy
 
 All API routes that fetch from Transfermarkt should use `unstable_cache` for daily caching:

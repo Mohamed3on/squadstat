@@ -6,7 +6,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetClose,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
 
 async function revalidateAllCaches(): Promise<boolean> {
   const res = await fetch("/api/revalidate", { method: "POST" });
@@ -57,49 +65,43 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[rgba(8,10,12,0.9)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-3 py-3 sm:px-4 sm:py-4">
-        <div className="flex items-center gap-3 sm:gap-6">
-          <Link href="/" className="group flex items-center gap-2">
-            <Image
-              src="/icon.png"
-              alt="FormTracker"
-              width={28}
-              height={28}
-              className="transition-opacity group-hover:opacity-80"
-            />
-            <h1 className="text-lg font-black tracking-tight text-[var(--text-primary)] transition-opacity group-hover:opacity-80 sm:text-xl">
-              Form<span className="text-[var(--accent-hot)]">Tracker</span>
-            </h1>
-          </Link>
+        {/* Logo */}
+        <Link href="/" className="group flex items-center gap-2">
+          <Image
+            src="/icon.png"
+            alt="FormTracker"
+            width={28}
+            height={28}
+            className="transition-opacity group-hover:opacity-80"
+          />
+          <h1 className="text-lg font-black tracking-tight text-[var(--text-primary)] transition-opacity group-hover:opacity-80 sm:text-xl">
+            Form<span className="text-[var(--accent-hot)]">Tracker</span>
+          </h1>
+        </Link>
 
-          <nav className="flex items-center gap-0.5 sm:gap-1">
-            {navItems.map(({ href, label }) => {
-              const isActive = pathname === href;
-              return (
-                <Button
-                  key={href}
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className={cn(
-                    "h-auto px-2 py-1.5 text-xs sm:px-3 sm:text-sm",
-                    isActive && "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                  )}
-                >
-                  <Link href={href}>{label}</Link>
-                </Button>
-              );
-            })}
-          </nav>
-        </div>
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-1 sm:flex">
+          {navItems.map(({ href, label }) => {
+            const isActive = pathname === href;
+            return (
+              <Button
+                key={href}
+                variant="ghost"
+                size="sm"
+                asChild
+                className={cn(
+                  "h-auto px-3 py-1.5 text-sm",
+                  isActive && "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                )}
+              >
+                <Link href={href}>{label}</Link>
+              </Button>
+            );
+          })}
+        </nav>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 sm:flex">
-            <div className="h-1.5 w-1.5 rounded-full bg-[#00ff87] shadow-[0_0_8px_#00ff87]" />
-            <span className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">
-              Live
-            </span>
-          </div>
-
+        {/* Right side */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             onClick={handleBustCache}
             disabled={isRevalidating}
@@ -120,6 +122,46 @@ export function Header() {
               </>
             )}
           </Button>
+
+          {/* Mobile menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0 text-[var(--text-primary)] sm:hidden"
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-64 border-[var(--border-subtle)] bg-[var(--bg-base)]"
+            >
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <nav className="mt-8 flex flex-col gap-1">
+                {navItems.map(({ href, label }) => {
+                  const isActive = pathname === href;
+                  return (
+                    <SheetClose key={href} asChild>
+                      <Link
+                        href={href}
+                        className={cn(
+                          "rounded-md px-3 py-2.5 text-base font-medium transition-colors",
+                          isActive
+                            ? "bg-[var(--bg-elevated)] text-[var(--accent-hot)]"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
+                        )}
+                      >
+                        {label}
+                      </Link>
+                    </SheetClose>
+                  );
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
