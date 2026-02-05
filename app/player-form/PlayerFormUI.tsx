@@ -1133,15 +1133,28 @@ export function PlayerFormUI() {
 
               {filteredUnderperformers.length === 0 ? (
                 <div
-                  className="rounded-xl p-10 text-center animate-fade-in"
+                  className="rounded-xl p-6 sm:p-8 animate-fade-in"
                   style={{ background: "rgba(255, 71, 87, 0.06)", border: "1px solid rgba(255, 71, 87, 0.2)" }}
                 >
-                  <p className="font-semibold text-lg" style={{ color: "#ff6b7a" }}>
-                    {data.targetPlayer.name} is the underperformer
-                  </p>
-                  <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                    No higher-valued player is producing fewer points
-                  </p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: "rgba(255, 71, 87, 0.15)" }}
+                    >
+                      <svg className="w-5 h-5" style={{ color: "#ff6b7a" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-base" style={{ color: "#ff6b7a" }}>
+                        {data.targetPlayer.name} is the biggest underperformer
+                      </p>
+                      <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+                        Every player worth {data.targetPlayer.marketValueDisplay} or more has better goal contributions.
+                        At {data.targetPlayer.points} points and {data.targetPlayer.marketValueDisplay}, {data.targetPlayer.name} has the worst output relative to their price tag.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">
