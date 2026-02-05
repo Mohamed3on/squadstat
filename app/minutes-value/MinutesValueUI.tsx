@@ -2,11 +2,12 @@
 
 import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import type { MinutesValuePlayer, PlayerStatsResult } from "@/app/types";
+import { getLeagueLogoUrl } from "@/lib/leagues";
 
 async function fetchMinutesBatch(playerIds: string[], signal?: AbortSignal): Promise<Record<string, PlayerStatsResult>> {
   const res = await fetch("/api/player-minutes/batch", {
@@ -267,36 +268,25 @@ function PlayerCard({ player, target, index, minutesLoading }: { player: Minutes
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 sm:pt-3 text-[10px] sm:text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-muted)" }}>{player.totalMatches} games</span>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-muted)" }}>{player.goals}G {player.assists}A</span>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-muted)" }}>{player.age}y</span>
-        <span className="hidden sm:inline text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
-          {player.league}
-        </span>
-        <span className="hidden sm:inline ml-auto tabular-nums" style={{ color: "var(--text-muted)" }}>
-          {player.nationality}
-        </span>
-      </div>
     </div>
   );
 }
 
-const ROW_HEIGHT = 120; // estimated row height including gap
+const ROW_HEIGHT = 100;
 const GAP = 12;
 
 function VirtualPlayerList({ items, target, loadingPlayerIds }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer; loadingPlayerIds?: Set<string> }) {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const virtualizer = useVirtualizer({
+  const listRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useWindowVirtualizer({
     count: items.length,
-    getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 10,
     gap: GAP,
+    scrollMargin: listRef.current?.offsetTop ?? 0,
   });
 
   return (
-    <div ref={parentRef} className="overflow-auto" style={{ maxHeight: "80vh" }}>
+    <div ref={listRef}>
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((virtualRow) => (
           <div
@@ -304,7 +294,7 @@ function VirtualPlayerList({ items, target, loadingPlayerIds }: { items: Minutes
             data-index={virtualRow.index}
             ref={virtualizer.measureElement}
             className="absolute left-0 w-full"
-            style={{ top: virtualRow.start }}
+            style={{ top: virtualRow.start - (virtualizer.options.scrollMargin || 0) }}
           >
             <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} minutesLoading={loadingPlayerIds?.has(items[virtualRow.index].playerId)} />
           </div>
@@ -336,7 +326,7 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<MinutesValuePlayer | null>(null);
-  const [sortBy, setSortBy] = useState<"value" | "minutes" | "games">("value");
+  const [sortBy, setSortBy] = useState<"value" | "minutes" | "games">("minutes");
   const [sortAsc, setSortAsc] = useState(false);
 
   const results = useMemo(() => {
@@ -359,10 +349,10 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Minutes vs <span style={{ color: "#ff6b7a" }}>Value</span>
+            Benched <span style={{ color: "#ff6b7a" }}>Stars</span>
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Find players worth more but playing less than your pick
+            High-value players getting the fewest minutes
           </p>
         </div>
 

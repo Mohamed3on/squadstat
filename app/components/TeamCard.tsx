@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ManagerPPGBadge, ManagerSkeleton } from "./ManagerPPGBadge";
+import { getLeagueLogoUrl } from "@/lib/leagues";
 
 interface TeamCardProps {
   team: QualifiedTeam;
@@ -141,7 +142,8 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               team.name
             )}
           </div>
-          <div className="text-xs sm:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
+            {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-4 h-4 object-contain shrink-0 rounded-sm bg-white/90 p-px" />}
             {team.league} • {team.leaguePosition}{team.leaguePosition === 1 ? "st" : team.leaguePosition === 2 ? "nd" : team.leaguePosition === 3 ? "rd" : "th"}
           </div>
         </div>

@@ -52,11 +52,11 @@ function SpinnerIcon({ className }: { className?: string }) {
 }
 
 const navItems = [
-  { href: "/", label: "Teams" },
-  { href: "/team-form", label: "Δ Pts" },
-  { href: "/player-form", label: "Players" },
+  { href: "/", label: "Form" },
+  { href: "/team-form", label: "Value vs Rank" },
+  { href: "/player-form", label: "Flops" },
   { href: "/injured", label: "Injured" },
-  { href: "/minutes-value", label: "Mins" },
+  { href: "/minutes-value", label: "Benched Stars" },
 ] as const;
 
 export function Header() {

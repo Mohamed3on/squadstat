@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Player Scout | FormTracker",
-  description: "Find underperforming players by market value across Europe's top leagues",
+  title: "Player Flops | FormTracker",
+  description: "Expensive players underdelivering on goals & assists across Europe's top leagues",
 };
 
 export default function PlayerFormLayout({ children }: { children: React.ReactNode }) {

@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ManagerPPGBadge, ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
-import { LEAGUES } from "@/lib/leagues";
+import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 
 export interface TeamFormResponse {
   success: boolean;
@@ -74,7 +74,7 @@ function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: strin
             <ToggleGroupItem
               key={league.code}
               value={league.name}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2"
               style={{
                 backgroundColor: isSelected ? color : "var(--bg-card)",
                 border: `1px solid ${isSelected ? color : "var(--border-subtle)"}`,
@@ -82,6 +82,7 @@ function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: strin
                 boxShadow: isSelected ? `0 0 12px ${color}40` : "none",
               }}
             >
+              <img src={getLeagueLogoUrl(league.name)} alt="" className="w-4 h-4 object-contain rounded-sm bg-white p-px" />
               {league.name}
             </ToggleGroupItem>
           );
@@ -148,13 +149,14 @@ function TeamCard({ team, rank, type, manager, managerLoading, index = 0 }: Team
               </a>
               <div className="flex items-center gap-2 mt-0.5">
                 <Badge
-                  className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs shrink-0"
+                  className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs shrink-0 flex items-center gap-1"
                   style={{
                     background: getLeagueColor(team.league),
                     color: team.league === "Ligue 1" ? "#000" : "#fff",
                     border: "none",
                   }}
                 >
+                  {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
                   {team.league}
                 </Badge>
               </div>

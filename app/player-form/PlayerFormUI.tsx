@@ -5,6 +5,7 @@ import { useQuery, useQueries } from "@tanstack/react-query";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
 import { SelectNative } from "@/components/ui/select-native";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getLeagueLogoUrl } from "@/lib/leagues";
 
 interface PlayerStats {
   name: string;
@@ -442,7 +443,8 @@ function UnderperformerCard({
             isFiltered={passesMinutesFilter}
           />
         </div>
-        <span className="hidden sm:block ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+        <span className="hidden sm:flex items-center gap-1 ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+          {getLeagueLogoUrl(player.league) && <img src={getLeagueLogoUrl(player.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
           {player.league}
         </span>
       </div>
@@ -664,7 +666,8 @@ function UnderperformerListCard({
         <span className="sm:hidden ml-auto tabular-nums" style={{ color: "var(--accent-blue)" }}>
           {player.minutes?.toLocaleString() || "—"}&apos;
         </span>
-        <span className="hidden sm:block ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+        <span className="hidden sm:flex items-center gap-1 ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+          {getLeagueLogoUrl(player.league) && <img src={getLeagueLogoUrl(player.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
           {player.league}
         </span>
       </div>
@@ -883,10 +886,10 @@ export function PlayerFormUI() {
             className="text-lg sm:text-xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Under<span style={{ color: "#ff6b7a" }}>performers</span>
+            Player <span style={{ color: "#ff6b7a" }}>Flops</span>
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Expensive players underdelivering on goal contributions
+            Expensive players underdelivering on goals &amp; assists
           </p>
         </div>
         {/* Search Form */}
