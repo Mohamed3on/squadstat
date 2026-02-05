@@ -127,3 +127,21 @@ export interface PlayerStats {
   playerId: string;
   minutes?: number;
 }
+
+export interface MinutesValuePlayer {
+  name: string;
+  position: string;
+  age: number;
+  club: string;
+  league: string;
+  nationality: string;
+  marketValue: number;
+  marketValueDisplay: string;
+  minutes: number;
+  clubMatches: number;
+  intlMatches: number;
+  totalMatches: number;
+  imageUrl: string;
+  profileUrl: string;
+  playerId: string;
+}

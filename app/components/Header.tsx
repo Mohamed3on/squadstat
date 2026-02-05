@@ -35,6 +35,7 @@ const navItems = [
   { href: "/team-form", label: "Δ Pts" },
   { href: "/player-form", label: "Players" },
   { href: "/injured", label: "Injured" },
+  { href: "/minutes-value", label: "Mins" },
 ] as const;
 
 export function Header() {

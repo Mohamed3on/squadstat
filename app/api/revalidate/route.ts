@@ -15,6 +15,8 @@ export async function POST() {
     revalidateTag("team-form");
     revalidateTag("form-analysis");
     revalidateTag("manager");
+    revalidateTag("minutes-value");
+    revalidateTag("player-minutes");
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -55,10 +55,22 @@ async function fetchPlayerForm(
   return res.json();
 }
 
-async function fetchPlayerMinutes(playerId: string, signal?: AbortSignal): Promise<number> {
-  const res = await fetch(`/api/player-minutes/${playerId}`, { signal });
+async function fetchPlayers(position: string, signal?: AbortSignal): Promise<PlayerStats[]> {
+  const res = await fetch(`/api/players?position=${position}`, { signal });
   const data = await res.json();
-  return data.minutes || 0;
+  return data.players || [];
+}
+
+async function fetchMinutesBatch(playerIds: string[], signal?: AbortSignal): Promise<Record<string, number>> {
+  if (playerIds.length === 0) return {};
+  const res = await fetch("/api/player-minutes/batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerIds }),
+    signal,
+  });
+  const data = await res.json();
+  return data.minutes || {};
 }
 
 function MinutesDisplay({
@@ -668,33 +680,26 @@ function UnderperformersSection({
   isLoading: boolean;
   error: Error | null;
 }) {
-  const playerIds = candidates.map((p) => p.playerId);
+  const playerIds = useMemo(() => candidates.map((p) => p.playerId), [candidates]);
 
-  // Fetch minutes for all candidates in parallel
-  const minutesQueries = useQueries({
-    queries: playerIds.map((playerId) => ({
-      queryKey: ["player-minutes", playerId],
-      queryFn: ({ signal }: { signal: AbortSignal }) => fetchPlayerMinutes(playerId, signal),
-      enabled: !!playerId,
-      staleTime: 5 * 60 * 1000,
-    })),
+  const { data: batchMinutes, isLoading: minutesLoading } = useQuery({
+    queryKey: ["player-minutes-batch", playerIds],
+    queryFn: ({ signal }) => fetchMinutesBatch(playerIds, signal),
+    enabled: playerIds.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Build minutes map and filter to real underperformers
-  const { playersWithMinutes, realUnderperformers, isFiltering } = useMemo(() => {
-    const withMinutes = candidates.map((player, idx) => ({
+  const { realUnderperformers, isFiltering } = useMemo(() => {
+    const withMinutes = candidates.map((player) => ({
       ...player,
-      minutes: minutesQueries[idx]?.data,
-      minutesLoading: minutesQueries[idx]?.isLoading ?? true,
+      minutes: batchMinutes?.[player.playerId],
     }));
 
-    // Check if still loading any minutes
-    const stillLoading = withMinutes.some((p) => p.minutesLoading);
+    const stillLoading = minutesLoading;
 
-    // Filter to real underperformers: no one with >= value AND >= minutes has fewer points
     const filtered = withMinutes.filter((player) => {
       const playerMins = player.minutes;
-      if (playerMins === undefined) return true; // Keep while loading
+      if (playerMins === undefined) return true;
       const dominated = withMinutes.some(
         (other) =>
           other.playerId !== player.playerId &&
@@ -707,11 +712,10 @@ function UnderperformersSection({
     });
 
     return {
-      playersWithMinutes: withMinutes,
       realUnderperformers: filtered,
       isFiltering: stillLoading,
     };
-  }, [candidates, minutesQueries]);
+  }, [candidates, batchMinutes, minutesLoading]);
 
   return (
     <section>
@@ -797,6 +801,34 @@ export function PlayerFormUI() {
   const [playerName, setPlayerName] = useState("");
   const [position, setPosition] = useState("all");
   const [searchParams, setSearchParams] = useState<{ name: string; position: string } | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch player list for autocomplete
+  const { data: playerList } = useQuery({
+    queryKey: ["players", position],
+    queryFn: ({ signal }) => fetchPlayers(position, signal),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const suggestions = useMemo(() => {
+    if (!playerName.trim() || !playerList) return [];
+    const q = playerName.toLowerCase();
+    return playerList.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 10);
+  }, [playerName, playerList]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) && !inputRef.current?.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // Fetch both positions in parallel for discovery view
   const discoveryQueries = useQueries({
@@ -817,60 +849,87 @@ export function PlayerFormUI() {
 
   const hasResults = data?.targetPlayer && !data?.error;
 
-  const targetMinutesQuery = useQuery({
-    queryKey: ["player-minutes", data?.targetPlayer?.playerId],
-    queryFn: ({ signal }) => fetchPlayerMinutes(data!.targetPlayer.playerId, signal),
-    enabled: hasResults && !!data?.targetPlayer?.playerId,
+  // Batch fetch minutes for target + all underperformers in one request
+  const allSearchPlayerIds = useMemo(() => {
+    if (!hasResults) return [];
+    const ids = data.underperformers.map((p) => p.playerId);
+    if (data.targetPlayer.playerId) ids.unshift(data.targetPlayer.playerId);
+    return ids;
+  }, [hasResults, data?.targetPlayer?.playerId, data?.underperformers]);
+
+  const { data: searchBatchMinutes, isLoading: searchMinutesLoading } = useQuery({
+    queryKey: ["player-minutes-batch", allSearchPlayerIds],
+    queryFn: ({ signal }) => fetchMinutesBatch(allSearchPlayerIds, signal),
+    enabled: allSearchPlayerIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
 
-  const underperformerIds = data?.underperformers?.map((p) => p.playerId) || [];
-  const underperformerMinutesQueries = useQueries({
-    queries: underperformerIds.map((playerId) => ({
-      queryKey: ["player-minutes", playerId],
-      queryFn: ({ signal }: { signal: AbortSignal }) => fetchPlayerMinutes(playerId, signal),
-      enabled: hasResults && !!playerId,
-      staleTime: 5 * 60 * 1000,
-    })),
-  });
-
-  const minutesFilterActive = targetMinutesQuery.data !== undefined;
+  const targetMinutes = searchBatchMinutes?.[data?.targetPlayer?.playerId ?? ""];
+  const minutesFilterActive = targetMinutes !== undefined;
 
   const minutesMap = useMemo(() => {
     const map: Record<string, { minutes?: number; isLoading: boolean; passesFilter?: boolean }> = {};
-    const targetMinutes = targetMinutesQuery.data;
+    if (!data?.underperformers) return map;
 
-    underperformerIds.forEach((playerId, index) => {
-      const query = underperformerMinutesQueries[index];
-      const minutes = query?.data;
-      const isLoading = query?.isLoading ?? true;
-
+    data.underperformers.forEach((player) => {
+      const minutes = searchBatchMinutes?.[player.playerId];
       let passesFilter: boolean | undefined;
       if (targetMinutes !== undefined && minutes !== undefined) {
         passesFilter = minutes >= targetMinutes;
       }
-
-      map[playerId] = { minutes, isLoading, passesFilter };
+      map[player.playerId] = { minutes, isLoading: searchMinutesLoading, passesFilter };
     });
 
     return map;
-  }, [underperformerIds, underperformerMinutesQueries, targetMinutesQuery.data]);
+  }, [data?.underperformers, searchBatchMinutes, searchMinutesLoading, targetMinutes]);
 
   const filteredUnderperformers = useMemo(() => {
     if (!data?.underperformers) return [];
-    const targetMinutes = targetMinutesQuery.data;
     if (targetMinutes === undefined) return data.underperformers;
     return data.underperformers.filter((player) => {
       const info = minutesMap[player.playerId];
       return info?.isLoading || info?.passesFilter !== false;
     });
-  }, [data?.underperformers, targetMinutesQuery.data, minutesMap]);
+  }, [data?.underperformers, targetMinutes, minutesMap]);
 
   const handleSearch = useCallback(() => {
     if (playerName.trim()) {
       setSearchParams({ name: playerName.trim(), position });
+      setShowDropdown(false);
     }
   }, [playerName, position]);
+
+  function handleSelect(player: PlayerStats) {
+    setPlayerName(player.name);
+    setShowDropdown(false);
+    setHighlightIndex(-1);
+    setSearchParams({ name: player.name, position });
+  }
+
+  function handleInputChange(value: string) {
+    setPlayerName(value);
+    setShowDropdown(true);
+    setHighlightIndex(-1);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (showDropdown && suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev + 1) % suggestions.length);
+        return;
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev <= 0 ? suggestions.length - 1 : prev - 1));
+        return;
+      } else if (e.key === "Enter" && highlightIndex >= 0) {
+        e.preventDefault();
+        handleSelect(suggestions[highlightIndex]);
+        return;
+      }
+    }
+    if (e.key === "Enter") handleSearch();
+  }
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -892,10 +951,12 @@ export function PlayerFormUI() {
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="relative flex-1">
               <Input
+                ref={inputRef}
                 type="text"
                 value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onFocus={() => playerName.trim() && setShowDropdown(true)}
+                onKeyDown={handleKeyDown}
                 placeholder="Search player (e.g. Kenan Yildiz)"
                 className="h-11 pr-10"
               />
@@ -905,6 +966,49 @@ export function PlayerFormUI() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
+                </div>
+              )}
+
+              {/* Autocomplete dropdown */}
+              {showDropdown && suggestions.length > 0 && (
+                <div
+                  ref={dropdownRef}
+                  className="absolute z-50 left-0 right-0 mt-1 rounded-xl overflow-hidden shadow-xl"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)" }}
+                >
+                  {suggestions.map((player, i) => (
+                    <button
+                      key={player.playerId}
+                      type="button"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors"
+                      style={{
+                        background: i === highlightIndex ? "rgba(255, 215, 0, 0.1)" : "transparent",
+                        borderBottom: i < suggestions.length - 1 ? "1px solid var(--border-subtle)" : "none",
+                      }}
+                      onMouseEnter={() => setHighlightIndex(i)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelect(player);
+                      }}
+                    >
+                      {player.imageUrl ? (
+                        <img src={player.imageUrl} alt="" className="w-8 h-8 rounded-md object-cover shrink-0" style={{ background: "var(--bg-card)" }} />
+                      ) : (
+                        <div className="w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold shrink-0" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
+                          {player.name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{player.name}</div>
+                        <div className="text-[10px] truncate" style={{ color: "var(--text-muted)" }}>
+                          {player.position} · {player.club} · {player.marketValueDisplay}
+                        </div>
+                      </div>
+                      <div className="text-xs tabular-nums shrink-0" style={{ color: "#00ff87" }}>
+                        {player.points} pts
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -979,8 +1083,8 @@ export function PlayerFormUI() {
               </div>
               <TargetPlayerCard
                 player={data.targetPlayer}
-                minutes={targetMinutesQuery.data}
-                minutesLoading={targetMinutesQuery.isLoading}
+                minutes={targetMinutes}
+                minutesLoading={searchMinutesLoading}
               />
             </section>
 
