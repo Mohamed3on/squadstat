@@ -61,16 +61,12 @@ export async function GET(request: Request) {
     if (includeMinutes) {
       const targetStats = await fetchPlayerMinutes(targetPlayer.playerId);
       targetPlayer.minutes = targetStats.minutes;
-      const BATCH_SIZE = 10;
-      for (let i = 0; i < underperformers.length; i += BATCH_SIZE) {
-        const batch = underperformers.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((p) => fetchPlayerMinutes(p.playerId))
-        );
-        batch.forEach((p, j) => {
-          p.minutes = results[j].status === "fulfilled" ? results[j].value.minutes : 0;
-        });
-      }
+      await Promise.all(
+        underperformers.map(async (p) => {
+          const stats = await fetchPlayerMinutes(p.playerId);
+          p.minutes = stats.minutes;
+        })
+      );
     }
 
     return NextResponse.json({

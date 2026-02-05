@@ -70,7 +70,12 @@ async function fetchMinutesBatch(playerIds: string[], signal?: AbortSignal): Pro
     signal,
   });
   const data = await res.json();
-  return data.minutes || {};
+  const stats: Record<string, { minutes?: number }> = data.stats || {};
+  const result: Record<string, number> = {};
+  for (const [id, stat] of Object.entries(stats)) {
+    if (stat.minutes) result[id] = stat.minutes;
+  }
+  return result;
 }
 
 function MinutesDisplay({
