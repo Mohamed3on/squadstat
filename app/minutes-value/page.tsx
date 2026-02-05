@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { MinutesValueUI } from "./MinutesValueUI";
 
 export const metadata: Metadata = {
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
     "Find football players earning more but playing less. Compare market values and minutes played across top European leagues.",
 };
 
-export default function MinutesValuePage() {
-  return <MinutesValueUI />;
+export default async function MinutesValuePage() {
+  const players = await getMinutesValueData();
+  return <MinutesValueUI initialData={players} />;
 }

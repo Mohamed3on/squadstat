@@ -5,6 +5,7 @@ import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
 import { getCurrentSeasonId } from "./player-parsing";
+import { fetchPlayerMinutes } from "./fetch-player-minutes";
 
 const CACHE_REVALIDATE = 259200; // 3 days
 const MV_PAGES = 20;
@@ -136,6 +137,28 @@ export const getMinutesValueData = unstable_cache(
         profileUrl: mv.profileUrl || "",
         playerId,
       });
+    }
+
+    // Resolve zero-minute players via individual performance pages
+    const zeroMinutePlayers = players.filter((p) => p.minutes === 0);
+    const BATCH_SIZE = 30;
+    for (let i = 0; i < zeroMinutePlayers.length; i += BATCH_SIZE) {
+      const batch = zeroMinutePlayers.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((p) => fetchPlayerMinutes(p.playerId))
+      );
+      batch.forEach((p, j) => {
+        if (results[j].status !== "fulfilled") return;
+        const stats = results[j].value;
+        if (stats.minutes <= 0) return;
+        p.minutes = stats.minutes;
+        p.totalMatches = stats.appearances || p.totalMatches;
+        p.goals = stats.goals;
+        p.assists = stats.assists;
+      });
+      if (i + BATCH_SIZE < zeroMinutePlayers.length) {
+        await new Promise((r) => setTimeout(r, 300));
+      }
     }
 
     // Sort by market value descending

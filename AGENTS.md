@@ -12,6 +12,7 @@ Use [shadcn/ui](https://ui.shadcn.com) for all UI components. Install new compon
 
 ## Performance
 
+- **Server-side data fetching:** Always fetch data in async server components and pass as `initialData` props to client components. Never use client-side `useQuery`/`fetch` waterfalls. Use Next.js `loading.tsx` for streaming skeletons while server fetches. See `team-form`, `injured`, `minutes-value` pages for the pattern.
 - **Parallel fetching:** Use `Promise.all` / `Promise.allSettled` for independent data fetches.
 - **Caching:** All API routes that fetch from Transfermarkt must use `unstable_cache` (see below).
 - **Retries:** Wrap external fetches with retry logic (exponential backoff, max 3 attempts) for rate-limited or flaky responses.

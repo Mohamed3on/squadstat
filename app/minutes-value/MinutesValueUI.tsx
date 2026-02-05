@@ -1,27 +1,10 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
-import type { MinutesValuePlayer, PlayerStatsResult } from "@/app/types";
-
-async function fetchMinutesValue(signal?: AbortSignal): Promise<{ players: MinutesValuePlayer[] }> {
-  const res = await fetch("/api/minutes-value", { signal });
-  return res.json();
-}
-
-async function fetchMinutesBatch(playerIds: string[], signal?: AbortSignal): Promise<Record<string, PlayerStatsResult>> {
-  const res = await fetch("/api/player-minutes/batch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ playerIds }),
-    signal,
-  });
-  const data = await res.json();
-  return data.stats || {};
-}
+import type { MinutesValuePlayer } from "@/app/types";
 
 function formatValue(v: number): string {
   if (v >= 1_000_000) return `\u20AC${(v / 1_000_000).toFixed(1)}m`;
@@ -276,34 +259,40 @@ function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; tar
   );
 }
 
-function LoadingSkeleton() {
+const ROW_HEIGHT = 120; // estimated row height including gap
+const GAP = 12;
+
+function VirtualPlayerList({ items, target }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer }) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+    gap: GAP,
+  });
+
   return (
-    <div className="space-y-3 animate-fade-in">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          className="rounded-xl p-4"
-          style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", opacity: 1 - i * 0.1 }}
-        >
-          <div className="flex items-center gap-4">
-            <Skeleton className="w-8 h-8 rounded-lg" />
-            <Skeleton className="w-12 h-12 rounded-lg" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-3 w-48" />
-            </div>
-            <div className="flex gap-3">
-              <Skeleton className="h-10 w-16" />
-              <Skeleton className="h-10 w-14" />
-            </div>
+    <div ref={parentRef} className="overflow-auto" style={{ maxHeight: "80vh" }}>
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => (
+          <div
+            key={items[virtualRow.index].playerId}
+            data-index={virtualRow.index}
+            ref={virtualizer.measureElement}
+            className="absolute left-0 w-full"
+            style={{ top: virtualRow.start }}
+          >
+            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} />
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
-export function MinutesValueUI() {
+export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlayer[] }) {
+  const players = initialData;
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<MinutesValuePlayer | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -312,38 +301,6 @@ export function MinutesValueUI() {
   const [sortAsc, setSortAsc] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["minutes-value"],
-    queryFn: ({ signal }) => fetchMinutesValue(signal),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const rawPlayers = data?.players || [];
-
-  // Batch-verify 0-minute players in a single request
-  const zeroMinuteIds = useMemo(() => rawPlayers.filter((p) => p.minutes === 0).map((p) => p.playerId), [rawPlayers]);
-  const { data: batchMinutes } = useQuery({
-    queryKey: ["player-minutes-batch", zeroMinuteIds],
-    queryFn: ({ signal }) => fetchMinutesBatch(zeroMinuteIds, signal),
-    enabled: zeroMinuteIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const players = useMemo(() => {
-    if (!batchMinutes || zeroMinuteIds.length === 0) return rawPlayers;
-    return rawPlayers.map((p) => {
-      const stats = batchMinutes[p.playerId];
-      if (!stats || stats.minutes <= 0) return p;
-      return {
-        ...p,
-        minutes: stats.minutes,
-        totalMatches: stats.appearances || p.totalMatches,
-        goals: stats.goals,
-        assists: stats.assists,
-      };
-    });
-  }, [rawPlayers, zeroMinuteIds, batchMinutes]);
 
   const suggestions = useMemo(() => {
     if (!query.trim() || selected) return [];
@@ -427,18 +384,9 @@ export function MinutesValueUI() {
               onChange={(e) => handleInputChange(e.target.value)}
               onFocus={() => !selected && query.trim() && setShowDropdown(true)}
               onKeyDown={handleKeyDown}
-              placeholder={isLoading ? "Loading players..." : "Search player (e.g. Kenan Yildiz)"}
-              disabled={isLoading}
+              placeholder="Search player (e.g. Kenan Yildiz)"
               className="h-11"
             />
-            {isLoading && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <svg className="h-5 w-5 animate-spin text-[#ffd700]" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </div>
-            )}
 
             {/* Autocomplete dropdown */}
             {showDropdown && suggestions.length > 0 && (
@@ -485,19 +433,6 @@ export function MinutesValueUI() {
           </div>
         </Card>
 
-        {/* Loading */}
-        {isLoading && <LoadingSkeleton />}
-
-        {/* Error */}
-        {error && (
-          <div
-            className="rounded-xl p-5 mb-6 animate-fade-in"
-            style={{ background: "rgba(255, 71, 87, 0.1)", border: "1px solid rgba(255, 71, 87, 0.3)" }}
-          >
-            <p className="font-medium" style={{ color: "#ff6b7a" }}>Error loading data. Please refresh.</p>
-          </div>
-        )}
-
         {/* Results */}
         {selected && (
           <div className="space-y-8">
@@ -536,11 +471,7 @@ export function MinutesValueUI() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {results.map((player, index) => (
-                    <PlayerCard key={player.playerId} player={player} target={selected} index={index} />
-                  ))}
-                </div>
+                <VirtualPlayerList items={results} target={selected} />
               )}
             </section>
 
@@ -554,7 +485,7 @@ export function MinutesValueUI() {
         )}
 
         {/* Full list when no selection */}
-        {!isLoading && !error && !selected && players.length > 0 && (
+        {!selected && players.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -592,11 +523,7 @@ export function MinutesValueUI() {
                 {players.length}
               </span>
             </div>
-            <div className="space-y-3">
-              {sortedPlayers.map((player, index) => (
-                <PlayerCard key={player.playerId} player={player} index={index} />
-              ))}
-            </div>
+            <VirtualPlayerList items={sortedPlayers} />
           </section>
         )}
       </div>
