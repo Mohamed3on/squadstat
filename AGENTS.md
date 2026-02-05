@@ -2,6 +2,10 @@
 
 Use `bun` for all commands (not npm/yarn).
 
+## Development
+
+Don't run `bun run build` during development - the dev server is already running.
+
 ## Caching Strategy
 
 All API routes that fetch from Transfermarkt should use `unstable_cache` for daily caching:
@@ -31,3 +35,4 @@ This ensures the header refresh button properly busts all caches.
 - `underperformers` - Player underperformer candidates
 - `injured` - Injured players across all leagues
 - `team-form` - Team over/underperformers based on market value
+- `manager` - Manager info from mitarbeiterhistorie page

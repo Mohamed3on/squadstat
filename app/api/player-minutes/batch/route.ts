@@ -8,14 +8,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "playerIds must be an array" }, { status: 400 });
     }
 
-    const results = await Promise.allSettled(
-      playerIds.map((id) => fetchPlayerMinutes(id))
-    );
-
     const minutes: Record<string, number> = {};
-    playerIds.forEach((id, i) => {
-      minutes[id] = results[i].status === "fulfilled" ? results[i].value : 0;
-    });
+    const CONCURRENCY = 50;
+    for (let i = 0; i < playerIds.length; i += CONCURRENCY) {
+      const batch = playerIds.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map((id) => fetchPlayerMinutes(id))
+      );
+      batch.forEach((id, j) => {
+        minutes[id] = results[j].status === "fulfilled" ? results[j].value : 0;
+      });
+    }
 
     return NextResponse.json({ minutes });
   } catch (error) {
