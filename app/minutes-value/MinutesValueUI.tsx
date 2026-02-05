@@ -9,12 +9,11 @@ import { Card } from "@/components/ui/card";
 import type { MinutesValuePlayer, PlayerStatsResult } from "@/app/types";
 import { getLeagueLogoUrl } from "@/lib/leagues";
 
-async function fetchMinutesBatch(playerIds: string[], signal?: AbortSignal): Promise<Record<string, PlayerStatsResult>> {
+async function fetchMinutesBatch(playerIds: string[]): Promise<Record<string, PlayerStatsResult>> {
   const res = await fetch("/api/player-minutes/batch", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ playerIds }),
-    signal,
   });
   const data = await res.json();
   return data.stats || {};
@@ -308,7 +307,7 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
   const zeroMinuteIds = useMemo(() => initialData.filter((p) => p.minutes === 0).map((p) => p.playerId), [initialData]);
   const { data: batchMinutes, isLoading: batchLoading } = useQuery({
     queryKey: ["player-minutes-batch", zeroMinuteIds],
-    queryFn: ({ signal }) => fetchMinutesBatch(zeroMinuteIds, signal),
+    queryFn: () => fetchMinutesBatch(zeroMinuteIds),
     enabled: zeroMinuteIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
