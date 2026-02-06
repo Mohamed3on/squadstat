@@ -34,11 +34,12 @@ function findUnderperformers(players: PlayerStats[], target: PlayerStats): Playe
   );
 }
 
+const CONCURRENCY = 25;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const playerName = searchParams.get("name");
   const positionType = searchParams.get("position") || "forward";
-  const includeMinutes = searchParams.get("minutes") === "true";
 
   if (!playerName) {
     return NextResponse.json({ error: "Player name is required" }, { status: 400 });
@@ -58,15 +59,18 @@ export async function GET(request: Request) {
 
     const underperformers = findUnderperformers(allPlayers, targetPlayer);
 
-    if (includeMinutes) {
-      const targetStats = await fetchPlayerMinutes(targetPlayer.playerId);
-      targetPlayer.minutes = targetStats.minutes;
-      await Promise.all(
-        underperformers.map(async (p) => {
-          const stats = await fetchPlayerMinutes(p.playerId);
-          p.minutes = stats.minutes;
-        })
+    // Enrich all players with minutes data
+    const allToEnrich = [targetPlayer, ...underperformers];
+    for (let i = 0; i < allToEnrich.length; i += CONCURRENCY) {
+      const batch = allToEnrich.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map((p) => fetchPlayerMinutes(p.playerId))
       );
+      batch.forEach((p, j) => {
+        if (results[j].status === "fulfilled") {
+          p.minutes = results[j].value.minutes;
+        }
+      });
     }
 
     return NextResponse.json({

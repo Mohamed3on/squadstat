@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
+import { useSearchParams, useRouter } from "next/navigation";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
 import { SelectNative } from "@/components/ui/select-native";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,52 +61,19 @@ async function fetchPlayers(position: string, signal?: AbortSignal): Promise<Pla
   return data.players || [];
 }
 
-async function fetchMinutesBatch(playerIds: string[], signal?: AbortSignal): Promise<Record<string, number>> {
-  if (playerIds.length === 0) return {};
-  const res = await fetch("/api/player-minutes/batch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ playerIds }),
-    signal,
-  });
-  const data = await res.json();
-  const stats: Record<string, { minutes?: number }> = data.stats || {};
-  const result: Record<string, number> = {};
-  for (const [id, stat] of Object.entries(stats)) {
-    if (stat.minutes) result[id] = stat.minutes;
-  }
-  return result;
-}
-
 function MinutesDisplay({
   minutes,
-  isLoading,
-  isFiltered,
 }: {
   minutes?: number;
-  isLoading?: boolean;
-  isFiltered?: boolean;
 }) {
   return (
     <div className="flex items-center gap-2">
       <svg className="w-3.5 h-3.5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      {isLoading ? (
-        <Skeleton className="h-4 w-14" />
-      ) : (
-        <span className="text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
-          {minutes?.toLocaleString() || "—"}&apos;
-        </span>
-      )}
-      {isFiltered === false && (
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded-sm font-medium uppercase tracking-wide"
-          style={{ background: "rgba(255, 71, 87, 0.2)", color: "#ff6b7a" }}
-        >
-          fewer
-        </span>
-      )}
+      <span className="text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
+        {minutes?.toLocaleString() || "—"}&apos;
+      </span>
     </div>
   );
 }
@@ -113,11 +81,9 @@ function MinutesDisplay({
 function TargetPlayerCard({
   player,
   minutes,
-  minutesLoading,
 }: {
   player: PlayerStats;
   minutes?: number;
-  minutesLoading?: boolean;
 }) {
   return (
     <div
@@ -275,13 +241,9 @@ function TargetPlayerCard({
         <span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
           Minutes Played
         </span>
-        {minutesLoading ? (
-          <Skeleton className="h-5 w-16" />
-        ) : (
-          <span className="text-base sm:text-lg font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>
-            {minutes?.toLocaleString() || "—"}&apos;
-          </span>
-        )}
+        <span className="text-base sm:text-lg font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>
+          {minutes?.toLocaleString() || "—"}&apos;
+        </span>
       </div>
     </div>
   );
@@ -291,15 +253,11 @@ function UnderperformerCard({
   player,
   targetPlayer,
   minutes,
-  minutesLoading,
-  passesMinutesFilter,
   index = 0,
 }: {
   player: PlayerStats;
   targetPlayer: PlayerStats;
   minutes?: number;
-  minutesLoading?: boolean;
-  passesMinutesFilter?: boolean;
   index?: number;
 }) {
   const valueDiff = player.marketValue - targetPlayer.marketValue;
@@ -411,8 +369,6 @@ function UnderperformerCard({
           <div className="min-w-[4.5rem]">
             <MinutesDisplay
               minutes={minutes}
-              isLoading={minutesLoading}
-              isFiltered={passesMinutesFilter}
             />
           </div>
         </div>
@@ -438,8 +394,6 @@ function UnderperformerCard({
         <div className="sm:hidden ml-auto">
           <MinutesDisplay
             minutes={minutes}
-            isLoading={minutesLoading}
-            isFiltered={passesMinutesFilter}
           />
         </div>
         <span className="hidden sm:flex items-center gap-1 ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
@@ -770,9 +724,27 @@ const DISCOVERY_POSITIONS = [
 ] as const;
 
 export function PlayerFormUI() {
-  const [playerName, setPlayerName] = useState("");
-  const [position, setPosition] = useState("all");
-  const [searchParams, setSearchParams] = useState<{ name: string; position: string } | null>(null);
+  const urlParams = useSearchParams();
+  const router = useRouter();
+
+  const initialName = urlParams.get("name") || "";
+  const initialPosition = urlParams.get("position") || "all";
+
+  const [playerName, setPlayerName] = useState(initialName);
+  const [position, setPosition] = useState(initialPosition);
+  const [searchParams, setSearchParams] = useState<{ name: string; position: string } | null>(
+    initialName ? { name: initialName, position: initialPosition } : null
+  );
+
+  const updateUrl = useCallback((name: string | null, pos: string) => {
+    const params = new URLSearchParams();
+    if (name) {
+      params.set("name", name);
+      if (pos !== "all") params.set("position", pos);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : "/player-form", { scroll: false });
+  }, [router]);
 
   // Fetch player list for autocomplete
   const { data: playerList } = useQuery({
@@ -800,48 +772,15 @@ export function PlayerFormUI() {
 
   const hasResults = data?.targetPlayer && !data?.error;
 
-  // Batch fetch minutes for target + all underperformers in one request
-  const allSearchPlayerIds = useMemo(() => {
-    if (!hasResults) return [];
-    const ids = data.underperformers.map((p) => p.playerId);
-    if (data.targetPlayer.playerId) ids.unshift(data.targetPlayer.playerId);
-    return ids;
-  }, [hasResults, data?.targetPlayer?.playerId, data?.underperformers]);
-
-  const { data: searchBatchMinutes, isLoading: searchMinutesLoading } = useQuery({
-    queryKey: ["player-minutes-batch", allSearchPlayerIds],
-    queryFn: ({ signal }) => fetchMinutesBatch(allSearchPlayerIds, signal),
-    enabled: allSearchPlayerIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const targetMinutes = searchBatchMinutes?.[data?.targetPlayer?.playerId ?? ""];
-  const minutesFilterActive = targetMinutes !== undefined;
-
-  const minutesMap = useMemo(() => {
-    const map: Record<string, { minutes?: number; isLoading: boolean; passesFilter?: boolean }> = {};
-    if (!data?.underperformers) return map;
-
-    data.underperformers.forEach((player) => {
-      const minutes = searchBatchMinutes?.[player.playerId];
-      let passesFilter: boolean | undefined;
-      if (targetMinutes !== undefined && minutes !== undefined) {
-        passesFilter = minutes >= targetMinutes;
-      }
-      map[player.playerId] = { minutes, isLoading: searchMinutesLoading, passesFilter };
-    });
-
-    return map;
-  }, [data?.underperformers, searchBatchMinutes, searchMinutesLoading, targetMinutes]);
+  const targetMinutes = data?.targetPlayer?.minutes;
 
   const filteredUnderperformers = useMemo(() => {
     if (!data?.underperformers) return [];
     if (targetMinutes === undefined) return data.underperformers;
-    return data.underperformers.filter((player) => {
-      const info = minutesMap[player.playerId];
-      return info?.isLoading || info?.passesFilter !== false;
-    });
-  }, [data?.underperformers, targetMinutes, minutesMap]);
+    return data.underperformers.filter((p) =>
+      p.minutes === undefined || p.minutes >= targetMinutes
+    );
+  }, [data?.underperformers, targetMinutes]);
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -866,11 +805,15 @@ export function PlayerFormUI() {
               value={playerName}
               onChange={(val) => {
                 setPlayerName(val);
-                if (!val.trim()) setSearchParams(null);
+                if (!val.trim()) {
+                  setSearchParams(null);
+                  updateUrl(null, position);
+                }
               }}
               onSelect={(player) => {
                 setPlayerName(player.name);
                 setSearchParams({ name: player.name, position });
+                updateUrl(player.name, position);
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
@@ -883,7 +826,14 @@ export function PlayerFormUI() {
 
           <SelectNative
             value={position}
-            onChange={(e) => setPosition(e.target.value)}
+            onChange={(e) => {
+              const newPos = e.target.value;
+              setPosition(newPos);
+              if (searchParams) {
+                setSearchParams({ name: searchParams.name, position: newPos });
+                updateUrl(searchParams.name, newPos);
+              }
+            }}
             className="h-11 flex-1 sm:w-auto sm:flex-none"
           >
             <option value="all">All Players</option>
@@ -941,7 +891,6 @@ export function PlayerFormUI() {
               <TargetPlayerCard
                 player={data.targetPlayer}
                 minutes={targetMinutes}
-                minutesLoading={searchMinutesLoading}
               />
             </section>
 
@@ -956,17 +905,6 @@ export function PlayerFormUI() {
                   <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "#ff6b7a" }}>
                     Overpriced &amp; Underperforming
                   </h2>
-                  {!minutesFilterActive && hasResults && (
-                    <div className="flex items-center gap-1.5 ml-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full border-2 animate-spin"
-                        style={{ borderColor: "transparent", borderTopColor: "var(--accent-blue)" }}
-                      />
-                      <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                        filtering by minutes...
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {data.underperformers.length !== filteredUnderperformers.length && (
@@ -1010,20 +948,15 @@ export function PlayerFormUI() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredUnderperformers.map((player, index) => {
-                    const minutesInfo = minutesMap[player.playerId];
-                    return (
+                  {filteredUnderperformers.map((player, index) => (
                       <UnderperformerCard
                         key={player.playerId}
                         player={player}
                         targetPlayer={data.targetPlayer}
-                        minutes={minutesInfo?.minutes}
-                        minutesLoading={minutesInfo?.isLoading}
-                        passesMinutesFilter={minutesInfo?.passesFilter}
+                        minutes={player.minutes}
                         index={index}
                       />
-                    );
-                  })}
+                  ))}
                 </div>
               )}
             </section>
