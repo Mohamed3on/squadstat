@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import type { MinutesValuePlayer, PlayerStatsResult } from "@/app/types";
-import { getLeagueLogoUrl } from "@/lib/leagues";
+
+const CHUNK_SIZE = 30;
+const PROFIL_RE = /\/profil\//;
+const EMPTY_PLAYERS: MinutesValuePlayer[] = [];
 
 async function fetchMinutesBatch(playerIds: string[]): Promise<Record<string, PlayerStatsResult>> {
   const res = await fetch("/api/player-minutes/batch", {
@@ -17,6 +19,43 @@ async function fetchMinutesBatch(playerIds: string[]): Promise<Record<string, Pl
   });
   const data = await res.json();
   return data.stats || {};
+}
+
+function useProgressiveBatchMinutes(playerIds: string[]) {
+  const [stats, setStats] = useState<Record<string, PlayerStatsResult>>({});
+  const [pending, setPending] = useState<Set<string>>(new Set());
+
+  const key = useMemo(() => playerIds.join(","), [playerIds]);
+
+  useEffect(() => {
+    if (playerIds.length === 0) return;
+    setPending(new Set(playerIds));
+    setStats({});
+    let cancelled = false;
+
+    (async () => {
+      for (let i = 0; i < playerIds.length; i += CHUNK_SIZE) {
+        if (cancelled) break;
+        const chunk = playerIds.slice(i, i + CHUNK_SIZE);
+        try {
+          const result = await fetchMinutesBatch(chunk);
+          if (cancelled) break;
+          setStats((prev) => ({ ...prev, ...result }));
+        } catch {}
+        if (!cancelled) {
+          setPending((prev) => {
+            const next = new Set(prev);
+            for (const id of chunk) next.delete(id);
+            return next;
+          });
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [key]);
+
+  return { stats, pending };
 }
 
 function formatValue(v: number): string {
@@ -75,7 +114,7 @@ function BenchmarkCard({ player }: { player: MinutesValuePlayer }) {
           </div>
           <div className="flex-1 min-w-0 sm:hidden">
             <a
-              href={`https://www.transfermarkt.com${player.profileUrl.replace(/\/profil\//, "/leistungsdaten/")}`}
+              href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-lg hover:underline block truncate"
@@ -91,7 +130,7 @@ function BenchmarkCard({ player }: { player: MinutesValuePlayer }) {
 
         <div className="hidden sm:block flex-1 min-w-0">
           <a
-            href={`https://www.transfermarkt.com${player.profileUrl.replace(/\/profil\//, "/leistungsdaten/")}`}
+            href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold text-xl hover:underline block truncate"
@@ -143,11 +182,7 @@ function BenchmarkCard({ player }: { player: MinutesValuePlayer }) {
 
 function PlayerCard({ player, target, index, minutesLoading }: { player: MinutesValuePlayer; target?: MinutesValuePlayer; index: number; minutesLoading?: boolean }) {
   const valueDiff = target ? player.marketValue - target.marketValue : 0;
-  const valueDiffDisplay = valueDiff >= 1_000_000
-    ? `+${formatValue(valueDiff)}`
-    : valueDiff > 0
-      ? `+${formatValue(valueDiff)}`
-      : formatValue(valueDiff);
+  const valueDiffDisplay = valueDiff > 0 ? `+${formatValue(valueDiff)}` : formatValue(valueDiff);
   const minsDiff = target ? target.minutes - player.minutes : 0;
 
   return (
@@ -188,7 +223,7 @@ function PlayerCard({ player, target, index, minutesLoading }: { player: Minutes
 
         <div className="flex-1 min-w-0">
           <a
-            href={`https://www.transfermarkt.com${player.profileUrl.replace(/\/profil\//, "/leistungsdaten/")}`}
+            href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
@@ -267,7 +302,7 @@ function PlayerCard({ player, target, index, minutesLoading }: { player: Minutes
 const ROW_HEIGHT = 100;
 const GAP = 12;
 
-function VirtualPlayerList({ items, target, loadingPlayerIds }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer; loadingPlayerIds?: Set<string> }) {
+function VirtualPlayerList({ items, target, pendingPlayerIds }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer; pendingPlayerIds?: Set<string> }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
@@ -288,7 +323,7 @@ function VirtualPlayerList({ items, target, loadingPlayerIds }: { items: Minutes
             className="absolute left-0 w-full"
             style={{ top: virtualRow.start - (virtualizer.options.scrollMargin || 0) }}
           >
-            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} minutesLoading={loadingPlayerIds?.has(items[virtualRow.index].playerId)} />
+            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} minutesLoading={pendingPlayerIds?.has(items[virtualRow.index].playerId)} />
           </div>
         ))}
       </div>
@@ -297,24 +332,24 @@ function VirtualPlayerList({ items, target, loadingPlayerIds }: { items: Minutes
 }
 
 export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlayer[] }) {
-  const zeroMinuteIds = useMemo(() => initialData.filter((p) => p.minutes === 0).map((p) => p.playerId), [initialData]);
-  const { data: batchMinutes, isLoading: batchLoading } = useQuery({
-    queryKey: ["player-minutes-batch", zeroMinuteIds],
-    queryFn: () => fetchMinutesBatch(zeroMinuteIds),
-    enabled: zeroMinuteIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
+  const zeroMinuteIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const p of initialData) if (p.minutes === 0) ids.push(p.playerId);
+    return ids;
+  }, [initialData]);
+  const { stats: batchMinutes, pending } = useProgressiveBatchMinutes(zeroMinuteIds);
+  const batchLoading = pending.size > 0;
 
-  const loadingPlayerIds = useMemo(() => batchLoading ? new Set(zeroMinuteIds) : new Set<string>(), [batchLoading, zeroMinuteIds]);
+  const hasBatchData = useMemo(() => { for (const _ in batchMinutes) return true; return false; }, [batchMinutes]);
 
   const players = useMemo(() => {
-    if (!batchMinutes || zeroMinuteIds.length === 0) return initialData;
+    if (!hasBatchData) return initialData;
     return initialData.map((p) => {
       const stats = batchMinutes[p.playerId];
       if (!stats || stats.minutes <= 0) return p;
       return { ...p, minutes: stats.minutes, totalMatches: stats.appearances || p.totalMatches, goals: stats.goals, assists: stats.assists };
     });
-  }, [initialData, zeroMinuteIds, batchMinutes]);
+  }, [initialData, batchMinutes, hasBatchData]);
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<MinutesValuePlayer | null>(null);
@@ -328,13 +363,12 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
     );
   }, [selected, players]);
 
-  const sortedPlayers = useMemo(() => {
-    const sorted = [...players].sort((a, b) => {
+  const sortedPlayers = useMemo(() =>
+    [...players].sort((a, b) => {
       const diff = sortBy === "minutes" ? b.minutes - a.minutes : sortBy === "games" ? b.totalMatches - a.totalMatches : b.marketValue - a.marketValue;
       return sortAsc ? -diff : diff;
-    });
-    return sorted;
-  }, [players, sortBy, sortAsc]);
+    }),
+  [players, sortBy, sortAsc]);
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -346,12 +380,17 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
             High-value players getting the fewest minutes
           </p>
+          {batchLoading && (
+            <p className="text-[11px] mt-2 animate-pulse" style={{ color: "var(--accent-blue)" }}>
+              Updating minutes data ({zeroMinuteIds.length - pending.size}/{zeroMinuteIds.length})...
+            </p>
+          )}
         </div>
 
         {/* Search */}
         <Card className="p-3 sm:p-4 mb-6 sm:mb-8">
           <PlayerAutocomplete
-            players={selected ? [] : players}
+            players={selected ? EMPTY_PLAYERS : players}
             value={query}
             onChange={(val) => {
               setQuery(val);
@@ -408,7 +447,7 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
                   </p>
                 </div>
               ) : (
-                <VirtualPlayerList items={results} target={selected} loadingPlayerIds={loadingPlayerIds} />
+                <VirtualPlayerList items={results} target={selected} pendingPlayerIds={pending} />
               )}
             </section>
 
@@ -460,7 +499,7 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
                 {players.length}
               </span>
             </div>
-            <VirtualPlayerList items={sortedPlayers} loadingPlayerIds={loadingPlayerIds} />
+            <VirtualPlayerList items={sortedPlayers} pendingPlayerIds={pending} />
           </section>
         )}
       </div>

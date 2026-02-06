@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stats: Record<string, PlayerStatsResult> = {};
-    const CONCURRENCY = 50;
+    const CONCURRENCY = 25;
     for (let i = 0; i < playerIds.length; i += CONCURRENCY) {
       const batch = playerIds.slice(i, i + CONCURRENCY);
       const results = await Promise.allSettled(

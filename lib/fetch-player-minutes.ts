@@ -8,9 +8,9 @@ const ZERO_STATS: PlayerStatsResult = { minutes: 0, appearances: 0, goals: 0, as
 
 export async function fetchPlayerMinutes(playerId: string): Promise<PlayerStatsResult> {
   if (!playerId) return ZERO_STATS;
-  return unstable_cache(
-    async () => {
-      try {
+  try {
+    return await unstable_cache(
+      async () => {
         const url = `${BASE_URL}/x/leistungsdaten/spieler/${playerId}`;
         const htmlContent = await fetchPage(url);
         const $ = cheerio.load(htmlContent);
@@ -35,12 +35,12 @@ export async function fetchPlayerMinutes(playerId: string): Promise<PlayerStatsR
         const minutes = parse(rechts.last().text());
 
         return { minutes, appearances, goals, assists };
-      } catch (err) {
-        console.error(`[player-minutes] ${playerId}: ERROR`, err);
-        return ZERO_STATS;
-      }
-    },
-    [`player-minutes-${playerId}`],
-    { revalidate: 86400, tags: ["player-minutes"] }
-  )();
+      },
+      [`player-minutes-${playerId}`],
+      { revalidate: 86400, tags: ["player-minutes"] }
+    )();
+  } catch (err) {
+    console.error(`[player-minutes] ${playerId}: ERROR`, err);
+    return ZERO_STATS;
+  }
 }

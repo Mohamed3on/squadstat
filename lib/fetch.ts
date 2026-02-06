@@ -3,8 +3,8 @@ const HEADERS = {
   Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 };
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+const MAX_RETRIES = 5;
+const BASE_DELAY = 1000;
 
 export async function fetchPage(url: string, revalidate?: number): Promise<string> {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -17,8 +17,9 @@ export async function fetchPage(url: string, revalidate?: number): Promise<strin
     if (html.length > 500) return html;
     console.warn(`[fetch] Rate limited (${html.length}b), retry ${attempt + 1}/${MAX_RETRIES}: ${url}`);
     if (attempt < MAX_RETRIES - 1) {
-      await new Promise((r) => setTimeout(r, RETRY_DELAY * (attempt + 1)));
+      const jitter = Math.random() * 500;
+      await new Promise((r) => setTimeout(r, BASE_DELAY * 2 ** attempt + jitter));
     }
   }
-  return "";
+  throw new Error(`[fetch] Failed after ${MAX_RETRIES} retries: ${url}`);
 }
