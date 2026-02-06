@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { TeamFormEntry, ManagerInfo } from "@/app/types";
 import { Card } from "@/components/ui/card";
@@ -335,33 +335,8 @@ function TeamListsGrid({
   );
 }
 
-async function fetchTeamFormData(): Promise<TeamFormResponse> {
-  const res = await fetch("/api/team-form");
-  return res.json();
-}
-
-const EMPTY_DATA: TeamFormResponse = {
-  success: false,
-  overperformers: [],
-  underperformers: [],
-  totalTeams: 0,
-  leagues: [],
-};
-
-function hasData(data: TeamFormResponse) {
-  return data.overperformers.length > 0 || data.underperformers.length > 0;
-}
-
 export function TeamFormUI({ initialData }: TeamFormUIProps) {
-  // Self-healing: if server delivered empty data, refetch client-side
-  const { data: refetched } = useQuery({
-    queryKey: ["team-form"],
-    queryFn: fetchTeamFormData,
-    enabled: !hasData(initialData),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const data = hasData(initialData) ? initialData : (refetched ?? EMPTY_DATA);
+  const data = initialData;
 
   // Initialize with all leagues shown
   const [selectedLeague, setSelectedLeague] = useState<string>("all");
