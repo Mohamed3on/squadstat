@@ -143,7 +143,7 @@ function MatchedTeamsSection({ teams, type }: { teams: QualifiedTeam[]; type: "t
           <div
             key={t.clubId}
             className="animate-slide-up"
-            style={{ animationDelay: `${index * 100}ms` }}
+            style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
           >
             <TeamCard
               team={t}
@@ -161,10 +161,10 @@ function MatchedTeamsSection({ teams, type }: { teams: QualifiedTeam[]; type: "t
 function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }) {
   return (
     <Card
-      className="rounded-2xl p-4 sm:p-6 transition-transform duration-300 hover:scale-[1.01] animate-slide-up"
+      className="rounded-2xl p-4 sm:p-6 hover-lift animate-slide-up"
       style={{
         boxShadow: period.hasMatch ? "var(--shadow-glow-hot)" : "none",
-        animationDelay: `${index * 150}ms`,
+        animationDelay: `${Math.min(index * 30, 300)}ms`,
       }}
     >
       <div className="flex justify-between items-center mb-4 sm:mb-6">

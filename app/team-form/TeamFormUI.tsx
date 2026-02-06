@@ -55,7 +55,7 @@ function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: strin
       >
         <ToggleGroupItem
           value="all"
-          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-card)]/50 active:scale-[0.97] data-[state=on]:bg-[var(--bg-card)] data-[state=on]:border-[var(--accent-blue)] data-[state=on]:text-[var(--accent-blue)] data-[state=on]:shadow-[0_0_12px_rgba(88,166,255,0.2)]"
+          className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-card)]/50 active:scale-[0.97] data-[state=on]:bg-[var(--bg-card)] data-[state=on]:border-[var(--accent-blue)] data-[state=on]:text-[var(--accent-blue)] data-[state=on]:shadow-[0_0_12px_rgba(88,166,255,0.2)]"
         >
           All Leagues
         </ToggleGroupItem>
@@ -68,7 +68,7 @@ function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: strin
             <ToggleGroupItem
               key={league.code}
               value={league.name}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] active:scale-[0.97]"
+              className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 flex items-center gap-2 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] active:scale-[0.97]"
               style={isSelected ? {
                 backgroundColor: color,
                 borderColor: color,
@@ -101,11 +101,8 @@ function TeamCard({ team, rank, type, manager, managerLoading, index = 0 }: Team
 
   return (
     <Card
-      className="h-full w-full p-3 sm:p-4 transition-[transform,box-shadow] hover:scale-[1.01] hover-lift animate-slide-up opacity-0"
-      style={{
-        animationDelay: `${index * 0.05}s`,
-        animationFillMode: "forwards",
-      }}
+      className="h-full w-full p-3 sm:p-4 hover-lift animate-slide-up"
+      style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
     >
       <div className="flex items-center gap-3 sm:gap-4">
         {/* Rank */}

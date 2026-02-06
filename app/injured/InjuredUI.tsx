@@ -92,8 +92,8 @@ function PlayerCard({ player, rank, index = 0 }: { player: InjuredPlayer; rank: 
 
   return (
     <Card
-      className="transition-[transform,box-shadow] hover:scale-[1.005] hover:shadow-md animate-slide-up opacity-0"
-      style={{ animationDelay: `${index * 0.03}s`, animationFillMode: "forwards" }}
+      className="hover-lift animate-slide-up"
+      style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-start gap-3 sm:gap-4">
@@ -171,8 +171,8 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
 
   return (
     <Card
-      className="overflow-hidden transition-[box-shadow] hover:shadow-md animate-slide-up opacity-0"
-      style={{ animationDelay: `${index * 0.05}s`, animationFillMode: "forwards" }}
+      className="overflow-hidden hover-lift animate-slide-up"
+      style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -219,7 +219,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
               href={player.profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:scale-[1.02] transition-transform bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:bg-[var(--bg-card-hover)] transition-colors duration-150 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
             >
               {player.imageUrl && !player.imageUrl.includes("data:image") && (
                 <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />
@@ -240,8 +240,8 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
 function InjuryTypeCard({ group, rank, index = 0 }: { group: InjuryTypeGroup; rank: number; index?: number }) {
   return (
     <Collapsible
-      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] animate-slide-up opacity-0"
-      style={{ animationDelay: `${index * 0.04}s`, animationFillMode: "forwards" }}
+      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] animate-slide-up"
+      style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
     >
       <CollapsibleTrigger className="flex items-center gap-2.5 px-3 py-2 sm:px-4 sm:py-2.5 w-full cursor-pointer hover:bg-[var(--bg-card-hover)] transition-colors rounded-xl">
         <RankBadge rank={rank} />
@@ -261,7 +261,7 @@ function InjuryTypeCard({ group, rank, index = 0 }: { group: InjuryTypeGroup; ra
               href={player.profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:scale-[1.02] transition-transform bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:bg-[var(--bg-card-hover)] transition-colors duration-150 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
             >
               {player.imageUrl && !player.imageUrl.includes("data:image") && (
                 <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />

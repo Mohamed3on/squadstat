@@ -17,7 +17,7 @@ export function Footer() {
               href="https://mohamed3on.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium transition-colors duration-200 hover:opacity-80"
+              className="font-medium transition-colors duration-150 hover:opacity-80"
               style={{ color: "var(--accent-hot)" }}
             >
               Mohamed Oun
@@ -29,7 +29,7 @@ export function Footer() {
               href="https://github.com/mohamed3on"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm transition-colors duration-200 hover:opacity-80"
+              className="text-sm transition-colors duration-150 hover:opacity-80"
               style={{ color: "var(--text-muted)" }}
             >
               GitHub
@@ -38,7 +38,7 @@ export function Footer() {
               href="https://techcitiesindex.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm transition-colors duration-200 hover:opacity-80"
+              className="text-sm transition-colors duration-150 hover:opacity-80"
               style={{ color: "var(--text-muted)" }}
             >
               Tech Cities Index
@@ -47,7 +47,7 @@ export function Footer() {
               href="https://x.com/mohamed3on"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm transition-colors duration-200 hover:opacity-80"
+              className="text-sm transition-colors duration-150 hover:opacity-80"
               style={{ color: "var(--text-muted)" }}
             >
               X

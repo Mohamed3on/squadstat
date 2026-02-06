@@ -58,7 +58,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
 
   if (compact) {
     return (
-      <Card className="p-3 bg-[var(--bg-elevated)] transition-transform duration-200 hover:scale-[1.02]">
+      <Card className="p-3 bg-[var(--bg-elevated)] hover-lift">
         <div className="flex items-center gap-3">
           {team.logoUrl && (
             <Image
@@ -102,7 +102,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
 
   return (
     <Card
-      className="p-3 sm:p-4 bg-[var(--bg-elevated)] transition-transform duration-200 hover:scale-[1.01]"
+      className="p-3 sm:p-4 bg-[var(--bg-elevated)] hover-lift"
       style={{
         borderColor: accentColor,
         boxShadow: `0 0 20px ${glowColor}`,

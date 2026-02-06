@@ -139,12 +139,11 @@ function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; tar
 
   return (
     <div
-      className="group rounded-xl p-3 sm:p-4 transition-transform duration-200 animate-slide-up hover:translate-x-1"
+      className="group rounded-xl p-3 sm:p-4 animate-slide-up hover-lift"
       style={{
         background: "linear-gradient(135deg, rgba(255, 71, 87, 0.06) 0%, var(--bg-card) 100%)",
         border: "1px solid rgba(255, 71, 87, 0.15)",
-        animationDelay: `${index * 0.04}s`,
-        animationFillMode: "backwards",
+        animationDelay: `${Math.min(index * 0.03, 0.3)}s`,
       }}
     >
       <div className="flex items-center gap-3 sm:gap-4">
