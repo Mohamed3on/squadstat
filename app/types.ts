@@ -108,6 +108,7 @@ export interface TeamFormEntry {
   logoUrl: string;
   clubUrl: string;
   clubId: string;
+  manager?: ManagerInfo | null;
 }
 
 export interface PlayerStats {

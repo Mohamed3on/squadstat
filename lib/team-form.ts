@@ -5,6 +5,7 @@ import { BASE_URL } from "./constants";
 import { LEAGUES } from "./leagues";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
+import { getManagerInfo } from "./fetch-manager";
 
 interface LeagueTeam {
   name: string;
@@ -153,6 +154,15 @@ export const getTeamFormData = unstable_cache(
       .filter((t) => t.deltaPts < 0)
       .sort((a, b) => a.deltaPts - b.deltaPts)
       .slice(0, 20);
+
+    // Enrich with manager data
+    const toEnrich = [...overperformers, ...underperformers];
+    const managerResults = await Promise.allSettled(
+      toEnrich.map((t) => getManagerInfo(t.clubId))
+    );
+    toEnrich.forEach((t, i) => {
+      t.manager = managerResults[i].status === "fulfilled" ? managerResults[i].value : null;
+    });
 
     return {
       success: true,

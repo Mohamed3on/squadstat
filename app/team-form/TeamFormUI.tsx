@@ -1,12 +1,11 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import type { TeamFormEntry, ManagerInfo } from "@/app/types";
+import type { TeamFormEntry } from "@/app/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ManagerPPGBadge, ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
+import { ManagerPPGBadge } from "@/app/components/ManagerPPGBadge";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 
 export interface TeamFormResponse {
@@ -19,11 +18,6 @@ export interface TeamFormResponse {
 
 interface TeamFormUIProps {
   initialData: TeamFormResponse;
-}
-
-async function fetchManager(clubId: string): Promise<{ clubId: string; manager: ManagerInfo | null }> {
-  const res = await fetch(`/api/manager/${clubId}`);
-  return res.json();
 }
 
 function getLeagueColor(league: string): string {
@@ -90,14 +84,12 @@ interface TeamCardProps {
   team: TeamFormEntry;
   rank: number;
   type: "over" | "under";
-  manager?: ManagerInfo | null;
-  managerLoading?: boolean;
   index?: number;
 }
 
-function TeamCard({ team, rank, type, manager, managerLoading, index = 0 }: TeamCardProps) {
+function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
   const isOver = type === "over";
-  const showManager = manager !== undefined || managerLoading;
+  const manager = team.manager;
 
   return (
     <Card
@@ -178,27 +170,23 @@ function TeamCard({ team, rank, type, manager, managerLoading, index = 0 }: Team
           </div>
 
           {/* Manager info */}
-          {showManager && team.clubId && (
+          {manager && (
             <div className="mt-2 text-[11px] sm:text-sm" style={{ color: "var(--text-muted)" }}>
-              {managerLoading ? (
-                <ManagerSkeleton />
-              ) : manager ? (
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>
-                    Manager:{" "}
-                    <a
-                      href={manager.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold hover:underline"
-                      style={{ color: "var(--accent-blue)" }}
-                    >
-                      {manager.name}
-                    </a>
-                  </span>
-                  <ManagerPPGBadge manager={manager} />
-                </div>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span>
+                  Manager:{" "}
+                  <a
+                    href={manager.profileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold hover:underline"
+                    style={{ color: "var(--accent-blue)" }}
+                  >
+                    {manager.name}
+                  </a>
+                </span>
+                <ManagerPPGBadge manager={manager} />
+              </div>
             </div>
           )}
         </div>
@@ -215,33 +203,6 @@ function TeamListsGrid({
   overperformers: TeamFormEntry[];
   underperformers: TeamFormEntry[];
 }) {
-  const allClubIds = useMemo(() => {
-    const ids = [...overperformers, ...underperformers].map((t) => t.clubId).filter(Boolean);
-    return [...new Set(ids)];
-  }, [overperformers, underperformers]);
-
-  const managerQueries = useQueries({
-    queries: allClubIds.map((clubId) => ({
-      queryKey: ["manager", clubId],
-      queryFn: () => fetchManager(clubId),
-      staleTime: 24 * 60 * 60 * 1000,
-      gcTime: 7 * 24 * 60 * 60 * 1000,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    })),
-  });
-
-  const managersMap = useMemo(() => {
-    const map: Record<string, { manager: ManagerInfo | null; loading: boolean }> = {};
-    allClubIds.forEach((clubId, i) => {
-      map[clubId] = {
-        manager: managerQueries[i].data?.manager ?? null,
-        loading: managerQueries[i].isLoading,
-      };
-    });
-    return map;
-  }, [managerQueries, allClubIds]);
-
   const maxLength = Math.max(overperformers.length, underperformers.length);
 
   const renderTeamCard = (team: TeamFormEntry, rank: number, type: "over" | "under", index: number) => (
@@ -249,8 +210,6 @@ function TeamListsGrid({
       team={team}
       rank={rank}
       type={type}
-      manager={managersMap[team.clubId]?.manager}
-      managerLoading={managersMap[team.clubId]?.loading}
       index={index}
     />
   );
