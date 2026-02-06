@@ -24,7 +24,6 @@ async function fetchMinutesBatch(playerIds: string[]): Promise<Record<string, Pl
 function useProgressiveBatchMinutes(playerIds: string[]) {
   const [stats, setStats] = useState<Record<string, PlayerStatsResult>>({});
   const [pending, setPending] = useState<Set<string>>(new Set());
-
   const key = useMemo(() => playerIds.join(","), [playerIds]);
 
   useEffect(() => {
@@ -33,24 +32,24 @@ function useProgressiveBatchMinutes(playerIds: string[]) {
     setStats({});
     let cancelled = false;
 
-    (async () => {
-      for (let i = 0; i < playerIds.length; i += CHUNK_SIZE) {
-        if (cancelled) break;
-        const chunk = playerIds.slice(i, i + CHUNK_SIZE);
-        try {
-          const result = await fetchMinutesBatch(chunk);
-          if (cancelled) break;
+    // Fire all chunks in parallel
+    for (let i = 0; i < playerIds.length; i += CHUNK_SIZE) {
+      const chunk = playerIds.slice(i, i + CHUNK_SIZE);
+      fetchMinutesBatch(chunk)
+        .then((result) => {
+          if (cancelled) return;
           setStats((prev) => ({ ...prev, ...result }));
-        } catch {}
-        if (!cancelled) {
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (cancelled) return;
           setPending((prev) => {
             const next = new Set(prev);
             for (const id of chunk) next.delete(id);
             return next;
           });
-        }
-      }
-    })();
+        });
+    }
 
     return () => { cancelled = true; };
   }, [key]);
@@ -337,19 +336,18 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
     for (const p of initialData) if (p.minutes === 0) ids.push(p.playerId);
     return ids;
   }, [initialData]);
+
   const { stats: batchMinutes, pending } = useProgressiveBatchMinutes(zeroMinuteIds);
   const batchLoading = pending.size > 0;
 
-  const hasBatchData = useMemo(() => { for (const _ in batchMinutes) return true; return false; }, [batchMinutes]);
-
   const players = useMemo(() => {
-    if (!hasBatchData) return initialData;
+    if (Object.keys(batchMinutes).length === 0) return initialData;
     return initialData.map((p) => {
       const stats = batchMinutes[p.playerId];
       if (!stats || stats.minutes <= 0) return p;
       return { ...p, minutes: stats.minutes, totalMatches: stats.appearances || p.totalMatches, goals: stats.goals, assists: stats.assists };
     });
-  }, [initialData, batchMinutes, hasBatchData]);
+  }, [initialData, batchMinutes]);
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<MinutesValuePlayer | null>(null);
@@ -382,7 +380,7 @@ export function MinutesValueUI({ initialData }: { initialData: MinutesValuePlaye
           </p>
           {batchLoading && (
             <p className="text-[11px] mt-2 animate-pulse" style={{ color: "var(--accent-blue)" }}>
-              Updating minutes data ({zeroMinuteIds.length - pending.size}/{zeroMinuteIds.length})...
+              Updating minutes data...
             </p>
           )}
         </div>

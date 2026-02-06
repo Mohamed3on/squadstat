@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
-import { getInjuredPlayers } from "@/lib/injured";
+import { NextRequest, NextResponse } from "next/server";
+import { getInjuredPlayers, fetchLeagueInjured } from "@/lib/injured";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const league = request.nextUrl.searchParams.get("league");
+    if (league) {
+      const players = await fetchLeagueInjured(league);
+      return NextResponse.json({ players });
+    }
     const data = await getInjuredPlayers();
     return NextResponse.json(data);
   } catch (error) {

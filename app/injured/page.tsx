@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 
 export default async function InjuredPage() {
   const data = await getInjuredPlayers();
-  return <InjuredUI initialData={data} />;
+  return <InjuredUI initialData={data} failedLeagues={data.failedLeagues} />;
 }

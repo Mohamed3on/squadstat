@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { InjuredPlayer } from "@/app/types";
 import { getLeagueLogoUrl } from "@/lib/leagues";
+import { useProgressiveFetch } from "@/lib/use-progressive-fetch";
 
 interface TeamInjuryGroup {
   club: string;
@@ -26,6 +27,13 @@ export interface InjuredResponse {
 
 interface InjuredUIProps {
   initialData: InjuredResponse;
+  failedLeagues?: string[];
+}
+
+async function fetchLeagueInjured(code: string): Promise<InjuredPlayer[]> {
+  const res = await fetch(`/api/injured?league=${code}`);
+  const data = await res.json();
+  return (data.players || []) as InjuredPlayer[];
 }
 
 function formatValue(value: string): string {
@@ -356,15 +364,20 @@ function StatsHighlights({
   );
 }
 
-export function InjuredUI({ initialData }: InjuredUIProps) {
-  const data = initialData;
+export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
+  const { results: extraResults, pending } = useProgressiveFetch(failedLeagues, fetchLeagueInjured);
 
-  const totalValue = data.players.reduce((sum, p) => sum + p.marketValueNum, 0);
+  const players = useMemo(() => {
+    if (extraResults.length === 0) return initialData.players;
+    return [...initialData.players, ...extraResults.flat()].sort((a, b) => b.marketValueNum - a.marketValueNum);
+  }, [initialData.players, extraResults]);
+
+  const totalValue = players.reduce((sum, p) => sum + p.marketValueNum, 0);
 
   const teamGroups = useMemo(() => {
     const groupMap = new Map<string, TeamInjuryGroup>();
 
-    data.players.forEach((player) => {
+    players.forEach((player) => {
       const existing = groupMap.get(player.club);
       if (existing) {
         existing.players.push(player);
@@ -383,13 +396,19 @@ export function InjuredUI({ initialData }: InjuredUIProps) {
     });
 
     return Array.from(groupMap.values()).sort((a, b) => b.totalValue - a.totalValue);
-  }, [data.players]);
+  }, [players]);
 
   return (
     <>
+      {pending.size > 0 && (
+        <p className="text-[11px] mb-4 animate-pulse" style={{ color: "var(--accent-blue)" }}>
+          Retrying {pending.size} failed {pending.size === 1 ? "league" : "leagues"}...
+        </p>
+      )}
+
       {/* Stats Highlights */}
       <StatsHighlights
-        players={data.players}
+        players={players}
         teamGroups={teamGroups}
         totalValue={totalValue}
       />
@@ -403,7 +422,7 @@ export function InjuredUI({ initialData }: InjuredUIProps) {
 
         <TabsContent value="players">
           <div className="space-y-3">
-            {data.players.map((player, idx) => (
+            {players.map((player, idx) => (
               <PlayerCard key={`${player.name}-${player.club}`} player={player} rank={idx + 1} index={idx} />
             ))}
           </div>

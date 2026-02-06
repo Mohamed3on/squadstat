@@ -51,30 +51,46 @@ function parseInjuredPlayers($: cheerio.CheerioAPI, leagueName: string): Injured
   return players;
 }
 
-async function fetchLeagueInjured(league: (typeof LEAGUES)[number]): Promise<InjuredPlayer[]> {
-  const url = `${BASE_URL}/${league.slug}/verletztespieler/wettbewerb/${league.code}/ajax/yw1/sort/marktwert.desc?ajax=yw1`;
-  try {
-    const html = await fetchPage(url);
-    const $ = cheerio.load(html);
-    return parseInjuredPlayers($, league.name);
-  } catch (error) {
-    console.error(`Failed to fetch ${league.name}:`, error);
-    return [];
-  }
+function fetchLeagueInjuredCached(league: (typeof LEAGUES)[number]): Promise<InjuredPlayer[]> {
+  return unstable_cache(
+    async () => {
+      const url = `${BASE_URL}/${league.slug}/verletztespieler/wettbewerb/${league.code}/ajax/yw1/sort/marktwert.desc?ajax=yw1`;
+      const html = await fetchPage(url);
+      const $ = cheerio.load(html);
+      return parseInjuredPlayers($, league.name);
+    },
+    [`injured-${league.code}`],
+    { revalidate: 86400, tags: ["injured"] }
+  )();
 }
 
-export const getInjuredPlayers = unstable_cache(
-  async () => {
-    const results = await Promise.all(LEAGUES.map(fetchLeagueInjured));
-    const allPlayers = results.flat().sort((a, b) => b.marketValueNum - a.marketValueNum);
+export async function fetchLeagueInjured(leagueCode: string): Promise<InjuredPlayer[]> {
+  const league = LEAGUES.find((l) => l.code === leagueCode);
+  if (!league) return [];
+  return fetchLeagueInjuredCached(league);
+}
 
-    return {
-      success: true,
-      players: allPlayers,
-      totalPlayers: allPlayers.length,
-      leagues: LEAGUES.map((l) => l.name),
-    };
-  },
-  ["injured-players"],
-  { revalidate: 86400, tags: ["injured"] }
-);
+export async function getInjuredPlayers() {
+  const results = await Promise.allSettled(LEAGUES.map(fetchLeagueInjuredCached));
+  const allPlayers: InjuredPlayer[] = [];
+  const failedLeagues: string[] = [];
+
+  results.forEach((result, i) => {
+    if (result.status === "fulfilled") {
+      allPlayers.push(...result.value);
+    } else {
+      console.error(`Failed to fetch ${LEAGUES[i].name}:`, result.reason);
+      failedLeagues.push(LEAGUES[i].code);
+    }
+  });
+
+  allPlayers.sort((a, b) => b.marketValueNum - a.marketValueNum);
+
+  return {
+    success: true,
+    players: allPlayers,
+    totalPlayers: allPlayers.length,
+    leagues: LEAGUES.map((l) => l.name),
+    failedLeagues,
+  };
+}
