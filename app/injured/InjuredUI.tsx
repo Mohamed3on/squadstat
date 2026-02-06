@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import type { InjuredPlayer } from "@/app/types";
 import { getLeagueLogoUrl } from "@/lib/leagues";
@@ -13,6 +14,13 @@ interface TeamInjuryGroup {
   club: string;
   clubLogoUrl: string;
   league: string;
+  players: InjuredPlayer[];
+  totalValue: number;
+  count: number;
+}
+
+interface InjuryTypeGroup {
+  injury: string;
   players: InjuredPlayer[];
   totalValue: number;
   count: number;
@@ -229,28 +237,76 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
   );
 }
 
+function InjuryTypeCard({ group, rank, index = 0 }: { group: InjuryTypeGroup; rank: number; index?: number }) {
+  return (
+    <Collapsible
+      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] animate-slide-up opacity-0"
+      style={{ animationDelay: `${index * 0.04}s`, animationFillMode: "forwards" }}
+    >
+      <CollapsibleTrigger className="flex items-center gap-2.5 px-3 py-2 sm:px-4 sm:py-2.5 w-full cursor-pointer hover:bg-[var(--bg-card-hover)] transition-colors rounded-xl">
+        <RankBadge rank={rank} />
+        <h3 className="font-bold text-sm sm:text-base text-[var(--text-primary)] flex-1 text-left">{group.injury}</h3>
+        <span className="text-[10px] sm:text-xs text-[var(--text-muted)] tabular-nums shrink-0">{group.count}</span>
+        <span className="text-xs sm:text-sm font-bold text-[var(--accent-hot)] font-value shrink-0">{formatValueNum(group.totalValue)}</span>
+        <svg className="w-4 h-4 text-[var(--text-muted)] shrink-0 transition-transform [[data-state=open]>&]:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </CollapsibleTrigger>
+
+      <CollapsibleContent>
+        <div className="px-3 py-2 sm:px-4 sm:py-2.5 border-t border-[var(--border-subtle)] flex flex-wrap gap-1.5">
+          {group.players.map((player) => (
+            <a
+              key={player.profileUrl || player.name}
+              href={player.profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:scale-[1.02] transition-transform bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
+            >
+              {player.imageUrl && !player.imageUrl.includes("data:image") && (
+                <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />
+              )}
+              <span className="max-w-[80px] sm:max-w-[120px] text-[var(--text-primary)]">{player.name}</span>
+              <span className="text-[var(--text-secondary)]">{player.club}</span>
+              <span className="text-[var(--accent-hot)] font-medium font-value">{player.marketValue}</span>
+            </a>
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function StatCell({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
+  return (
+    <div className="flex flex-col gap-0.5 min-w-0">
+      <div className="text-[9px] sm:text-[10px] uppercase tracking-widest text-[var(--text-muted)]">{label}</div>
+      <div className={cn(
+        "text-sm sm:text-base font-bold",
+        accent ? "text-[var(--accent-hot)] font-value" : "text-[var(--text-primary)]"
+      )}>
+        {value}
+      </div>
+      {sub && <div className="text-[10px] sm:text-xs text-[var(--text-secondary)]">{sub}</div>}
+    </div>
+  );
+}
+
 function StatsHighlights({
   players,
   teamGroups,
-  totalValue,
+  injuryTypeGroups,
 }: {
   players: InjuredPlayer[];
   teamGroups: TeamInjuryGroup[];
-  totalValue: number;
+  injuryTypeGroups: InjuryTypeGroup[];
 }) {
-  // Hardest Hit Club: Team with highest total value injured
-  const hardestHitClub = useMemo(() => {
-    if (!teamGroups.length) return null;
-    return teamGroups[0]; // Already sorted by totalValue
-  }, [teamGroups]);
+  const hardestHitClub = teamGroups[0] ?? null;
 
-  // League Impact: Which league has most value injured
   const leagueImpact = useMemo(() => {
     const leagueValues: Record<string, { value: number; count: number }> = {};
     players.forEach((p) => {
-      if (!leagueValues[p.league]) {
-        leagueValues[p.league] = { value: 0, count: 0 };
-      }
+      if (!leagueValues[p.league]) leagueValues[p.league] = { value: 0, count: 0 };
       leagueValues[p.league].value += p.marketValueNum;
       leagueValues[p.league].count++;
     });
@@ -258,111 +314,50 @@ function StatsHighlights({
     return sorted[0] ? { league: sorted[0][0], value: sorted[0][1].value, count: sorted[0][1].count } : null;
   }, [players]);
 
-  const leagueStyle = leagueImpact ? getLeagueStyle(leagueImpact.league) : null;
-
-  // Team with most injuries by count
-  const mostInjuriesClub = useMemo(() => {
-    if (!teamGroups.length) return null;
-    return [...teamGroups].sort((a, b) => b.count - a.count)[0];
-  }, [teamGroups]);
+  const topInjury = injuryTypeGroups[0] ?? null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-8 sm:mb-10 animate-scale-in">
-      {/* Hardest Hit Club (by value) */}
-      {hardestHitClub && (
-        <Card className="p-4 sm:p-5 bg-[var(--bg-elevated)]">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center p-2" style={{ background: "white" }}>
-              {hardestHitClub.clubLogoUrl && (
-                <img src={hardestHitClub.clubLogoUrl} alt="" className="w-full h-full object-contain" aria-hidden="true" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs sm:text-sm uppercase tracking-wider mb-1 text-[var(--text-muted)]">
-                Hardest Hit
-              </div>
-              <div className="font-bold text-base sm:text-lg text-[var(--text-primary)]">
-                {hardestHitClub.club}
-              </div>
-              <div className="text-sm sm:text-base text-[var(--text-secondary)]">
-                {formatValueNum(hardestHitClub.totalValue)} · {hardestHitClub.count} players
-              </div>
-            </div>
+    <div className="mb-6 sm:mb-8 animate-scale-in rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] overflow-hidden">
+      <div className="grid grid-cols-3 divide-x divide-[var(--border-subtle)]">
+        {/* Hardest Hit Club */}
+        {hardestHitClub && (
+          <div className="p-3 sm:p-4 flex items-start gap-2.5">
+            {hardestHitClub.clubLogoUrl && (
+              <img src={hardestHitClub.clubLogoUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-sm bg-white p-px shrink-0 mt-3" />
+            )}
+            <StatCell
+              label="Hardest Hit"
+              value={hardestHitClub.club}
+              sub={`${formatValueNum(hardestHitClub.totalValue)} · ${hardestHitClub.count} out`}
+            />
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* Most Injuries (by count) */}
-      {mostInjuriesClub && mostInjuriesClub.club !== hardestHitClub?.club && (
-        <Card className="p-4 sm:p-5 bg-[var(--bg-elevated)]">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center p-2" style={{ background: "white" }}>
-              {mostInjuriesClub.clubLogoUrl && (
-                <img src={mostInjuriesClub.clubLogoUrl} alt="" className="w-full h-full object-contain" aria-hidden="true" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs sm:text-sm uppercase tracking-wider mb-1 text-[var(--text-muted)]">
-                Most Injuries
-              </div>
-              <div className="font-bold text-base sm:text-lg text-[var(--text-primary)]">
-                {mostInjuriesClub.club}
-              </div>
-              <div className="text-sm sm:text-base text-[var(--text-secondary)]">
-                {mostInjuriesClub.count} players · {formatValueNum(mostInjuriesClub.totalValue)}
-              </div>
-            </div>
+        {/* Most Common Injury */}
+        {topInjury && (
+          <div className="p-3 sm:p-4">
+            <StatCell
+              label="Most Common"
+              value={topInjury.injury}
+              sub={`${topInjury.count} players · ${formatValueNum(topInjury.totalValue)}`}
+            />
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* League Impact */}
-      {leagueImpact && leagueStyle && (
-        <Card className="p-4 sm:p-5 bg-[var(--bg-elevated)]">
-          <div className="flex items-center gap-4">
-            <div
-              className={cn("w-14 h-14 sm:w-16 sm:h-16 rounded-xl shrink-0 flex items-center justify-center p-2", leagueStyle.bg)}
-            >
-              {getLeagueLogoUrl(leagueImpact.league) ? (
-                <img src={getLeagueLogoUrl(leagueImpact.league)} alt="" className="w-full h-full object-contain" />
-              ) : (
-                <span className={cn("text-2xl sm:text-3xl font-black tabular-nums", leagueStyle.text)}>{leagueImpact.count}</span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs sm:text-sm uppercase tracking-wider mb-1 text-[var(--text-muted)]">
-                Most Affected
-              </div>
-              <div className="font-bold text-base sm:text-lg text-[var(--text-primary)]">
-                {leagueImpact.league}
-              </div>
-              <div className="text-sm sm:text-base text-[var(--text-secondary)]">
-                {formatValueNum(leagueImpact.value)} · {leagueImpact.count} players
-              </div>
-            </div>
+        {/* Most Affected League */}
+        {leagueImpact && (
+          <div className="p-3 sm:p-4 flex items-start gap-2.5">
+            {getLeagueLogoUrl(leagueImpact.league) && (
+              <img src={getLeagueLogoUrl(leagueImpact.league)} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-sm bg-white p-px shrink-0 mt-3" />
+            )}
+            <StatCell
+              label="Most Affected"
+              value={leagueImpact.league}
+              sub={`${formatValueNum(leagueImpact.value)} · ${leagueImpact.count} players`}
+            />
           </div>
-        </Card>
-      )}
-
-      {/* Total Value */}
-      <Card className="p-4 sm:p-5 bg-[var(--bg-elevated)]">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl shrink-0 flex items-center justify-center bg-red-500/10">
-            <span className="text-2xl sm:text-3xl">🏥</span>
-          </div>
-          <div className="min-w-0">
-            <div className="text-xs sm:text-sm uppercase tracking-wider mb-1 text-[var(--text-muted)]">
-              Total Sidelined
-            </div>
-            <div className="font-bold text-base sm:text-lg text-[var(--text-primary)] font-value">
-              {formatValueNum(totalValue)}
-            </div>
-            <div className="text-sm sm:text-base text-[var(--text-secondary)]">
-              {players.length} players · {new Set(players.map(p => p.league)).size} leagues
-            </div>
-          </div>
-        </div>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }
@@ -374,8 +369,6 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
     if (extraResults.length === 0) return initialData.players;
     return [...initialData.players, ...extraResults.flat()].sort((a, b) => b.marketValueNum - a.marketValueNum);
   }, [initialData.players, extraResults]);
-
-  const totalValue = players.reduce((sum, p) => sum + p.marketValueNum, 0);
 
   const teamGroups = useMemo(() => {
     const groupMap = new Map<string, TeamInjuryGroup>();
@@ -401,6 +394,29 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
     return Array.from(groupMap.values()).sort((a, b) => b.totalValue - a.totalValue);
   }, [players]);
 
+  const injuryTypeGroups = useMemo(() => {
+    const groupMap = new Map<string, InjuryTypeGroup>();
+
+    players.forEach((player) => {
+      const key = player.injury || "Unknown";
+      const existing = groupMap.get(key);
+      if (existing) {
+        existing.players.push(player);
+        existing.totalValue += player.marketValueNum;
+        existing.count++;
+      } else {
+        groupMap.set(key, {
+          injury: key,
+          players: [player],
+          totalValue: player.marketValueNum,
+          count: 1,
+        });
+      }
+    });
+
+    return Array.from(groupMap.values()).sort((a, b) => b.totalValue - a.totalValue);
+  }, [players]);
+
   return (
     <>
       {pending.size > 0 && (
@@ -413,7 +429,7 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
       <StatsHighlights
         players={players}
         teamGroups={teamGroups}
-        totalValue={totalValue}
+        injuryTypeGroups={injuryTypeGroups}
       />
 
       {/* Tabs */}
@@ -421,6 +437,7 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
         <TabsList className="mb-4 sm:mb-6">
           <TabsTrigger value="players">All Players</TabsTrigger>
           <TabsTrigger value="teams">By Team</TabsTrigger>
+          <TabsTrigger value="injuries">By Injury</TabsTrigger>
         </TabsList>
 
         <TabsContent value="players">
@@ -435,6 +452,14 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
           <div className="space-y-3">
             {teamGroups.map((team, idx) => (
               <TeamInjuryCard key={team.club} team={team} rank={idx + 1} index={idx} />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="injuries">
+          <div className="space-y-3">
+            {injuryTypeGroups.map((group, idx) => (
+              <InjuryTypeCard key={group.injury} group={group} rank={idx + 1} index={idx} />
             ))}
           </div>
         </TabsContent>
