@@ -19,8 +19,8 @@ jobs:
           echo "Warming other endpoints in parallel..."
           curl -sf "$PROD_URL/api/team-form" > /dev/null &
           curl -sf "$PROD_URL/api/injured" > /dev/null &
-          curl -sf "$PROD_URL/api/underperformers?position=forward" -o /tmp/forward.json &
-          curl -sf "$PROD_URL/api/underperformers?position=cf" -o /tmp/cf.json &
+          curl -sf "$PROD_URL/api/underperformers?position=forward" > /dev/null &
+          curl -sf "$PROD_URL/api/underperformers?position=cf" > /dev/null &
           wait
 
           echo "Warming manager pages..."
@@ -32,16 +32,6 @@ jobs:
             curl -sf "$PROD_URL/api/manager/$id" > /dev/null &
           done
           wait
-
-          echo "Warming player minutes..."
-          PLAYER_IDS=$(jq -rs '
-            [.[].underperformers[]?.playerId // empty]
-            | unique' /tmp/forward.json /tmp/cf.json 2>/dev/null || echo '[]')
-
-          curl -sf -X POST "$PROD_URL/api/player-minutes/batch" \
-            -H "Content-Type: application/json" \
-            -d "{\"playerIds\": $PLAYER_IDS}" > /dev/null || true
-
           echo "Done warming caches."
 
   refresh-minutes-value:

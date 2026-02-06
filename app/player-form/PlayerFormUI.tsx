@@ -684,27 +684,11 @@ function UnderperformersSection({
   isLoading: boolean;
   error: Error | null;
 }) {
-  const playerIds = useMemo(() => candidates.map((p) => p.playerId), [candidates]);
-
-  const { data: batchMinutes, isLoading: minutesLoading } = useQuery({
-    queryKey: ["player-minutes-batch", playerIds],
-    queryFn: ({ signal }) => fetchMinutesBatch(playerIds, signal),
-    enabled: playerIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { realUnderperformers, isFiltering } = useMemo(() => {
-    const withMinutes = candidates.map((player) => ({
-      ...player,
-      minutes: batchMinutes?.[player.playerId],
-    }));
-
-    const stillLoading = minutesLoading;
-
-    const filtered = withMinutes.filter((player) => {
+  const realUnderperformers = useMemo(() => {
+    return candidates.filter((player) => {
       const playerMins = player.minutes;
       if (playerMins === undefined) return true;
-      const dominated = withMinutes.some(
+      const dominated = candidates.some(
         (other) =>
           other.playerId !== player.playerId &&
           other.minutes !== undefined &&
@@ -714,12 +698,7 @@ function UnderperformersSection({
       );
       return !dominated;
     });
-
-    return {
-      realUnderperformers: filtered,
-      isFiltering: stillLoading,
-    };
-  }, [candidates, batchMinutes, minutesLoading]);
+  }, [candidates]);
 
   return (
     <section>
@@ -732,17 +711,6 @@ function UnderperformersSection({
           <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "#ff6b7a" }}>
             {title}
           </h2>
-          {isFiltering && !isLoading && (
-            <div className="flex items-center gap-1.5">
-              <div
-                className="w-2.5 h-2.5 rounded-full border-2 animate-spin"
-                style={{ borderColor: "transparent", borderTopColor: "var(--accent-blue)" }}
-              />
-              <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                filtering...
-              </span>
-            </div>
-          )}
         </div>
         {realUnderperformers.length > 0 && (
           <span
@@ -767,7 +735,7 @@ function UnderperformersSection({
         </div>
       )}
 
-      {!isLoading && !error && realUnderperformers.length === 0 && !isFiltering && (
+      {!isLoading && !error && realUnderperformers.length === 0 && (
         <div
           className="rounded-xl p-8 text-center animate-fade-in"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}

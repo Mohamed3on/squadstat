@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { unstable_cache, revalidateTag } from "next/cache";
 import type { PlayerStats } from "@/app/types";
 import { fetchTopScorers } from "@/lib/fetch-top-scorers";
+import { fetchPlayerMinutes } from "@/lib/fetch-player-minutes";
 
 const MIN_MARKET_VALUE = 10_000_000; // €10m minimum to be considered
 const MAX_RESULTS = 50; // Return top candidates, client filters further
+const CONCURRENCY = 25;
 
 /**
  * Find candidates - players who seem to underperform based on points vs cheaper players
@@ -30,7 +32,22 @@ function findCandidates(players: PlayerStats[]): PlayerStats[] {
 async function computeUnderperformers(positionType: string): Promise<PlayerStats[]> {
   const allPlayers = await fetchTopScorers(positionType);
   const candidates = findCandidates(allPlayers);
-  return candidates.sort((a, b) => b.marketValue - a.marketValue).slice(0, MAX_RESULTS);
+  const sliced = candidates.sort((a, b) => b.marketValue - a.marketValue).slice(0, MAX_RESULTS);
+
+  // Enrich with minutes data so the client doesn't need a second round-trip
+  for (let i = 0; i < sliced.length; i += CONCURRENCY) {
+    const batch = sliced.slice(i, i + CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map((p) => fetchPlayerMinutes(p.playerId))
+    );
+    batch.forEach((p, j) => {
+      if (results[j].status === "fulfilled") {
+        p.minutes = results[j].value.minutes;
+      }
+    });
+  }
+
+  return sliced;
 }
 
 const getCachedUnderperformers = unstable_cache(
