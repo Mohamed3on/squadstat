@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getInjuredPlayers } from "@/lib/injured";
 import { InjuredUI } from "./InjuredUI";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Football Injury Tracker",
   description:
