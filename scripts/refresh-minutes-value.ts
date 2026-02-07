@@ -4,7 +4,8 @@ import { fetchMinutesValueRaw } from "@/lib/fetch-minutes-value";
 import { fetchPlayerMinutesRaw } from "@/lib/fetch-player-minutes";
 import type { PlayerStatsResult } from "@/app/types";
 
-const CONCURRENCY = 25;
+const CONCURRENCY = 5;
+const BATCH_DELAY_MS = 2000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CacheEntry extends PlayerStatsResult {
@@ -55,6 +56,9 @@ async function main() {
     console.log(`[refresh] Batch ${Math.floor(i / CONCURRENCY) + 1}/${Math.ceil(stale.length / CONCURRENCY)}`);
     // Write cache after each batch for crash-safe partial progress
     await saveCache(cache);
+    if (i + CONCURRENCY < stale.length) {
+      await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
+    }
   }
 
   // Merge cached stats into players
