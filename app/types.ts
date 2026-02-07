@@ -154,4 +154,6 @@ export interface PlayerStatsResult {
   appearances: number;
   goals: number;
   assists: number;
+  club: string;
+  league: string;
 }

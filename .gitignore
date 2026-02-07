@@ -43,3 +43,6 @@ next-env.d.ts
 # screenshots & playwright
 *.png
 .playwright-mcp/
+
+# player cache (rebuilt by GH Actions)
+data/player-cache.json

@@ -17,11 +17,9 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 
 const PAGE_TAGS: Record<string, string[]> = {
-  "/form-signals": ["form-analysis", "underperformers", "manager"],
+  "/form-signals": ["form-analysis", "manager"],
   "/team-form": ["team-form"],
-  "/player-form": ["player-minutes"],
   "/injured": ["injured"],
-  "/minutes-value": ["minutes-value"],
 };
 
 async function revalidateCaches(pathname: string): Promise<boolean> {

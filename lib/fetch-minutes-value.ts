@@ -1,14 +1,38 @@
 import * as cheerio from "cheerio";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import type { MinutesValuePlayer } from "@/app/types";
+import type { MinutesValuePlayer, PlayerStats } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
-import { getCurrentSeasonId } from "./player-parsing";
 
 const MV_PAGES = 20;
-const MINUTES_PAGES = 80;
+
+export const POSITION_MAP: Record<string, string[]> = {
+  forward: ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"],
+  cf: ["Centre-Forward"],
+  midfielder: ["Central Midfield", "Attacking Midfield", "Defensive Midfield"],
+};
+
+export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
+  return {
+    name: p.name,
+    position: p.position,
+    age: p.age,
+    club: p.club,
+    league: p.league,
+    matches: p.totalMatches,
+    goals: p.goals,
+    assists: p.assists,
+    points: p.goals + p.assists,
+    marketValue: p.marketValue,
+    marketValueDisplay: p.marketValueDisplay,
+    profileUrl: p.profileUrl,
+    imageUrl: p.imageUrl,
+    playerId: p.playerId,
+    minutes: p.minutes,
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseMarketValueRow($: cheerio.CheerioAPI, row: any): Partial<MinutesValuePlayer> | null {
@@ -34,11 +58,9 @@ function parseMarketValueRow($: cheerio.CheerioAPI, row: any): Partial<MinutesVa
   const nationality = natCell.find("img").first().attr("title") || "";
 
   const clubCell = $(cells[4]);
-  const clubInline = clubCell.find(".inline-table");
-  const clubLink = clubInline.find("td.hauptlink a");
-  const club = clubLink.attr("title") || clubLink.text().trim();
-  const leagueLink = clubInline.find("tr").eq(1).find("a");
-  const league = leagueLink.text().trim();
+  const clubLink = clubCell.find("a").first();
+  const club = clubLink.attr("title") || clubLink.find("img").attr("title") || "";
+  const league = "";
 
   const mvDisplay = $(cells[5]).text().trim();
   const marketValue = parseMarketValue(mvDisplay);
@@ -47,29 +69,8 @@ function parseMarketValueRow($: cheerio.CheerioAPI, row: any): Partial<MinutesVa
   return { name, position, age, club, league, nationality, marketValue, marketValueDisplay: mvDisplay, imageUrl, profileUrl, playerId };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseMinutesRow($: cheerio.CheerioAPI, row: any): { playerId: string; minutes: number; clubMatches: number; intlMatches: number; totalMatches: number } | null {
-  const cells = $(row).find("> td");
-  if (cells.length < 9) return null;
-
-  const nameCell = $(cells[1]);
-  const profileUrl = nameCell.find(".inline-table td.hauptlink a").attr("href") || "";
-  const playerIdMatch = profileUrl.match(/\/spieler\/(\d+)/);
-  if (!playerIdMatch) return null;
-
-  const clubMatches = parseInt($(cells[5]).find("a").text().trim()) || parseInt($(cells[5]).text().trim()) || 0;
-  const intlMatches = parseInt($(cells[6]).find("a").text().trim()) || parseInt($(cells[6]).text().trim()) || 0;
-  const minutesText = $(cells[7]).text().trim().replace(/[.']/g, "");
-  const minutes = parseInt(minutesText) || 0;
-  const totalMatches = parseInt($(cells[8]).text().trim()) || 0;
-
-  return { playerId: playerIdMatch[1], minutes, clubMatches, intlMatches, totalMatches };
-}
-
-/** Raw scraper — no caching. Used by the offline refresh script. */
+/** Raw scraper — no caching. Fetches MV pages only (identity + market value). */
 export async function fetchMinutesValueRaw(): Promise<MinutesValuePlayer[]> {
-  const seasonId = getCurrentSeasonId();
-
   const mvBaseUrl = `${BASE_URL}/spieler-statistik/wertvollstespieler/marktwertetop`;
   const mvUrls = Array.from({ length: MV_PAGES }, (_, i) => {
     const page = i + 1;
@@ -77,16 +78,7 @@ export async function fetchMinutesValueRaw(): Promise<MinutesValuePlayer[]> {
     return page === 1 ? base : `${base}&page=${page}`;
   });
 
-  const minutesBaseUrl = `${BASE_URL}/meisteeinsaetze/gesamteinsaetze/statistik/${seasonId}/ajax/yw1/selectedOptionKey/6/land_id/0/saison_id/${seasonId}/altersklasse/alle/plus/1/sort/gesamtminuten.desc`;
-  const minutesUrls = Array.from({ length: MINUTES_PAGES }, (_, i) => {
-    const page = i + 1;
-    return page === 1 ? `${minutesBaseUrl}?ajax=yw1` : `${minutesBaseUrl}/page/${page}?ajax=yw1`;
-  });
-
-  const [mvResults, minutesResults] = await Promise.all([
-    Promise.allSettled(mvUrls.map((url) => fetchPage(url))),
-    Promise.allSettled(minutesUrls.map((url) => fetchPage(url))),
-  ]);
+  const mvResults = await Promise.allSettled(mvUrls.map((url) => fetchPage(url)));
 
   const mvMap = new Map<string, Partial<MinutesValuePlayer>>();
   for (const result of mvResults) {
@@ -98,19 +90,8 @@ export async function fetchMinutesValueRaw(): Promise<MinutesValuePlayer[]> {
     });
   }
 
-  const minutesMap = new Map<string, { minutes: number; clubMatches: number; intlMatches: number; totalMatches: number }>();
-  for (const result of minutesResults) {
-    if (result.status !== "fulfilled") continue;
-    const $ = cheerio.load(result.value);
-    $("table.items > tbody > tr").each((_, row) => {
-      const data = parseMinutesRow($, row);
-      if (data) minutesMap.set(data.playerId, data);
-    });
-  }
-
   const players: MinutesValuePlayer[] = [];
   for (const [playerId, mv] of mvMap) {
-    const mins = minutesMap.get(playerId);
     players.push({
       name: mv.name!,
       position: mv.position || "",
@@ -120,10 +101,10 @@ export async function fetchMinutesValueRaw(): Promise<MinutesValuePlayer[]> {
       nationality: mv.nationality || "",
       marketValue: mv.marketValue || 0,
       marketValueDisplay: mv.marketValueDisplay || "",
-      minutes: mins?.minutes ?? 0,
-      clubMatches: mins?.clubMatches ?? 0,
-      intlMatches: mins?.intlMatches ?? 0,
-      totalMatches: mins?.totalMatches ?? 0,
+      minutes: 0,
+      clubMatches: 0,
+      intlMatches: 0,
+      totalMatches: 0,
       goals: 0,
       assists: 0,
       imageUrl: mv.imageUrl || "",

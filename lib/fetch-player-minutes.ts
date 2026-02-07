@@ -1,10 +1,9 @@
-import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { PlayerStatsResult } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 
-const ZERO_STATS: PlayerStatsResult = { minutes: 0, appearances: 0, goals: 0, assists: 0 };
+const ZERO_STATS: PlayerStatsResult = { minutes: 0, appearances: 0, goals: 0, assists: 0, club: "", league: "" };
 
 /** Raw fetch — no caching. Used by the offline refresh script. */
 export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerStatsResult> {
@@ -18,6 +17,11 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
     .get();
   if (headlines.some((h) => h.includes("career stats"))) return ZERO_STATS;
 
+  // Club & league from data-header
+  const clubInfo = $(".data-header__club-info");
+  const club = clubInfo.find(".data-header__club a").text().trim();
+  const league = clubInfo.find(".data-header__league a").text().trim();
+
   const footer = $("table.items tfoot tr").last();
   const parse = (s: string) => parseInt(s.trim().replace(/[.']/g, "").replace(/,/g, "")) || 0;
 
@@ -29,19 +33,5 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const assists = parse(zentriert.eq(2).text());
   const minutes = parse(rechts.last().text());
 
-  return { minutes, appearances, goals, assists };
-}
-
-export async function fetchPlayerMinutes(playerId: string): Promise<PlayerStatsResult> {
-  if (!playerId) return ZERO_STATS;
-  try {
-    return await unstable_cache(
-      () => fetchPlayerMinutesRaw(playerId),
-      [`player-minutes-${playerId}`],
-      { revalidate: 86400, tags: ["player-minutes"] }
-    )();
-  } catch (err) {
-    console.error(`[player-minutes] ${playerId}: ERROR`, err);
-    return ZERO_STATS;
-  }
+  return { minutes, appearances, goals, assists, club, league };
 }

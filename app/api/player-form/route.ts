@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
-import { fetchTopScorers } from "@/lib/fetch-top-scorers";
-import { fetchPlayerMinutes } from "@/lib/fetch-player-minutes";
+import { getMinutesValueData, toPlayerStats, POSITION_MAP } from "@/lib/fetch-minutes-value";
 
 function normalizeForSearch(str: string): string {
   return str
@@ -34,8 +33,6 @@ function findUnderperformers(players: PlayerStats[], target: PlayerStats): Playe
   );
 }
 
-const CONCURRENCY = 25;
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const playerName = searchParams.get("name");
@@ -46,7 +43,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const allPlayers = await fetchTopScorers(positionType);
+    const allMV = await getMinutesValueData();
+    const positions = POSITION_MAP[positionType] || [];
+    const allPlayers = positions.length > 0
+      ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
+      : allMV.map(toPlayerStats);
+
     const targetPlayer = findPlayerByName(allPlayers, playerName);
 
     if (!targetPlayer) {
@@ -58,20 +60,6 @@ export async function GET(request: Request) {
     }
 
     const underperformers = findUnderperformers(allPlayers, targetPlayer);
-
-    // Enrich all players with minutes data
-    const allToEnrich = [targetPlayer, ...underperformers];
-    for (let i = 0; i < allToEnrich.length; i += CONCURRENCY) {
-      const batch = allToEnrich.slice(i, i + CONCURRENCY);
-      const results = await Promise.allSettled(
-        batch.map((p) => fetchPlayerMinutes(p.playerId))
-      );
-      batch.forEach((p, j) => {
-        if (results[j].status === "fulfilled") {
-          p.minutes = results[j].value.minutes;
-        }
-      });
-    }
 
     return NextResponse.json({
       targetPlayer,

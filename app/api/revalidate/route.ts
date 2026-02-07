@@ -3,12 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ALL_TAGS = [
   "form-analysis",
-  "underperformers",
   "manager",
   "team-form",
-  "player-minutes",
   "injured",
-  "minutes-value",
 ];
 
 export async function POST(request: NextRequest) {
