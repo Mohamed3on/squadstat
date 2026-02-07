@@ -5,9 +5,9 @@ import { InjuredUI } from "./InjuredUI";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Football Injury Tracker",
+  title: "Injury Impact Tracker",
   description:
-    "Track the highest-value injured football players across Europe's top 5 leagues. See which star players are sidelined in the Premier League, La Liga, Bundesliga, Serie A, and Ligue 1.",
+    "Track where injury absences carry the highest market value impact across Europe's top 5 leagues.",
 };
 
 export default async function InjuredPage() {

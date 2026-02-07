@@ -1,47 +1,81 @@
-# Football Form Tracker
+# FormTracker
 
-Analyze football team and player form data from Transfermarkt.
+Football analytics app for scanning recent form, squad value efficiency, player output, injuries, and minutes patterns using Transfermarkt data.
 
-**Live:** https://football-form.vercel.app
+Live app: https://football-form.vercel.app
 
-## Features
+## Pages
 
-### Team Form Tracker (`/`)
-Analyzes the top 5 European leagues to find teams with exceptional form across multiple metrics:
-- Points
-- Goal difference
-- Goals scored
-- Goals conceded
-
-Teams qualifying in 2+ categories are highlighted.
-
-### Player Scout (`/player-form`)
-Find overpriced underperformers - players with:
-- Higher market value than a target player
-- Fewer goal contributions (goals + assists)
-- Same or more minutes played
+| Route | Purpose |
+|---|---|
+| `/` | Landing page with tool overview and direct navigation |
+| `/form-signals` | Recent form windows (20, 15, 10, 5 matches) with top/bottom signal clusters |
+| `/team-form` | Team value vs table performance (actual points vs expected points from value rank) |
+| `/player-form` | Player output vs market value (goal contributions and minutes context) |
+| `/minutes-value` | High-value players with low minutes |
+| `/injured` | Injury impact by player, team, and injury type |
 
 ## Tech Stack
 
 - Next.js 15 (App Router)
+- React 19
 - Tailwind CSS 4
-- React Query
-- Cheerio (scraping)
-- Vercel (auto-deploy)
+- shadcn/ui components
+- TanStack Query
+- Cheerio
+- Bun
 
 ## Development
 
+Install dependencies:
+
 ```bash
-pnpm install
-pnpm dev
+bun install
 ```
 
-## API
+Run local dev server:
 
-| Endpoint | Cache | Description |
-|----------|-------|-------------|
-| `GET /api/analyze` | 1hr | Team form analysis |
-| `GET /api/manager/[clubId]` | 1hr | Manager info |
-| `GET /api/player-form` | 12hr | Player comparison |
-| `GET /api/player-minutes/[playerId]` | 12hr | Player minutes |
-| `POST /api/revalidate` | - | Bust all caches |
+```bash
+bun run dev
+```
+
+Type check:
+
+```bash
+bunx tsc --noEmit
+```
+
+Refresh the prebuilt minutes-value dataset:
+
+```bash
+bun run refresh:minutes-value
+```
+
+This script rewrites `data/minutes-value.json`.
+
+## API Routes
+
+| Endpoint | Method | Notes |
+|---|---|---|
+| `/api/analyze` | `GET` | Recent form analysis across 20/15/10/5 windows (cached) |
+| `/api/team-form` | `GET` | Team value vs table dataset |
+| `/api/player-form` | `GET` | Target-player comparison and underperformers |
+| `/api/underperformers` | `GET` | Discovery candidates by position (cached) |
+| `/api/players` | `GET` | Player search dataset by position |
+| `/api/minutes-value` | `GET` | Minutes-value dataset from committed JSON |
+| `/api/injured` | `GET` | Injury dataset; supports `?league=<code>` |
+| `/api/manager/[clubId]` | `GET` | Manager profile and PPG context (cached) |
+| `/api/player-minutes/[playerId]` | `GET` | Player minutes/goals/assists (cached) |
+| `/api/player-minutes/batch` | `POST` | Batch fetch minutes stats |
+| `/api/revalidate` | `POST` | Revalidate all or selected cache tags |
+
+## Data Notes
+
+- Source: Transfermarkt pages scraped server-side.
+- Cache strategy: `unstable_cache` is used for Transfermarkt-backed routes.
+- `POST /api/revalidate` is wired to invalidate all active cache tags used by the app.
+
+## Naming
+
+The product name is **FormTracker**.  
+Repository slug is `formtracker`.

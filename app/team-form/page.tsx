@@ -5,9 +5,9 @@ import { TeamFormUI } from "./TeamFormUI";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Football Teams Over/Underperforming",
+  title: "Value vs Table Performance",
   description:
-    "Compare football team league positions against their expected position based on squad market value. Find which teams are overperforming or underperforming relative to their budget.",
+    "Compare each team's actual points with expected points from squad market value rank. Quickly spot clubs overperforming or underperforming their spending level.",
 };
 
 export default async function TeamFormPage() {

@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 
 const PAGE_TAGS: Record<string, string[]> = {
-  "/": ["form-analysis", "underperformers", "manager"],
+  "/form-signals": ["form-analysis", "underperformers", "manager"],
   "/team-form": ["team-form"],
   "/player-form": ["player-minutes"],
   "/injured": ["injured"],
@@ -52,11 +52,12 @@ function SpinnerIcon({ className }: { className?: string }) {
 }
 
 const navItems = [
-  { href: "/", label: "Form" },
-  { href: "/team-form", label: "Value vs Rank" },
-  { href: "/player-form", label: "Flops" },
-  { href: "/injured", label: "Injured" },
-  { href: "/minutes-value", label: "Benched Stars" },
+  { href: "/", label: "Home" },
+  { href: "/form-signals", label: "Recent Form" },
+  { href: "/team-form", label: "Value vs Table" },
+  { href: "/player-form", label: "Player Output" },
+  { href: "/injured", label: "Injury Impact" },
+  { href: "/minutes-value", label: "Minutes vs Value" },
 ] as const;
 
 export function Header() {
@@ -126,12 +127,12 @@ export function Header() {
             {isRevalidating ? (
               <>
                 <SpinnerIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Refreshing…</span>
+                <span className="hidden sm:inline">Refreshing Data…</span>
               </>
             ) : (
               <>
                 <RefreshIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Refresh</span>
+                <span className="hidden sm:inline">Refresh Data</span>
               </>
             )}
           </Button>

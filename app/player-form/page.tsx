@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import { PlayerFormUI } from "./PlayerFormUI";
 
 export const metadata: Metadata = {
-  title: "Underperforming Football Players",
+  title: "Player Output vs Market Value",
   description:
-    "Find high-value football players underdelivering on goals and assists. Identifies expensive attackers and midfielders outperformed by cheaper alternatives.",
+    "Find expensive players with weaker goal contribution output. Compare market value against goals + assists while controlling for minutes played.",
 };
 
 export default function PlayerFormPage() {

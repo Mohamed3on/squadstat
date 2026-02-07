@@ -16,6 +16,16 @@ interface TeamCardProps {
   compact?: boolean;
 }
 
+function formatOrdinal(value: number): string {
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
+  const mod10 = value % 10;
+  if (mod10 === 1) return `${value}st`;
+  if (mod10 === 2) return `${value}nd`;
+  if (mod10 === 3) return `${value}rd`;
+  return `${value}th`;
+}
+
 export function TeamCardSkeleton({ compact }: { compact?: boolean }) {
   if (compact) {
     return (
@@ -81,6 +91,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
                   href={`https://www.transfermarkt.com${team.clubUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  title="Open team profile on Transfermarkt"
                   className="hover:underline"
                   style={{ color: accentColor }}
                 >
@@ -91,7 +102,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               )}
             </div>
             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-              {team.leaguePosition}{team.leaguePosition === 1 ? "st" : team.leaguePosition === 2 ? "nd" : team.leaguePosition === 3 ? "rd" : "th"} • {team.stats.points} pts • GD: {team.stats.goalDiff > 0 ? "+" : ""}
+              {formatOrdinal(team.leaguePosition)} place • {team.stats.points} points • Goal Diff: {team.stats.goalDiff > 0 ? "+" : ""}
               {team.stats.goalDiff}
             </div>
           </div>
@@ -133,6 +144,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
                 href={`https://www.transfermarkt.com${team.clubUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                title="Open team profile on Transfermarkt"
                 className="hover:underline transition-colors"
                 style={{ color: accentColor }}
               >
@@ -144,7 +156,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
           </div>
           <div className="flex items-center gap-1.5 text-xs sm:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
             {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-4 h-4 object-contain shrink-0 rounded-sm bg-white/90 p-px" />}
-            {team.league} • {team.leaguePosition}{team.leaguePosition === 1 ? "st" : team.leaguePosition === 2 ? "nd" : team.leaguePosition === 3 ? "rd" : "th"}
+            {team.league} • {formatOrdinal(team.leaguePosition)} place
           </div>
         </div>
       </div>
@@ -176,10 +188,10 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
           <span className="font-bold" style={{ color: "var(--text-secondary)" }}>
             {team.stats.points}
           </span>{" "}
-          pts
+          Points
         </span>
         <span>
-          GD:{" "}
+          Goal Diff:{" "}
           <span
             className="font-bold"
             style={{
@@ -195,8 +207,8 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
             {team.stats.goalDiff}
           </span>
         </span>
-        <span>GF: {team.stats.goalsScored}</span>
-        <span>GA: {team.stats.goalsConceded}</span>
+        <span>Goals For: {team.stats.goalsScored}</span>
+        <span>Goals Against: {team.stats.goalsConceded}</span>
       </div>
 
       {/* Manager info */}
@@ -214,6 +226,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
                 href={manager.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                title="Open manager profile on Transfermarkt"
                 className="font-semibold hover:underline transition-colors truncate"
                 style={{ color: "var(--accent-blue)" }}
               >
@@ -222,7 +235,7 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
               <ManagerPPGBadge manager={manager} />
             </div>
           ) : (
-            <span style={{ color: "var(--text-muted)" }}>Manager info not available</span>
+            <span style={{ color: "var(--text-muted)" }}>Manager data unavailable for this club</span>
           )}
         </div>
       )}

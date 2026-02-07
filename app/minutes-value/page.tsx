@@ -3,9 +3,9 @@ import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { MinutesValueUI } from "./MinutesValueUI";
 
 export const metadata: Metadata = {
-  title: "Benched Stars | FormTracker",
+  title: "Minutes vs Market Value",
   description:
-    "High-value football players getting the fewest minutes across Europe's top leagues.",
+    "Track high-value players with low minutes. Compare who is playing less than expected for their market value.",
 };
 
 export default async function MinutesValuePage() {
