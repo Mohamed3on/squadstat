@@ -47,10 +47,11 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Restore player cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: data/player-cache.json
-          key: player-cache
+          key: player-cache-${{ github.run_id }}
+          restore-keys: player-cache-
 
       - name: Run refresh script
         run: bun run scripts/refresh-minutes-value.ts
@@ -59,7 +60,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: data/player-cache.json
-          key: player-cache
+          key: player-cache-${{ github.run_id }}
 
       - name: Commit and push
         run: |
