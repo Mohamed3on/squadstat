@@ -1,51 +1,49 @@
-import type { MinutesValuePlayer } from "@/app/types";
+export type PositionClass = "cf" | "forward" | "attacking-midfield" | "central-midfield" | "other";
 
-export type PositionType = "all" | "forward" | "cf" | "non-forward";
-
-export const FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"] as const;
-
-export const POSITION_MAP: Record<Exclude<PositionType, "all" | "non-forward">, readonly string[]> = {
-  forward: FORWARD_POSITIONS,
-  cf: ["Centre-Forward"],
+const POSITION_CLASS_MAP: Record<string, PositionClass> = {
+  "Centre-Forward": "cf",
+  "Left Winger": "forward",
+  "Right Winger": "forward",
+  "Second Striker": "forward",
+  "Attacking Midfield": "attacking-midfield",
+  "Central Midfield": "central-midfield",
 };
-
-const POSITION_ALIASES: Record<string, PositionType> = {
-  midfielder: "non-forward",
+const POSITION_CLASS_RANK: Record<PositionClass, number> = {
+  other: 1,
+  "central-midfield": 2,
+  "attacking-midfield": 3,
+  forward: 4,
+  cf: 5,
 };
+const DEFENSIVE_POSITIONS = new Set<string>([
+  "Goalkeeper",
+  "Centre-Back",
+  "Left-Back",
+  "Right-Back",
+  "Defensive Midfield",
+  "Left Wing-Back",
+  "Right Wing-Back",
+]);
 
-const FORWARD_POSITION_SET = new Set<string>(FORWARD_POSITIONS);
-
-export function isForwardPosition(position: string): boolean {
-  return FORWARD_POSITION_SET.has(position);
+export function getPositionClass(position: string): PositionClass {
+  return POSITION_CLASS_MAP[position] ?? "other";
 }
 
-export function resolvePositionType(
-  rawPosition: string | null,
-  {
-    defaultValue,
-    allowed,
-  }: {
-    defaultValue: PositionType;
-    allowed: readonly PositionType[];
-  }
-): PositionType | null {
-  const normalized = rawPosition?.trim().toLowerCase();
-  if (!normalized) return defaultValue;
-
-  const resolved = POSITION_ALIASES[normalized] ?? normalized;
-  if (!allowed.includes(resolved as PositionType)) return null;
-  return resolved as PositionType;
+export function getPositionClassRank(position: string): number {
+  return POSITION_CLASS_RANK[getPositionClass(position)];
 }
 
-export function filterByPosition(
-  players: MinutesValuePlayer[],
-  positionType: PositionType
-): MinutesValuePlayer[] {
-  if (positionType === "all") return players;
-  if (positionType === "non-forward") {
-    return players.filter((p) => !isForwardPosition(p.position));
+export function canBeUnderperformerAgainst(candidatePosition: string, targetPosition: string): boolean {
+  if (isDefensivePosition(candidatePosition) && !isDefensivePosition(targetPosition)) {
+    return false;
   }
+  return getPositionClassRank(candidatePosition) >= getPositionClassRank(targetPosition);
+}
 
-  const positions = POSITION_MAP[positionType];
-  return players.filter((p) => positions.includes(p.position));
+export function canBeOutperformerAgainst(candidatePosition: string, targetPosition: string): boolean {
+  return getPositionClassRank(candidatePosition) <= getPositionClassRank(targetPosition);
+}
+
+export function isDefensivePosition(position: string): boolean {
+  return DEFENSIVE_POSITIONS.has(position);
 }
