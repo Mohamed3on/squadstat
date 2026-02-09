@@ -1101,11 +1101,10 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   const urlParams = useSearchParams();
   const router = useRouter();
 
-  const initialName = urlParams.get("name") || "";
   const urlName = urlParams.get("name") || "";
-  const [playerName, setPlayerName] = useState(initialName);
+  const [playerName, setPlayerName] = useState(urlName);
   const [searchParams, setSearchParams] = useState<{ name: string } | null>(
-    initialName ? { name: initialName } : null
+    urlName ? { name: urlName } : null
   );
 
   useEffect(() => {
