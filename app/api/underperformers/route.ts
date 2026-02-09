@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
-import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
-import { filterByPosition, resolvePositionType, type PositionType } from "@/lib/positions";
+import { getPlayerStatsData } from "@/lib/fetch-minutes-value";
+import { canBeUnderperformerAgainst, isDefensivePosition } from "@/lib/positions";
 
-const MIN_MARKET_VALUE = 10_000_000; // €10m minimum to be considered
-const MAX_RESULTS = 50; // Return top candidates, client filters further
-const ALLOWED_POSITIONS: readonly PositionType[] = ["forward", "cf", "non-forward"];
+const MIN_DISCOVERY_MINUTES = 260;
 
 /**
  * Find candidates - players who seem to underperform based on points vs cheaper players
  * A player is a candidate if there exists a cheaper player with more points
+ * from the same or a lower position class.
  */
 function findCandidates(players: PlayerStats[]): PlayerStats[] {
   const sorted = [...players].sort((a, b) => b.marketValue - a.marketValue);
@@ -17,9 +16,15 @@ function findCandidates(players: PlayerStats[]): PlayerStats[] {
 
   for (let i = 0; i < sorted.length; i++) {
     const player = sorted[i];
-    if (player.marketValue < MIN_MARKET_VALUE) continue;
+    if (
+      isDefensivePosition(player.position) ||
+      player.position === "Central Midfield"
+    ) continue;
+    if (player.minutes === undefined || player.minutes < MIN_DISCOVERY_MINUTES) continue;
 
-    const cheaperWithMorePoints = sorted.slice(i + 1).some(p => p.points > player.points);
+    const cheaperWithMorePoints = sorted.slice(i + 1).some((p) =>
+      p.points > player.points && canBeUnderperformerAgainst(player.position, p.position)
+    );
     if (cheaperWithMorePoints) {
       candidates.push(player);
     }
@@ -28,24 +33,32 @@ function findCandidates(players: PlayerStats[]): PlayerStats[] {
   return candidates;
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const rawPosition = searchParams.get("position");
-  const positionType = resolvePositionType(rawPosition, { defaultValue: "cf", allowed: ALLOWED_POSITIONS });
-  if (!positionType) {
-    return NextResponse.json({
-      error: "Invalid position type",
-      position: rawPosition,
-      allowed: ALLOWED_POSITIONS,
-    }, { status: 400 });
-  }
+function filterUndominatedCandidates(candidates: PlayerStats[]): PlayerStats[] {
+  return candidates.filter((player) => {
+    const playerMins = player.minutes;
+    if (playerMins === undefined) return true;
 
+    const dominated = candidates.some(
+      (other) =>
+        other.playerId !== player.playerId &&
+        other.minutes !== undefined &&
+        canBeUnderperformerAgainst(other.position, player.position) &&
+        other.marketValue >= player.marketValue &&
+        other.minutes >= playerMins &&
+        other.points < player.points
+    );
+
+    return !dominated;
+  });
+}
+
+export async function GET() {
   try {
-    const allMV = await getMinutesValueData();
-    const allPlayers = filterByPosition(allMV, positionType).map(toPlayerStats);
+    const allPlayers = await getPlayerStatsData();
 
     const candidates = findCandidates(allPlayers);
-    const underperformers = candidates.sort((a, b) => b.marketValue - a.marketValue).slice(0, MAX_RESULTS);
+    const underperformers = filterUndominatedCandidates(candidates)
+      .sort((a, b) => b.marketValue - a.marketValue);
     return NextResponse.json({ underperformers });
   } catch (error) {
     console.error("Error computing underperformers:", error);

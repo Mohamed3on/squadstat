@@ -7,9 +7,6 @@ import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
 
 const MV_PAGES = 20;
-
-export { FORWARD_POSITIONS, POSITION_MAP } from "./positions";
-
 export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
   return {
     name: p.name,
@@ -29,6 +26,11 @@ export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
     minutes: p.minutes,
     isNewSigning: p.isNewSigning,
   };
+}
+
+export async function getPlayerStatsData(): Promise<PlayerStats[]> {
+  const players = await getMinutesValueData();
+  return players.map(toPlayerStats);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

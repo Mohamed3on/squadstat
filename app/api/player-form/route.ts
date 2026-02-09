@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
-import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
-import { filterByPosition, isForwardPosition, resolvePositionType, type PositionType } from "@/lib/positions";
-
-const ALLOWED_POSITIONS: readonly PositionType[] = ["all", "forward", "cf", "non-forward"];
+import { getPlayerStatsData } from "@/lib/fetch-minutes-value";
+import { canBeOutperformerAgainst, canBeUnderperformerAgainst } from "@/lib/positions";
 
 function normalizeForSearch(str: string): string {
   return str
@@ -48,23 +46,13 @@ function findOutperformers(players: PlayerStats[], target: PlayerStats): PlayerS
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const playerName = searchParams.get("name");
-  const rawPosition = searchParams.get("position");
-  const positionType = resolvePositionType(rawPosition, { defaultValue: "forward", allowed: ALLOWED_POSITIONS });
 
   if (!playerName) {
     return NextResponse.json({ error: "Player name is required" }, { status: 400 });
   }
-  if (!positionType) {
-    return NextResponse.json({
-      error: "Invalid position type",
-      position: rawPosition,
-      allowed: ALLOWED_POSITIONS,
-    }, { status: 400 });
-  }
 
   try {
-    const allMV = await getMinutesValueData();
-    const allPlayers = filterByPosition(allMV, positionType).map(toPlayerStats);
+    const allPlayers = await getPlayerStatsData();
 
     const targetPlayer = findPlayerByName(allPlayers, playerName);
 
@@ -76,14 +64,10 @@ export async function GET(request: Request) {
       }, { status: 404 });
     }
 
-    // If benchmark is not a forward, only compare against non-forwards
-    const isTargetForward = isForwardPosition(targetPlayer.position);
-    const comparisonPool = isTargetForward
-      ? allPlayers
-      : allPlayers.filter((p) => !isForwardPosition(p.position));
-
-    const underperformers = findUnderperformers(comparisonPool, targetPlayer);
-    const outperformers = findOutperformers(comparisonPool, targetPlayer)
+    const underperformers = findUnderperformers(allPlayers, targetPlayer)
+      .filter((p) => canBeUnderperformerAgainst(p.position, targetPlayer.position));
+    const outperformers = findOutperformers(allPlayers, targetPlayer)
+      .filter((p) => canBeOutperformerAgainst(p.position, targetPlayer.position))
       .sort((a, b) => b.points - a.points || a.marketValue - b.marketValue);
 
     return NextResponse.json({

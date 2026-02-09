@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
-import { SelectNative } from "@/components/ui/select-native";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { SelectNative } from "@/components/ui/select-native";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getLeagueLogoUrl } from "@/lib/leagues";
-import { POSITION_MAP, isForwardPosition, resolvePositionType, type PositionType } from "@/lib/positions";
 
 interface PlayerStats {
   name: string;
@@ -41,29 +42,30 @@ interface PlayerFormResult {
 
 interface UnderperformersResult {
   underperformers: PlayerStats[];
-  cached: boolean;
-  cacheAge?: number;
 }
 
-async function fetchUnderperformers(position: string, signal?: AbortSignal): Promise<UnderperformersResult> {
-  const res = await fetch(`/api/underperformers?position=${position}`, { signal });
+async function fetchUnderperformers(signal?: AbortSignal): Promise<UnderperformersResult> {
+  const res = await fetch("/api/underperformers", { signal });
   return res.json();
 }
 
 async function fetchPlayerForm(
   name: string,
-  position: string,
   signal?: AbortSignal
 ): Promise<PlayerFormResult> {
-  const params = new URLSearchParams({ name, position });
+  const params = new URLSearchParams({ name });
   const res = await fetch(`/api/player-form?${params}`, { signal });
   return res.json();
 }
 
-async function fetchPlayers(position: string, signal?: AbortSignal): Promise<PlayerStats[]> {
-  const res = await fetch(`/api/players?position=${position}`, { signal });
+async function fetchPlayers(signal?: AbortSignal): Promise<PlayerStats[]> {
+  const res = await fetch("/api/players", { signal });
   const data = await res.json();
   return data.players || [];
+}
+
+function getPlayerBenchmarkHref(name: string): string {
+  return `/player-form?${new URLSearchParams({ name }).toString()}`;
 }
 
 function MinutesDisplay({
@@ -380,15 +382,25 @@ function ComparisonCard({
 
         {/* Player info */}
         <div className="flex-1 min-w-0">
-          <a
-            href={`https://www.transfermarkt.com${player.profileUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {player.name}
-          </a>
+          {variant === "underperformer" ? (
+            <Link
+              href={getPlayerBenchmarkHref(player.name)}
+              className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {player.name}
+            </Link>
+          ) : (
+            <a
+              href={`https://www.transfermarkt.com${player.profileUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {player.name}
+            </a>
+          )}
           <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
             <span>{player.position}</span>
             <span style={{ opacity: 0.4 }}>•</span>
@@ -639,15 +651,13 @@ function UnderperformerListCard({
 
         {/* Player info */}
         <div className="flex-1 min-w-0">
-          <a
-            href={`https://www.transfermarkt.com${player.profileUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={getPlayerBenchmarkHref(player.name)}
             className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
             style={{ color: "var(--text-primary)" }}
           >
             {player.name}
-          </a>
+          </Link>
           <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
             <span>{player.position}</span>
             <span style={{ opacity: 0.4 }}>•</span>
@@ -732,21 +742,21 @@ function UnderperformersSection({
   isLoading: boolean;
   error: Error | null;
 }) {
-  const realUnderperformers = useMemo(() => {
+  const [leagueFilter, setLeagueFilter] = useState("all");
+  const [clubFilter, setClubFilter] = useState("");
+  const leagueOptions = useMemo(
+    () => Array.from(new Set(candidates.map((p) => p.league).filter(Boolean))).sort(),
+    [candidates]
+  );
+
+  const filteredCandidates = useMemo(() => {
+    const normalizedClub = clubFilter.trim().toLowerCase();
     return candidates.filter((player) => {
-      const playerMins = player.minutes;
-      if (playerMins === undefined) return true;
-      const dominated = candidates.some(
-        (other) =>
-          other.playerId !== player.playerId &&
-          other.minutes !== undefined &&
-          other.marketValue >= player.marketValue &&
-          other.minutes >= playerMins &&
-          other.points < player.points
-      );
-      return !dominated;
+      if (leagueFilter !== "all" && player.league !== leagueFilter) return false;
+      if (normalizedClub && !player.club.toLowerCase().includes(normalizedClub)) return false;
+      return true;
     });
-  }, [candidates]);
+  }, [candidates, leagueFilter, clubFilter]);
 
   return (
     <section>
@@ -760,14 +770,35 @@ function UnderperformersSection({
             {title}
           </h2>
         </div>
-        {realUnderperformers.length > 0 && (
+        {filteredCandidates.length > 0 && (
           <span
             className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums"
             style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}
           >
-            {realUnderperformers.length}
+            {filteredCandidates.length}
           </span>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+        <SelectNative
+          value={leagueFilter}
+          onChange={(e) => setLeagueFilter(e.target.value)}
+          className="h-10"
+        >
+          <option value="all">All leagues</option>
+          {leagueOptions.map((league) => (
+            <option key={league} value={league}>
+              {league}
+            </option>
+          ))}
+        </SelectNative>
+        <Input
+          value={clubFilter}
+          onChange={(e) => setClubFilter(e.target.value)}
+          placeholder="Filter by club"
+          className="h-10"
+        />
       </div>
 
       {isLoading && <DiscoverySkeleton />}
@@ -783,7 +814,7 @@ function UnderperformersSection({
         </div>
       )}
 
-      {!isLoading && !error && realUnderperformers.length === 0 && (
+      {!isLoading && !error && filteredCandidates.length === 0 && (
         <div
           className="rounded-xl p-8 text-center animate-fade-in"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
@@ -797,9 +828,9 @@ function UnderperformersSection({
         </div>
       )}
 
-      {realUnderperformers.length > 0 && (
+      {filteredCandidates.length > 0 && (
         <div className="space-y-3">
-          {realUnderperformers.map((player, index) => (
+          {filteredCandidates.map((player, index) => (
             <UnderperformerListCard
               key={player.playerId}
               player={player}
@@ -891,7 +922,6 @@ function ScorerRow({
 }
 
 type ScorerSortKey = "points" | "minutes";
-type ScorerPositionFilter = PositionType;
 
 const TOP_5_LEAGUES = ["Premier League", "LaLiga", "Bundesliga", "Serie A", "Ligue 1"];
 
@@ -903,17 +933,23 @@ function ScorersSection({
   isLoading: boolean;
 }) {
   const [sortBy, setSortBy] = useState<ScorerSortKey>("points");
-  const [posFilter, setPosFilter] = useState<ScorerPositionFilter>("all");
   const [top5Only, setTop5Only] = useState(false);
   const [newSigningsOnly, setNewSigningsOnly] = useState(false);
+  const [leagueFilter, setLeagueFilter] = useState("all");
+  const [clubFilter, setClubFilter] = useState("");
+  const leagueOptions = useMemo(
+    () => Array.from(new Set(players.map((p) => p.league).filter(Boolean))).sort(),
+    [players]
+  );
 
   const filtered = useMemo(() => {
     let list = players;
-    if (posFilter === "non-forward") {
-      list = list.filter((p) => !isForwardPosition(p.position));
-    } else if (posFilter !== "all") {
-      const positions = POSITION_MAP[posFilter];
-      list = list.filter((p) => positions.some((pos) => p.position === pos));
+    if (leagueFilter !== "all") {
+      list = list.filter((p) => p.league === leagueFilter);
+    }
+    const normalizedClub = clubFilter.trim().toLowerCase();
+    if (normalizedClub) {
+      list = list.filter((p) => p.club.toLowerCase().includes(normalizedClub));
     }
     if (top5Only) {
       list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
@@ -926,7 +962,7 @@ function ScorersSection({
       return (b.minutes || 0) - (a.minutes || 0) || b.points - a.points;
     });
     return sorted.slice(0, 50);
-  }, [players, sortBy, posFilter, top5Only, newSigningsOnly]);
+  }, [players, sortBy, top5Only, newSigningsOnly, leagueFilter, clubFilter]);
 
   if (isLoading) return <DiscoverySkeleton />;
 
@@ -934,40 +970,46 @@ function ScorersSection({
     <div className="space-y-4">
       {/* Controls */}
       <div className="flex flex-col gap-3">
-        {/* Position filter */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <ToggleGroup
-            type="single"
-            value={posFilter}
-            onValueChange={(v) => v && setPosFilter(v as ScorerPositionFilter)}
-            size="sm"
-            className="flex-wrap"
-          >
-            <ToggleGroupItem value="all" className="rounded-lg px-3">All</ToggleGroupItem>
-            <ToggleGroupItem value="forward" className="rounded-lg px-3">Forwards</ToggleGroupItem>
-            <ToggleGroupItem value="cf" className="rounded-lg px-3">CF</ToggleGroupItem>
-            <ToggleGroupItem value="non-forward" className="rounded-lg px-3">Non-Forwards</ToggleGroupItem>
-          </ToggleGroup>
+        <ToggleGroup
+          type="single"
+          value={sortBy}
+          onValueChange={(v) => v && setSortBy(v as ScorerSortKey)}
+          size="sm"
+          className="self-start"
+        >
+          <ToggleGroupItem value="points" className="rounded-lg px-3">
+            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            Points
+          </ToggleGroupItem>
+          <ToggleGroupItem value="minutes" className="rounded-lg px-3">
+            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Minutes
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-          <ToggleGroup
-            type="single"
-            value={sortBy}
-            onValueChange={(v) => v && setSortBy(v as ScorerSortKey)}
-            size="sm"
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <SelectNative
+            value={leagueFilter}
+            onChange={(e) => setLeagueFilter(e.target.value)}
+            className="h-10"
           >
-            <ToggleGroupItem value="points" className="rounded-lg px-3">
-              <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-              </svg>
-              Points
-            </ToggleGroupItem>
-            <ToggleGroupItem value="minutes" className="rounded-lg px-3">
-              <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Minutes
-            </ToggleGroupItem>
-          </ToggleGroup>
+            <option value="all">All leagues</option>
+            {leagueOptions.map((league) => (
+              <option key={league} value={league}>
+                {league}
+              </option>
+            ))}
+          </SelectNative>
+          <Input
+            value={clubFilter}
+            onChange={(e) => setClubFilter(e.target.value)}
+            placeholder="Filter by club"
+            className="h-10"
+          />
         </div>
 
         {/* Extra filters */}
@@ -1030,12 +1072,6 @@ function ScorersSection({
   );
 }
 
-const DISCOVERY_POSITIONS = [
-  { key: "forward", title: "All Forwards" },
-  { key: "cf", title: "Centre-Forwards" },
-] as const;
-const PLAYER_FORM_POSITIONS: readonly PositionType[] = ["all", "forward", "cf", "non-forward"];
-
 interface PlayerFormUIProps {
   initialAllPlayers: PlayerStats[];
 }
@@ -1045,56 +1081,44 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   const router = useRouter();
 
   const initialName = urlParams.get("name") || "";
-  const initialPosition = resolvePositionType(urlParams.get("position"), {
-    defaultValue: "all",
-    allowed: PLAYER_FORM_POSITIONS,
-  }) ?? "all";
-
+  const urlName = urlParams.get("name") || "";
   const [playerName, setPlayerName] = useState(initialName);
-  const [position, setPosition] = useState<PositionType>(initialPosition);
-  const [searchParams, setSearchParams] = useState<{ name: string; position: PositionType } | null>(
-    initialName ? { name: initialName, position: initialPosition } : null
+  const [searchParams, setSearchParams] = useState<{ name: string } | null>(
+    initialName ? { name: initialName } : null
   );
 
-  const updateUrl = useCallback((name: string | null, pos: PositionType) => {
+  useEffect(() => {
+    setPlayerName(urlName);
+    setSearchParams(urlName ? { name: urlName } : null);
+  }, [urlName]);
+
+  const updateUrl = useCallback((name: string | null) => {
     const params = new URLSearchParams();
     if (name) {
       params.set("name", name);
-      if (pos !== "all") params.set("position", pos);
     }
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : "/player-form", { scroll: false });
   }, [router]);
 
   // Fetch player list for autocomplete
-  const { data: playerList } = useQuery({
-    queryKey: ["players", position],
-    queryFn: ({ signal }) => fetchPlayers(position, signal),
+  const { data: playersData, isLoading: playersLoading } = useQuery({
+    queryKey: ["players"],
+    queryFn: ({ signal }) => fetchPlayers(signal),
     staleTime: 5 * 60 * 1000,
-  });
-
-  // All players for scorer leaderboard
-  const { data: allPlayersData, isLoading: allPlayersLoading } = useQuery({
-    queryKey: ["all-players-scorers"],
-    queryFn: ({ signal }) => fetchPlayers("all", signal),
-    staleTime: 5 * 60 * 1000,
-    enabled: !searchParams,
     initialData: initialAllPlayers,
   });
 
-  // Fetch both positions in parallel for discovery view
-  const discoveryQueries = useQueries({
-    queries: DISCOVERY_POSITIONS.map((pos) => ({
-      queryKey: ["underperformers", pos.key],
-      queryFn: ({ signal }: { signal: AbortSignal }) => fetchUnderperformers(pos.key, signal),
-      staleTime: 5 * 60 * 1000,
-      enabled: !searchParams, // Only fetch when not searching
-    })),
+  const discoveryQuery = useQuery({
+    queryKey: ["underperformers"],
+    queryFn: ({ signal }) => fetchUnderperformers(signal),
+    staleTime: 5 * 60 * 1000,
+    enabled: !searchParams,
   });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["player-form", searchParams],
-    queryFn: ({ signal }) => searchParams ? fetchPlayerForm(searchParams.name, searchParams.position, signal) : null,
+    queryFn: ({ signal }) => searchParams ? fetchPlayerForm(searchParams.name, signal) : null,
     enabled: !!searchParams,
     staleTime: 2 * 60 * 1000,
   });
@@ -1103,7 +1127,6 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
 
   const targetMinutes = data?.targetPlayer?.minutes;
   const [benchTop5Only, setBenchTop5Only] = useState(false);
-  const [benchNonForwardOnly, setBenchNonForwardOnly] = useState(false);
 
   const filteredUnderperformers = useMemo(() => {
     if (!data?.underperformers) return [];
@@ -1112,9 +1135,8 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
       list = list.filter((p) => p.minutes === undefined || p.minutes >= targetMinutes);
     }
     if (benchTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
-    if (benchNonForwardOnly) list = list.filter((p) => !isForwardPosition(p.position));
     return list;
-  }, [data?.underperformers, targetMinutes, benchTop5Only, benchNonForwardOnly]);
+  }, [data?.underperformers, targetMinutes, benchTop5Only]);
 
   const filteredOutperformers = useMemo(() => {
     if (!data?.outperformers) return [];
@@ -1123,9 +1145,8 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
       list = list.filter((p) => p.minutes === undefined || p.minutes <= targetMinutes);
     }
     if (benchTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
-    if (benchNonForwardOnly) list = list.filter((p) => !isForwardPosition(p.position));
     return list;
-  }, [data?.outperformers, targetMinutes, benchTop5Only, benchNonForwardOnly]);
+  }, [data?.outperformers, targetMinutes, benchTop5Only]);
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -1143,22 +1164,22 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
           </p>
         </div>
         {/* Search Form */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-6 sm:mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex-1">
             <PlayerAutocomplete
-              players={playerList || []}
+              players={playersData || []}
               value={playerName}
               onChange={(val) => {
                 setPlayerName(val);
                 if (!val.trim()) {
                   setSearchParams(null);
-                  updateUrl(null, position);
+                  updateUrl(null);
                 }
               }}
               onSelect={(player) => {
                 setPlayerName(player.name);
-                setSearchParams({ name: player.name, position });
-                updateUrl(player.name, position);
+                setSearchParams({ name: player.name });
+                updateUrl(player.name);
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
@@ -1168,27 +1189,6 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
               )}
             />
           </div>
-
-          <SelectNative
-            value={position}
-            onChange={(e) => {
-              const newPos = (resolvePositionType(e.target.value, {
-                defaultValue: "all",
-                allowed: PLAYER_FORM_POSITIONS,
-              }) ?? "all") as PositionType;
-              setPosition(newPos);
-              if (searchParams) {
-                setSearchParams({ name: searchParams.name, position: newPos });
-                updateUrl(searchParams.name, newPos);
-              }
-            }}
-            className="h-11 flex-1 sm:w-auto sm:flex-none"
-          >
-            <option value="all">All Players</option>
-            <option value="forward">All Forwards</option>
-            <option value="cf">Centre-Forward</option>
-            <option value="non-forward">Non-Forwards</option>
-          </SelectNative>
         </div>
 
         {/* Loading State */}
@@ -1258,18 +1258,6 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Top 5 leagues
-              </button>
-              <button
-                type="button"
-                onClick={() => setBenchNonForwardOnly((v) => !v)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                style={{
-                  background: benchNonForwardOnly ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
-                  color: benchNonForwardOnly ? "var(--accent-blue)" : "var(--text-muted)",
-                  border: benchNonForwardOnly ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
-                }}
-              >
-                Non-forwards only
               </button>
             </div>
 
@@ -1415,23 +1403,18 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
             </TabsList>
 
             <TabsContent value="underperformers">
-              <div className="space-y-10">
-                {DISCOVERY_POSITIONS.map((pos, idx) => (
-                  <UnderperformersSection
-                    key={pos.key}
-                    title={pos.title}
-                    candidates={discoveryQueries[idx]?.data?.underperformers || []}
-                    isLoading={discoveryQueries[idx]?.isLoading ?? true}
-                    error={discoveryQueries[idx]?.error ?? null}
-                  />
-                ))}
-              </div>
+              <UnderperformersSection
+                title="Underperformers"
+                candidates={discoveryQuery.data?.underperformers || []}
+                isLoading={discoveryQuery.isLoading}
+                error={(discoveryQuery.error as Error | null) ?? null}
+              />
             </TabsContent>
 
             <TabsContent value="scorers">
               <ScorersSection
-                players={allPlayersData || []}
-                isLoading={allPlayersLoading}
+                players={playersData || []}
+                isLoading={playersLoading}
               />
             </TabsContent>
           </Tabs>
