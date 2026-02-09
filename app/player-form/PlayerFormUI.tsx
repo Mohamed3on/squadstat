@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
@@ -996,8 +997,17 @@ function ScorersSection({
       if (sortBy === "points") return b.points - a.points || (b.minutes || 0) - (a.minutes || 0);
       return (b.minutes || 0) - (a.minutes || 0) || b.points - a.points;
     });
-    return sorted.slice(0, 50);
+    return sorted;
   }, [players, sortBy, top5Only, newSigningsOnly, leagueFilter, clubFilter]);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 60,
+    overscan: 20,
+  });
 
   if (isLoading) return <DiscoverySkeleton />;
 
@@ -1081,25 +1091,55 @@ function ScorersSection({
 
       {/* Scorer list */}
       <div
-        className="rounded-xl overflow-hidden"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+        ref={parentRef}
+        className="rounded-xl overflow-y-auto"
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
+          maxHeight: "70vh",
+        }}
       >
-        {filtered.map((player, i) => (
-          <ScorerRow key={player.playerId} player={player} rank={i + 1} />
-        ))}
-        {filtered.length === 0 && (
+        {filtered.length === 0 ? (
           <div
             className="p-8 text-center"
             style={{ color: "var(--text-muted)" }}
           >
             No players found for this filter combination
           </div>
+        ) : (
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const player = filtered[virtualRow.index];
+              return (
+                <div
+                  key={player.playerId}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <ScorerRow player={player} rank={virtualRow.index + 1} />
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
       {filtered.length > 0 && (
         <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
-          Showing top {filtered.length} by {sortBy === "points" ? "goal contributions" : "minutes played"}
+          Showing {filtered.length} players by {sortBy === "points" ? "goal contributions" : "minutes played"}
           {top5Only ? " (Top 5 leagues)" : ""}
         </p>
       )}
