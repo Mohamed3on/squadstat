@@ -44,6 +44,18 @@ interface UnderperformersResult {
   underperformers: PlayerStats[];
 }
 
+const QUERY_PARAM_KEYS = {
+  name: "name",
+  benchTop5: "bTop5",
+  underLeague: "uLeague",
+  underClub: "uClub",
+  scorersSort: "sSort",
+  scorersTop5: "sTop5",
+  scorersNew: "sNew",
+  scorersLeague: "sLeague",
+  scorersClub: "sClub",
+} as const;
+
 async function fetchUnderperformers(signal?: AbortSignal): Promise<UnderperformersResult> {
   const res = await fetch("/api/underperformers", { signal });
   return res.json();
@@ -65,7 +77,20 @@ async function fetchPlayers(signal?: AbortSignal): Promise<PlayerStats[]> {
 }
 
 function getPlayerBenchmarkHref(name: string): string {
-  return `/player-form?${new URLSearchParams({ name }).toString()}`;
+  return `/player-form?${new URLSearchParams({ [QUERY_PARAM_KEYS.name]: name }).toString()}`;
+}
+
+function filterPlayersByLeagueAndClub(
+  players: PlayerStats[],
+  leagueFilter: string,
+  clubFilter: string
+): PlayerStats[] {
+  const normalizedClub = clubFilter.trim().toLowerCase();
+  return players.filter((player) => {
+    if (leagueFilter !== "all" && player.league !== leagueFilter) return false;
+    if (normalizedClub && !player.club.toLowerCase().includes(normalizedClub)) return false;
+    return true;
+  });
 }
 
 function MinutesDisplay({
@@ -755,14 +780,10 @@ function UnderperformersSection({
     [candidates]
   );
 
-  const filteredCandidates = useMemo(() => {
-    const normalizedClub = clubFilter.trim().toLowerCase();
-    return candidates.filter((player) => {
-      if (leagueFilter !== "all" && player.league !== leagueFilter) return false;
-      if (normalizedClub && !player.club.toLowerCase().includes(normalizedClub)) return false;
-      return true;
-    });
-  }, [candidates, leagueFilter, clubFilter]);
+  const filteredCandidates = useMemo(
+    () => filterPlayersByLeagueAndClub(candidates, leagueFilter, clubFilter),
+    [candidates, leagueFilter, clubFilter]
+  );
 
   return (
     <section>
@@ -964,14 +985,7 @@ function ScorersSection({
   );
 
   const filtered = useMemo(() => {
-    let list = players;
-    if (leagueFilter !== "all") {
-      list = list.filter((p) => p.league === leagueFilter);
-    }
-    const normalizedClub = clubFilter.trim().toLowerCase();
-    if (normalizedClub) {
-      list = list.filter((p) => p.club.toLowerCase().includes(normalizedClub));
-    }
+    let list = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
     if (top5Only) {
       list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
     }
@@ -1101,7 +1115,7 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   const urlParams = useSearchParams();
   const router = useRouter();
 
-  const urlName = urlParams.get("name") || "";
+  const urlName = urlParams.get(QUERY_PARAM_KEYS.name) || "";
   const [playerName, setPlayerName] = useState(urlName);
   const selectedName = urlName || null;
 
@@ -1125,17 +1139,17 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   }, [router, urlParams]);
 
   const updateUrl = useCallback((name: string | null) => {
-    updateQueryParams({ name });
+    updateQueryParams({ [QUERY_PARAM_KEYS.name]: name });
   }, [updateQueryParams]);
 
-  const underLeagueFilter = urlParams.get("uLeague") || "all";
-  const underClubFilter = urlParams.get("uClub") || "";
-  const scorersSortBy = urlParams.get("sSort") === "minutes" ? "minutes" : "points";
-  const scorersTop5Only = urlParams.get("sTop5") === "1";
-  const scorersNewOnly = urlParams.get("sNew") === "1";
-  const scorersLeagueFilter = urlParams.get("sLeague") || "all";
-  const scorersClubFilter = urlParams.get("sClub") || "";
-  const benchTop5Only = urlParams.get("bTop5") === "1";
+  const underLeagueFilter = urlParams.get(QUERY_PARAM_KEYS.underLeague) || "all";
+  const underClubFilter = urlParams.get(QUERY_PARAM_KEYS.underClub) || "";
+  const scorersSortBy = urlParams.get(QUERY_PARAM_KEYS.scorersSort) === "minutes" ? "minutes" : "points";
+  const scorersTop5Only = urlParams.get(QUERY_PARAM_KEYS.scorersTop5) === "1";
+  const scorersNewOnly = urlParams.get(QUERY_PARAM_KEYS.scorersNew) === "1";
+  const scorersLeagueFilter = urlParams.get(QUERY_PARAM_KEYS.scorersLeague) || "all";
+  const scorersClubFilter = urlParams.get(QUERY_PARAM_KEYS.scorersClub) || "";
+  const benchTop5Only = urlParams.get(QUERY_PARAM_KEYS.benchTop5) === "1";
 
   // Fetch player list for autocomplete
   const { data: playersData, isLoading: playersLoading } = useQuery({
@@ -1279,7 +1293,11 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => updateQueryParams({ bTop5: benchTop5Only ? null : "1" })}
+                onClick={() =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.benchTop5]: benchTop5Only ? null : "1",
+                  })
+                }
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                 style={{
                   background: benchTop5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
@@ -1443,8 +1461,16 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
                 error={(discoveryQuery.error as Error | null) ?? null}
                 leagueFilter={underLeagueFilter}
                 clubFilter={underClubFilter}
-                onLeagueFilterChange={(value) => updateQueryParams({ uLeague: value === "all" ? null : value })}
-                onClubFilterChange={(value) => updateQueryParams({ uClub: value || null })}
+                onLeagueFilterChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.underLeague]: value === "all" ? null : value,
+                  })
+                }
+                onClubFilterChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.underClub]: value || null,
+                  })
+                }
               />
             </TabsContent>
 
@@ -1453,15 +1479,35 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
                 players={playersData || []}
                 isLoading={playersLoading}
                 sortBy={scorersSortBy}
-                onSortChange={(value) => updateQueryParams({ sSort: value === "points" ? null : value })}
+                onSortChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.scorersSort]: value === "points" ? null : value,
+                  })
+                }
                 top5Only={scorersTop5Only}
-                onTop5OnlyChange={(value) => updateQueryParams({ sTop5: value ? "1" : null })}
+                onTop5OnlyChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.scorersTop5]: value ? "1" : null,
+                  })
+                }
                 newSigningsOnly={scorersNewOnly}
-                onNewSigningsOnlyChange={(value) => updateQueryParams({ sNew: value ? "1" : null })}
+                onNewSigningsOnlyChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.scorersNew]: value ? "1" : null,
+                  })
+                }
                 leagueFilter={scorersLeagueFilter}
-                onLeagueFilterChange={(value) => updateQueryParams({ sLeague: value === "all" ? null : value })}
+                onLeagueFilterChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.scorersLeague]: value === "all" ? null : value,
+                  })
+                }
                 clubFilter={scorersClubFilter}
-                onClubFilterChange={(value) => updateQueryParams({ sClub: value || null })}
+                onClubFilterChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.scorersClub]: value || null,
+                  })
+                }
               />
             </TabsContent>
           </Tabs>
