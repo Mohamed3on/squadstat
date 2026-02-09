@@ -1,21 +1,25 @@
 import { NextResponse } from "next/server";
-import { getMinutesValueData, toPlayerStats, POSITION_MAP, FORWARD_POSITIONS } from "@/lib/fetch-minutes-value";
+import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
+import { filterByPosition, resolvePositionType, type PositionType } from "@/lib/positions";
+
+const ALLOWED_POSITIONS: readonly PositionType[] = ["all", "forward", "cf", "non-forward"];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const position = searchParams.get("position") || "all";
+  const rawPosition = searchParams.get("position");
+  const position = resolvePositionType(rawPosition, { defaultValue: "all", allowed: ALLOWED_POSITIONS });
+
+  if (!position) {
+    return NextResponse.json({
+      error: "Invalid position type",
+      position: rawPosition,
+      allowed: ALLOWED_POSITIONS,
+    }, { status: 400 });
+  }
 
   try {
     const allMV = await getMinutesValueData();
-    let players;
-    if (position === "non-forward") {
-      players = allMV.filter((p) => !FORWARD_POSITIONS.includes(p.position)).map(toPlayerStats);
-    } else {
-      const positions = POSITION_MAP[position];
-      players = positions
-        ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
-        : allMV.map(toPlayerStats);
-    }
+    const players = filterByPosition(allMV, position).map(toPlayerStats);
 
     return NextResponse.json({ players });
   } catch (error) {

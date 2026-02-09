@@ -15,8 +15,15 @@
   /* Accent colors - electric sports feel */
   --accent-hot: #00ff87;
   --accent-hot-glow: rgba(0, 255, 135, 0.15);
+  --accent-hot-faint: rgba(0, 255, 135, 0.06);
+  --accent-hot-border: rgba(0, 255, 135, 0.2);
+  --accent-hot-muted: rgba(0, 255, 135, 0.7);
   --accent-cold: #ff4757;
   --accent-cold-glow: rgba(255, 71, 87, 0.15);
+  --accent-cold-faint: rgba(255, 71, 87, 0.06);
+  --accent-cold-border: rgba(255, 71, 87, 0.2);
+  --accent-cold-soft: #ff6b7a;
+  --accent-cold-muted: rgba(255, 107, 122, 0.7);
   --accent-blue: #58a6ff;
   --accent-gold: #ffd700;
 

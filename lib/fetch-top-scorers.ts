@@ -88,8 +88,11 @@ export async function fetchTopScorersRaw(): Promise<MinutesValuePlayer[]> {
   const players: MinutesValuePlayer[] = [];
   const seen = new Set<string>();
 
-  for (const result of results) {
-    if (result.status !== "fulfilled") continue;
+  for (const [index, result] of results.entries()) {
+    if (result.status !== "fulfilled") {
+      console.error(`[fetchTopScorersRaw] Failed to fetch ${urls[index]}:`, result.reason);
+      continue;
+    }
     const $ = cheerio.load(result.value);
     $("table.items > tbody > tr").each((_, row) => {
       const player = parseTopScorerRow($, row);

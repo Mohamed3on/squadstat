@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
-import { getMinutesValueData, toPlayerStats, POSITION_MAP, FORWARD_POSITIONS } from "@/lib/fetch-minutes-value";
+import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
+import { filterByPosition, isForwardPosition, resolvePositionType, type PositionType } from "@/lib/positions";
+
+const ALLOWED_POSITIONS: readonly PositionType[] = ["all", "forward", "cf", "non-forward"];
 
 function normalizeForSearch(str: string): string {
   return str
@@ -45,23 +48,23 @@ function findOutperformers(players: PlayerStats[], target: PlayerStats): PlayerS
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const playerName = searchParams.get("name");
-  const positionType = searchParams.get("position") || "forward";
+  const rawPosition = searchParams.get("position");
+  const positionType = resolvePositionType(rawPosition, { defaultValue: "forward", allowed: ALLOWED_POSITIONS });
 
   if (!playerName) {
     return NextResponse.json({ error: "Player name is required" }, { status: 400 });
   }
+  if (!positionType) {
+    return NextResponse.json({
+      error: "Invalid position type",
+      position: rawPosition,
+      allowed: ALLOWED_POSITIONS,
+    }, { status: 400 });
+  }
 
   try {
     const allMV = await getMinutesValueData();
-    let allPlayers;
-    if (positionType === "non-forward") {
-      allPlayers = allMV.filter((p) => !FORWARD_POSITIONS.includes(p.position)).map(toPlayerStats);
-    } else {
-      const positions = POSITION_MAP[positionType] || [];
-      allPlayers = positions.length > 0
-        ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
-        : allMV.map(toPlayerStats);
-    }
+    const allPlayers = filterByPosition(allMV, positionType).map(toPlayerStats);
 
     const targetPlayer = findPlayerByName(allPlayers, playerName);
 
@@ -74,10 +77,10 @@ export async function GET(request: Request) {
     }
 
     // If benchmark is not a forward, only compare against non-forwards
-    const isTargetForward = FORWARD_POSITIONS.includes(targetPlayer.position);
+    const isTargetForward = isForwardPosition(targetPlayer.position);
     const comparisonPool = isTargetForward
       ? allPlayers
-      : allPlayers.filter((p) => !FORWARD_POSITIONS.includes(p.position));
+      : allPlayers.filter((p) => !isForwardPosition(p.position));
 
     const underperformers = findUnderperformers(comparisonPool, targetPlayer);
     const outperformers = findOutperformers(comparisonPool, targetPlayer)

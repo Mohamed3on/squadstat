@@ -86,7 +86,11 @@ async function main() {
       p.assists = entry.assists;
       if (entry.club) p.club = entry.club;
       if (entry.league) p.league = entry.league;
-      if (entry.isNewSigning) p.isNewSigning = true;
+      if (entry.isNewSigning) {
+        p.isNewSigning = true;
+      } else {
+        delete p.isNewSigning;
+      }
     }
   }
 

@@ -158,5 +158,5 @@ export interface PlayerStatsResult {
   assists: number;
   club: string;
   league: string;
-  isNewSigning?: boolean;
+  isNewSigning: boolean;
 }

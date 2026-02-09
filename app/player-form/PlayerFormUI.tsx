@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getLeagueLogoUrl } from "@/lib/leagues";
+import { POSITION_MAP, isForwardPosition, resolvePositionType, type PositionType } from "@/lib/positions";
 
 interface PlayerStats {
   name: string;
@@ -271,11 +272,71 @@ function UnderperformerCard({
   const pointsDiff = targetPlayer.points - player.points;
 
   return (
+    <ComparisonCard
+      player={player}
+      index={index}
+      minutes={minutes}
+      variant="underperformer"
+      valueDeltaLabel={valueDiffDisplay}
+      pointsDeltaLabel={`−${pointsDiff}`}
+    />
+  );
+}
+
+type ComparisonCardVariant = "underperformer" | "outperformer";
+
+const COMPARISON_CARD_THEME: Record<
+  ComparisonCardVariant,
+  {
+    gradientStart: string;
+    border: string;
+    rankBackground: string;
+    accentColor: string;
+    accentMutedColor: string;
+    imageBorder: string;
+  }
+> = {
+  underperformer: {
+    gradientStart: "var(--accent-cold-faint)",
+    border: "var(--accent-cold-glow)",
+    rankBackground: "var(--accent-cold-glow)",
+    accentColor: "var(--accent-cold-soft)",
+    accentMutedColor: "var(--accent-cold-muted)",
+    imageBorder: "var(--accent-cold-border)",
+  },
+  outperformer: {
+    gradientStart: "var(--accent-hot-faint)",
+    border: "var(--accent-hot-glow)",
+    rankBackground: "var(--accent-hot-glow)",
+    accentColor: "var(--accent-hot)",
+    accentMutedColor: "var(--accent-hot-muted)",
+    imageBorder: "var(--accent-hot-border)",
+  },
+};
+
+function ComparisonCard({
+  player,
+  index = 0,
+  minutes,
+  variant,
+  valueDeltaLabel,
+  pointsDeltaLabel,
+}: {
+  player: PlayerStats;
+  index?: number;
+  minutes?: number;
+  variant: ComparisonCardVariant;
+  valueDeltaLabel: string;
+  pointsDeltaLabel: string;
+}) {
+  const theme = COMPARISON_CARD_THEME[variant];
+
+  return (
     <div
       className="group rounded-xl p-3 sm:p-4 animate-slide-up hover-lift"
       style={{
-        background: "linear-gradient(135deg, rgba(255, 71, 87, 0.06) 0%, var(--bg-card) 100%)",
-        border: "1px solid rgba(255, 71, 87, 0.15)",
+        background: `linear-gradient(135deg, ${theme.gradientStart} 0%, var(--bg-card) 100%)`,
+        border: `1px solid ${theme.border}`,
         animationDelay: `${Math.min(index * 0.03, 0.3)}s`,
       }}
     >
@@ -284,8 +345,8 @@ function UnderperformerCard({
         <div
           className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold shrink-0"
           style={{
-            background: "rgba(255, 71, 87, 0.15)",
-            color: "#ff6b7a",
+            background: theme.rankBackground,
+            color: theme.accentColor,
           }}
         >
           {index + 1}
@@ -300,7 +361,7 @@ function UnderperformerCard({
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
               style={{
                 background: "var(--bg-elevated)",
-                border: "1px solid rgba(255, 71, 87, 0.2)",
+                border: `1px solid ${theme.imageBorder}`,
               }}
             />
           ) : (
@@ -341,14 +402,14 @@ function UnderperformerCard({
         <div className="hidden sm:flex items-center gap-3 shrink-0">
           {/* Value comparison */}
           <div className="text-right">
-            <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
+            <div className="text-sm font-bold tabular-nums" style={{ color: theme.accentColor }}>
               {player.marketValueDisplay}
             </div>
             <div
               className="text-[10px] font-medium tabular-nums"
-              style={{ color: "rgba(255, 107, 122, 0.7)" }}
+              style={{ color: theme.accentMutedColor }}
             >
-              {valueDiffDisplay}
+              {valueDeltaLabel}
             </div>
           </div>
 
@@ -362,9 +423,9 @@ function UnderperformerCard({
             </div>
             <div
               className="text-[10px] font-medium tabular-nums"
-              style={{ color: "#ff6b7a" }}
+              style={{ color: theme.accentColor }}
             >
-              −{pointsDiff}
+              {pointsDeltaLabel}
             </div>
           </div>
 
@@ -379,7 +440,7 @@ function UnderperformerCard({
 
         {/* Mobile: just value */}
         <div className="sm:hidden text-right shrink-0">
-          <div className="text-xs font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
+          <div className="text-xs font-bold tabular-nums" style={{ color: theme.accentColor }}>
             {player.marketValueDisplay}
           </div>
           <div className="text-[10px] tabular-nums" style={{ color: "var(--text-primary)" }}>
@@ -427,133 +488,14 @@ function OutperformerCard({
   const pointsMore = player.points - targetPlayer.points;
 
   return (
-    <div
-      className="group rounded-xl p-3 sm:p-4 animate-slide-up hover-lift"
-      style={{
-        background: "linear-gradient(135deg, rgba(0, 255, 135, 0.06) 0%, var(--bg-card) 100%)",
-        border: "1px solid rgba(0, 255, 135, 0.15)",
-        animationDelay: `${Math.min(index * 0.03, 0.3)}s`,
-      }}
-    >
-      <div className="flex items-center gap-3 sm:gap-4">
-        {/* Rank indicator */}
-        <div
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold shrink-0"
-          style={{
-            background: "rgba(0, 255, 135, 0.15)",
-            color: "#00ff87",
-          }}
-        >
-          {index + 1}
-        </div>
-
-        {/* Player image */}
-        <div className="relative shrink-0">
-          {player.imageUrl ? (
-            <img
-              src={player.imageUrl}
-              alt={player.name}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
-              style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid rgba(0, 255, 135, 0.2)",
-              }}
-            />
-          ) : (
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold"
-              style={{
-                background: "var(--bg-elevated)",
-                color: "var(--text-muted)",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
-              {player.name.charAt(0)}
-            </div>
-          )}
-        </div>
-
-        {/* Player info */}
-        <div className="flex-1 min-w-0">
-          <a
-            href={`https://www.transfermarkt.com${player.profileUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {player.name}
-          </a>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
-            <span>{player.position}</span>
-            <span style={{ opacity: 0.4 }}>•</span>
-            <span className="truncate max-w-[100px] sm:max-w-none">{player.club}</span>
-            <span className="hidden sm:inline" style={{ opacity: 0.4 }}>•</span>
-            <span className="hidden sm:inline">{player.age}y</span>
-          </div>
-        </div>
-
-        {/* Comparison metrics - desktop */}
-        <div className="hidden sm:flex items-center gap-3 shrink-0">
-          <div className="text-right">
-            <div className="text-sm font-bold tabular-nums" style={{ color: "#00ff87" }}>
-              {player.marketValueDisplay}
-            </div>
-            <div
-              className="text-[10px] font-medium tabular-nums"
-              style={{ color: "rgba(0, 255, 135, 0.7)" }}
-            >
-              {valueSavedDisplay}
-            </div>
-          </div>
-
-          <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
-
-          <div className="text-right min-w-[3rem]">
-            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
-              {player.points} pts
-            </div>
-            <div
-              className="text-[10px] font-medium tabular-nums"
-              style={{ color: "#00ff87" }}
-            >
-              +{pointsMore}
-            </div>
-          </div>
-
-          <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
-
-          <div className="min-w-[4.5rem]">
-            <MinutesDisplay minutes={player.minutes} />
-          </div>
-        </div>
-
-        {/* Mobile: compact metrics */}
-        <div className="sm:hidden text-right shrink-0">
-          <div className="text-xs font-bold tabular-nums" style={{ color: "#00ff87" }}>
-            {player.marketValueDisplay}
-          </div>
-          <div className="text-[10px] tabular-nums" style={{ color: "var(--text-primary)" }}>
-            {player.points} pts
-          </div>
-        </div>
-      </div>
-
-      {/* Stats row */}
-      <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 sm:pt-3 text-[10px] sm:text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-        <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.goals}G</span>
-        <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.assists}A</span>
-        <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>{player.matches} apps</span>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-muted)" }}>{player.age}y</span>
-        <div className="sm:hidden ml-auto">
-          <MinutesDisplay minutes={player.minutes} />
-        </div>
-        <span className="hidden sm:flex items-center gap-1 ml-auto text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
-          {getLeagueLogoUrl(player.league) && <img src={getLeagueLogoUrl(player.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
-          {player.league}
-        </span>
-      </div>
-    </div>
+    <ComparisonCard
+      player={player}
+      index={index}
+      minutes={player.minutes}
+      variant="outperformer"
+      valueDeltaLabel={valueSavedDisplay}
+      pointsDeltaLabel={`+${pointsMore}`}
+    />
   );
 }
 
@@ -884,7 +826,7 @@ function ScorerRow({
     >
       <span
         className="w-6 text-center text-xs font-bold tabular-nums shrink-0"
-        style={{ color: rank <= 3 ? "#ffd700" : "var(--text-muted)" }}
+        style={{ color: rank <= 3 ? "var(--accent-gold)" : "var(--text-muted)" }}
       >
         {rank}
       </span>
@@ -924,7 +866,7 @@ function ScorerRow({
       <div className="hidden sm:flex items-center gap-4 shrink-0 text-sm tabular-nums">
         <span style={{ color: "var(--text-secondary)" }}>{player.goals}G</span>
         <span style={{ color: "var(--text-secondary)" }}>{player.assists}A</span>
-        <span className="font-bold min-w-[3rem] text-right" style={{ color: "#00ff87" }}>
+        <span className="font-bold min-w-[3rem] text-right" style={{ color: "var(--accent-hot)" }}>
           {player.points} pts
         </span>
         <span className="min-w-[4rem] text-right" style={{ color: "var(--accent-blue)" }}>
@@ -937,7 +879,7 @@ function ScorerRow({
 
       {/* Mobile stats */}
       <div className="sm:hidden text-right shrink-0">
-        <div className="text-xs font-bold tabular-nums" style={{ color: "#00ff87" }}>
+        <div className="text-xs font-bold tabular-nums" style={{ color: "var(--accent-hot)" }}>
           {player.points} pts
         </div>
         <div className="text-[10px] tabular-nums" style={{ color: "var(--text-muted)" }}>
@@ -949,13 +891,7 @@ function ScorerRow({
 }
 
 type ScorerSortKey = "points" | "minutes";
-type ScorerPositionFilter = "all" | "forward" | "cf" | "non-forward";
-
-const SCORER_FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"];
-const SCORER_POSITION_MAP: Record<string, string[]> = {
-  forward: SCORER_FORWARD_POSITIONS,
-  cf: ["Centre-Forward"],
-};
+type ScorerPositionFilter = PositionType;
 
 const TOP_5_LEAGUES = ["Premier League", "LaLiga", "Bundesliga", "Serie A", "Ligue 1"];
 
@@ -974,9 +910,9 @@ function ScorersSection({
   const filtered = useMemo(() => {
     let list = players;
     if (posFilter === "non-forward") {
-      list = list.filter((p) => !SCORER_FORWARD_POSITIONS.includes(p.position));
+      list = list.filter((p) => !isForwardPosition(p.position));
     } else if (posFilter !== "all") {
-      const positions = SCORER_POSITION_MAP[posFilter] || [];
+      const positions = POSITION_MAP[posFilter];
       list = list.filter((p) => positions.some((pos) => p.position === pos));
     }
     if (top5Only) {
@@ -1098,23 +1034,29 @@ const DISCOVERY_POSITIONS = [
   { key: "forward", title: "All Forwards" },
   { key: "cf", title: "Centre-Forwards" },
 ] as const;
+const PLAYER_FORM_POSITIONS: readonly PositionType[] = ["all", "forward", "cf", "non-forward"];
 
-const BENCH_FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"];
+interface PlayerFormUIProps {
+  initialAllPlayers: PlayerStats[];
+}
 
-export function PlayerFormUI() {
+export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   const urlParams = useSearchParams();
   const router = useRouter();
 
   const initialName = urlParams.get("name") || "";
-  const initialPosition = urlParams.get("position") || "all";
+  const initialPosition = resolvePositionType(urlParams.get("position"), {
+    defaultValue: "all",
+    allowed: PLAYER_FORM_POSITIONS,
+  }) ?? "all";
 
   const [playerName, setPlayerName] = useState(initialName);
-  const [position, setPosition] = useState(initialPosition);
-  const [searchParams, setSearchParams] = useState<{ name: string; position: string } | null>(
+  const [position, setPosition] = useState<PositionType>(initialPosition);
+  const [searchParams, setSearchParams] = useState<{ name: string; position: PositionType } | null>(
     initialName ? { name: initialName, position: initialPosition } : null
   );
 
-  const updateUrl = useCallback((name: string | null, pos: string) => {
+  const updateUrl = useCallback((name: string | null, pos: PositionType) => {
     const params = new URLSearchParams();
     if (name) {
       params.set("name", name);
@@ -1136,6 +1078,8 @@ export function PlayerFormUI() {
     queryKey: ["all-players-scorers"],
     queryFn: ({ signal }) => fetchPlayers("all", signal),
     staleTime: 5 * 60 * 1000,
+    enabled: !searchParams,
+    initialData: initialAllPlayers,
   });
 
   // Fetch both positions in parallel for discovery view
@@ -1168,7 +1112,7 @@ export function PlayerFormUI() {
       list = list.filter((p) => p.minutes === undefined || p.minutes >= targetMinutes);
     }
     if (benchTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
-    if (benchNonForwardOnly) list = list.filter((p) => !BENCH_FORWARD_POSITIONS.includes(p.position));
+    if (benchNonForwardOnly) list = list.filter((p) => !isForwardPosition(p.position));
     return list;
   }, [data?.underperformers, targetMinutes, benchTop5Only, benchNonForwardOnly]);
 
@@ -1179,7 +1123,7 @@ export function PlayerFormUI() {
       list = list.filter((p) => p.minutes === undefined || p.minutes <= targetMinutes);
     }
     if (benchTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
-    if (benchNonForwardOnly) list = list.filter((p) => !BENCH_FORWARD_POSITIONS.includes(p.position));
+    if (benchNonForwardOnly) list = list.filter((p) => !isForwardPosition(p.position));
     return list;
   }, [data?.outperformers, targetMinutes, benchTop5Only, benchNonForwardOnly]);
 
@@ -1228,7 +1172,10 @@ export function PlayerFormUI() {
           <SelectNative
             value={position}
             onChange={(e) => {
-              const newPos = e.target.value;
+              const newPos = (resolvePositionType(e.target.value, {
+                defaultValue: "all",
+                allowed: PLAYER_FORM_POSITIONS,
+              }) ?? "all") as PositionType;
               setPosition(newPos);
               if (searchParams) {
                 setSearchParams({ name: searchParams.name, position: newPos });
@@ -1417,7 +1364,9 @@ export function PlayerFormUI() {
                           {data.targetPlayer.name} is a top performer for their price
                         </p>
                         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                          No cheaper player with fewer minutes has produced more goal contributions.
+                          No player at the same or lower market value
+                          {targetMinutes !== undefined ? " with the same or fewer minutes" : ""}
+                          {" "}has produced more goal contributions.
                           At {data.targetPlayer.points} points for {data.targetPlayer.marketValueDisplay}, {data.targetPlayer.name} offers excellent value.
                         </p>
                       </div>

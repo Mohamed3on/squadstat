@@ -8,12 +8,7 @@ import { parseMarketValue } from "./parse-market-value";
 
 const MV_PAGES = 20;
 
-export const FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"];
-
-export const POSITION_MAP: Record<string, string[]> = {
-  forward: FORWARD_POSITIONS,
-  cf: ["Centre-Forward"],
-};
+export { FORWARD_POSITIONS, POSITION_MAP } from "./positions";
 
 export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
   return {
