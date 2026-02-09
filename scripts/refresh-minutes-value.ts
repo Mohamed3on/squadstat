@@ -1,6 +1,7 @@
 import { writeFile, mkdir, readFile } from "fs/promises";
 import { join } from "path";
 import { fetchMinutesValueRaw } from "@/lib/fetch-minutes-value";
+import { fetchTopScorersRaw } from "@/lib/fetch-top-scorers";
 import { fetchPlayerMinutesRaw } from "@/lib/fetch-player-minutes";
 import type { PlayerStatsResult } from "@/app/types";
 
@@ -33,6 +34,20 @@ async function main() {
   console.log("[refresh] Fetching MV pages...");
   const players = await fetchMinutesValueRaw();
   console.log(`[refresh] Got ${players.length} players from MV pages`);
+
+  // Merge top scorers not already in MV set
+  console.log("[refresh] Fetching top scorers...");
+  const scorers = await fetchTopScorersRaw();
+  const mvIds = new Set(players.map((p) => p.playerId));
+  let added = 0;
+  for (const scorer of scorers) {
+    if (!mvIds.has(scorer.playerId)) {
+      players.push(scorer);
+      mvIds.add(scorer.playerId);
+      added++;
+    }
+  }
+  console.log(`[refresh] Added ${added} new players from top scorers (${scorers.length} total, ${scorers.length - added} already in MV)`);
 
   const cache = await loadCache();
   const now = Date.now();
@@ -71,6 +86,7 @@ async function main() {
       p.assists = entry.assists;
       if (entry.club) p.club = entry.club;
       if (entry.league) p.league = entry.league;
+      if (entry.isNewSigning) p.isNewSigning = true;
     }
   }
 

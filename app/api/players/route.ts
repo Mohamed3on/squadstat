@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMinutesValueData, toPlayerStats, POSITION_MAP } from "@/lib/fetch-minutes-value";
+import { getMinutesValueData, toPlayerStats, POSITION_MAP, FORWARD_POSITIONS } from "@/lib/fetch-minutes-value";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -7,10 +7,15 @@ export async function GET(request: Request) {
 
   try {
     const allMV = await getMinutesValueData();
-    const positions = POSITION_MAP[position];
-    const players = positions
-      ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
-      : allMV.map(toPlayerStats);
+    let players;
+    if (position === "non-forward") {
+      players = allMV.filter((p) => !FORWARD_POSITIONS.includes(p.position)).map(toPlayerStats);
+    } else {
+      const positions = POSITION_MAP[position];
+      players = positions
+        ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
+        : allMV.map(toPlayerStats);
+    }
 
     return NextResponse.json({ players });
   } catch (error) {

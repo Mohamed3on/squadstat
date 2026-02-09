@@ -9,6 +9,12 @@ import type { MinutesValuePlayer } from "@/app/types";
 
 const PROFIL_RE = /\/profil\//;
 const EMPTY_PLAYERS: MinutesValuePlayer[] = [];
+type CompareTab = "less" | "more";
+
+const THEME = {
+  less: { bg: "rgba(255, 71, 87, 0.06)", border: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a", rankBg: "rgba(255, 71, 87, 0.15)", imgBorder: "1px solid rgba(255, 71, 87, 0.2)" },
+  more: { bg: "rgba(34, 197, 94, 0.06)", border: "rgba(34, 197, 94, 0.15)", color: "#22c55e", rankBg: "rgba(34, 197, 94, 0.15)", imgBorder: "1px solid rgba(34, 197, 94, 0.2)" },
+} as const;
 
 function formatValue(v: number): string {
   if (v >= 1_000_000) return `\u20AC${(v / 1_000_000).toFixed(1)}m`;
@@ -132,24 +138,25 @@ function BenchmarkCard({ player }: { player: MinutesValuePlayer }) {
   );
 }
 
-function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; target?: MinutesValuePlayer; index: number }) {
+function PlayerCard({ player, target, index, variant = "less" }: { player: MinutesValuePlayer; target?: MinutesValuePlayer; index: number; variant?: CompareTab }) {
+  const t = THEME[variant];
   const valueDiff = target ? player.marketValue - target.marketValue : 0;
   const valueDiffDisplay = valueDiff > 0 ? `+${formatValue(valueDiff)}` : formatValue(valueDiff);
-  const minsDiff = target ? target.minutes - player.minutes : 0;
+  const minsDiff = target ? player.minutes - target.minutes : 0;
 
   return (
     <div
       className="group rounded-xl p-3 sm:p-4 animate-slide-up hover-lift"
       style={{
-        background: "linear-gradient(135deg, rgba(255, 71, 87, 0.06) 0%, var(--bg-card) 100%)",
-        border: "1px solid rgba(255, 71, 87, 0.15)",
+        background: `linear-gradient(135deg, ${t.bg} 0%, var(--bg-card) 100%)`,
+        border: `1px solid ${t.border}`,
         animationDelay: `${Math.min(index * 0.03, 0.3)}s`,
       }}
     >
       <div className="flex items-center gap-3 sm:gap-4">
         <div
           className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold shrink-0"
-          style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}
+          style={{ background: t.rankBg, color: t.color }}
         >
           {index + 1}
         </div>
@@ -160,7 +167,7 @@ function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; tar
               src={player.imageUrl}
               alt={player.name}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
-              style={{ background: "var(--bg-elevated)", border: "1px solid rgba(255, 71, 87, 0.2)" }}
+              style={{ background: "var(--bg-elevated)", border: t.imgBorder }}
             />
           ) : (
             <div
@@ -192,16 +199,16 @@ function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; tar
         {/* Desktop metrics */}
         <div className="hidden sm:flex items-center gap-3 shrink-0">
           <div className="text-right">
-            <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>{player.marketValueDisplay}</div>
-            {target && <div className="text-[10px] font-medium tabular-nums" style={{ color: "rgba(255, 107, 122, 0.7)" }}>{valueDiffDisplay}</div>}
+            <div className="text-sm font-bold tabular-nums" style={{ color: t.color }}>{player.marketValueDisplay}</div>
+            {target && <div className="text-[10px] font-medium tabular-nums" style={{ color: t.color, opacity: 0.7 }}>{valueDiffDisplay}</div>}
           </div>
           <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
           <div className="text-right min-w-[4rem]">
             <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>
               {player.minutes.toLocaleString()}&apos;
             </div>
-            {target && <div className="text-[10px] font-medium tabular-nums" style={{ color: "#ff6b7a" }}>
-              &minus;{minsDiff.toLocaleString()}&apos;
+            {target && <div className="text-[10px] font-medium tabular-nums" style={{ color: t.color }}>
+              {variant === "more" ? "+" : "\u2212"}{Math.abs(minsDiff).toLocaleString()}&apos;
             </div>}
           </div>
           <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
@@ -229,7 +236,7 @@ function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; tar
 
         {/* Mobile metrics */}
         <div className="sm:hidden text-right shrink-0">
-          <div className="text-xs font-bold tabular-nums" style={{ color: "#ff6b7a" }}>{player.marketValueDisplay}</div>
+          <div className="text-xs font-bold tabular-nums" style={{ color: t.color }}>{player.marketValueDisplay}</div>
           <div className="text-[10px] tabular-nums" style={{ color: "var(--accent-blue)" }}>
             {player.minutes.toLocaleString()}&apos;
           </div>
@@ -243,7 +250,7 @@ function PlayerCard({ player, target, index }: { player: MinutesValuePlayer; tar
 const ROW_HEIGHT = 100;
 const GAP = 12;
 
-function VirtualPlayerList({ items, target }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer }) {
+function VirtualPlayerList({ items, target, variant = "less" }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer; variant?: CompareTab }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
@@ -264,7 +271,7 @@ function VirtualPlayerList({ items, target }: { items: MinutesValuePlayer[]; tar
             className="absolute left-0 w-full"
             style={{ top: virtualRow.start - (virtualizer.options.scrollMargin || 0) }}
           >
-            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} />
+            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} variant={variant} />
           </div>
         ))}
       </div>
@@ -277,13 +284,23 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
   const [selected, setSelected] = useState<MinutesValuePlayer | null>(null);
   const [sortBy, setSortBy] = useState<"value" | "minutes" | "games">("minutes");
   const [sortAsc, setSortAsc] = useState(false);
+  const [tab, setTab] = useState<CompareTab>("less");
 
-  const results = useMemo(() => {
+  const playingLess = useMemo(() => {
     if (!selected) return [];
     return players.filter(
       (p) => p.playerId !== selected.playerId && p.marketValue >= selected.marketValue && p.minutes <= selected.minutes
     );
   }, [selected, players]);
+
+  const playingMore = useMemo(() => {
+    if (!selected) return [];
+    return players.filter(
+      (p) => p.playerId !== selected.playerId && p.marketValue >= selected.marketValue && p.minutes > selected.minutes
+    );
+  }, [selected, players]);
+
+  const results = tab === "less" ? playingLess : playingMore;
 
   const sortedPlayers = useMemo(() =>
     [...players].sort((a, b) => {
@@ -339,18 +356,26 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
 
             <section>
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 rounded-full" style={{ background: "#ff4757" }} />
-                  <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "#ff6b7a" }}>
-                    Worth More, Playing Less
-                  </h2>
-                </div>
-                <span
-                  className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums"
-                  style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}
+                <ToggleGroup
+                  type="single"
+                  value={tab}
+                  onValueChange={(v) => v && setTab(v as CompareTab)}
+                  size="sm"
+                  className="flex-wrap"
                 >
-                  {results.length}
-                </span>
+                  <ToggleGroupItem
+                    value="less"
+                    className="rounded-lg px-3 text-[var(--text-muted)] data-[state=on]:bg-[rgba(255,71,87,0.15)] data-[state=on]:text-[#ff6b7a]"
+                  >
+                    Playing Less ({playingLess.length})
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="more"
+                    className="rounded-lg px-3 text-[var(--text-muted)] data-[state=on]:bg-[rgba(34,197,94,0.15)] data-[state=on]:text-[#22c55e]"
+                  >
+                    Playing More ({playingMore.length})
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
 
               {results.length === 0 ? (
@@ -360,11 +385,13 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
                 >
                   <p className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>No results</p>
                   <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                    No higher-valued players have fewer minutes than {selected.name}
+                    {tab === "less"
+                      ? `No higher-valued players have fewer minutes than ${selected.name}`
+                      : `No higher-valued players have more minutes than ${selected.name}`}
                   </p>
                 </div>
               ) : (
-                <VirtualPlayerList items={results} target={selected} />
+                <VirtualPlayerList items={results} target={selected} variant={tab} />
               )}
             </section>
 

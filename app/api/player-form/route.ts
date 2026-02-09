@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
-import { getMinutesValueData, toPlayerStats, POSITION_MAP } from "@/lib/fetch-minutes-value";
+import { getMinutesValueData, toPlayerStats, POSITION_MAP, FORWARD_POSITIONS } from "@/lib/fetch-minutes-value";
 
 function normalizeForSearch(str: string): string {
   return str
@@ -23,8 +23,6 @@ function findPlayerByName(players: PlayerStats[], searchName: string): PlayerSta
   const normalized = normalizeForSearch(searchName);
   return players.find((p) => normalizeForSearch(p.name).includes(normalized)) || null;
 }
-
-const FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"];
 
 function findUnderperformers(players: PlayerStats[], target: PlayerStats): PlayerStats[] {
   return players.filter(
@@ -55,10 +53,15 @@ export async function GET(request: Request) {
 
   try {
     const allMV = await getMinutesValueData();
-    const positions = POSITION_MAP[positionType] || [];
-    const allPlayers = positions.length > 0
-      ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
-      : allMV.map(toPlayerStats);
+    let allPlayers;
+    if (positionType === "non-forward") {
+      allPlayers = allMV.filter((p) => !FORWARD_POSITIONS.includes(p.position)).map(toPlayerStats);
+    } else {
+      const positions = POSITION_MAP[positionType] || [];
+      allPlayers = positions.length > 0
+        ? allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats)
+        : allMV.map(toPlayerStats);
+    }
 
     const targetPlayer = findPlayerByName(allPlayers, playerName);
 

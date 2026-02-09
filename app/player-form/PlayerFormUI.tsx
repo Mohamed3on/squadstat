@@ -26,6 +26,7 @@ interface PlayerStats {
   imageUrl: string;
   playerId: string;
   minutes?: number;
+  isNewSigning?: boolean;
 }
 
 interface PlayerFormResult {
@@ -968,6 +969,7 @@ function ScorersSection({
   const [sortBy, setSortBy] = useState<ScorerSortKey>("points");
   const [posFilter, setPosFilter] = useState<ScorerPositionFilter>("all");
   const [top5Only, setTop5Only] = useState(false);
+  const [newSigningsOnly, setNewSigningsOnly] = useState(false);
 
   const filtered = useMemo(() => {
     let list = players;
@@ -980,12 +982,15 @@ function ScorersSection({
     if (top5Only) {
       list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
     }
+    if (newSigningsOnly) {
+      list = list.filter((p) => p.isNewSigning);
+    }
     const sorted = [...list].sort((a, b) => {
       if (sortBy === "points") return b.points - a.points || (b.minutes || 0) - (a.minutes || 0);
       return (b.minutes || 0) - (a.minutes || 0) || b.points - a.points;
     });
     return sorted.slice(0, 50);
-  }, [players, sortBy, posFilter, top5Only]);
+  }, [players, sortBy, posFilter, top5Only, newSigningsOnly]);
 
   if (isLoading) return <DiscoverySkeleton />;
 
@@ -1029,22 +1034,36 @@ function ScorersSection({
           </ToggleGroup>
         </div>
 
-        {/* League filter */}
-        <button
-          type="button"
-          onClick={() => setTop5Only((v) => !v)}
-          className="self-start flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-          style={{
-            background: top5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
-            color: top5Only ? "var(--accent-blue)" : "var(--text-muted)",
-            border: top5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
-          }}
-        >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Top 5 leagues only
-        </button>
+        {/* Extra filters */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setTop5Only((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            style={{
+              background: top5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
+              color: top5Only ? "var(--accent-blue)" : "var(--text-muted)",
+              border: top5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
+            }}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Top 5 leagues
+          </button>
+          <button
+            type="button"
+            onClick={() => setNewSigningsOnly((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            style={{
+              background: newSigningsOnly ? "rgba(0, 255, 135, 0.15)" : "var(--bg-elevated)",
+              color: newSigningsOnly ? "#00ff87" : "var(--text-muted)",
+              border: newSigningsOnly ? "1px solid rgba(0, 255, 135, 0.3)" : "1px solid var(--border-subtle)",
+            }}
+          >
+            New signings
+          </button>
+        </div>
       </div>
 
       {/* Scorer list */}
@@ -1079,6 +1098,8 @@ const DISCOVERY_POSITIONS = [
   { key: "forward", title: "All Forwards" },
   { key: "cf", title: "Centre-Forwards" },
 ] as const;
+
+const BENCH_FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"];
 
 export function PlayerFormUI() {
   const urlParams = useSearchParams();
@@ -1137,22 +1158,30 @@ export function PlayerFormUI() {
   const hasResults = data?.targetPlayer && !data?.error;
 
   const targetMinutes = data?.targetPlayer?.minutes;
+  const [benchTop5Only, setBenchTop5Only] = useState(false);
+  const [benchNonForwardOnly, setBenchNonForwardOnly] = useState(false);
 
   const filteredUnderperformers = useMemo(() => {
     if (!data?.underperformers) return [];
-    if (targetMinutes === undefined) return data.underperformers;
-    return data.underperformers.filter((p) =>
-      p.minutes === undefined || p.minutes >= targetMinutes
-    );
-  }, [data?.underperformers, targetMinutes]);
+    let list = data.underperformers;
+    if (targetMinutes !== undefined) {
+      list = list.filter((p) => p.minutes === undefined || p.minutes >= targetMinutes);
+    }
+    if (benchTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
+    if (benchNonForwardOnly) list = list.filter((p) => !BENCH_FORWARD_POSITIONS.includes(p.position));
+    return list;
+  }, [data?.underperformers, targetMinutes, benchTop5Only, benchNonForwardOnly]);
 
   const filteredOutperformers = useMemo(() => {
     if (!data?.outperformers) return [];
-    if (targetMinutes === undefined) return data.outperformers;
-    return data.outperformers.filter((p) =>
-      p.minutes === undefined || p.minutes <= targetMinutes
-    );
-  }, [data?.outperformers, targetMinutes]);
+    let list = data.outperformers;
+    if (targetMinutes !== undefined) {
+      list = list.filter((p) => p.minutes === undefined || p.minutes <= targetMinutes);
+    }
+    if (benchTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
+    if (benchNonForwardOnly) list = list.filter((p) => !BENCH_FORWARD_POSITIONS.includes(p.position));
+    return list;
+  }, [data?.outperformers, targetMinutes, benchTop5Only, benchNonForwardOnly]);
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -1211,7 +1240,7 @@ export function PlayerFormUI() {
             <option value="all">All Players</option>
             <option value="forward">All Forwards</option>
             <option value="cf">Centre-Forward</option>
-            <option value="midfielder">Midfielders</option>
+            <option value="non-forward">Non-Forwards</option>
           </SelectNative>
         </div>
 
@@ -1265,6 +1294,37 @@ export function PlayerFormUI() {
                 minutes={targetMinutes}
               />
             </section>
+
+            {/* Benchmark filters */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setBenchTop5Only((v) => !v)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                style={{
+                  background: benchTop5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
+                  color: benchTop5Only ? "var(--accent-blue)" : "var(--text-muted)",
+                  border: benchTop5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
+                }}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Top 5 leagues
+              </button>
+              <button
+                type="button"
+                onClick={() => setBenchNonForwardOnly((v) => !v)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                style={{
+                  background: benchNonForwardOnly ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
+                  color: benchNonForwardOnly ? "var(--accent-blue)" : "var(--text-muted)",
+                  border: benchNonForwardOnly ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
+                }}
+              >
+                Non-forwards only
+              </button>
+            </div>
 
             {/* Tabs: Overpriced / Better Value */}
             <Tabs defaultValue="overpriced">

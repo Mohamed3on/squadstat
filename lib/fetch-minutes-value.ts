@@ -8,10 +8,11 @@ import { parseMarketValue } from "./parse-market-value";
 
 const MV_PAGES = 20;
 
+export const FORWARD_POSITIONS = ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"];
+
 export const POSITION_MAP: Record<string, string[]> = {
-  forward: ["Centre-Forward", "Left Winger", "Right Winger", "Second Striker"],
+  forward: FORWARD_POSITIONS,
   cf: ["Centre-Forward"],
-  midfielder: ["Central Midfield", "Attacking Midfield", "Defensive Midfield"],
 };
 
 export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
@@ -31,6 +32,7 @@ export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
     imageUrl: p.imageUrl,
     playerId: p.playerId,
     minutes: p.minutes,
+    isNewSigning: p.isNewSigning,
   };
 }
 

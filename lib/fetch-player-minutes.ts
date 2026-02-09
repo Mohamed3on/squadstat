@@ -33,5 +33,8 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const assists = parse(zentriert.eq(2).text());
   const minutes = parse(rechts.last().text());
 
-  return { minutes, appearances, goals, assists, club, league };
+  const ribbonText = $(".data-header__ribbon span").text().trim().toLowerCase();
+  const isNewSigning = ribbonText === "new arrival" || ribbonText === "on loan" || undefined;
+
+  return { minutes, appearances, goals, assists, club, league, isNewSigning };
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
-import { getMinutesValueData, toPlayerStats, POSITION_MAP } from "@/lib/fetch-minutes-value";
+import { getMinutesValueData, toPlayerStats, POSITION_MAP, FORWARD_POSITIONS } from "@/lib/fetch-minutes-value";
 
 const MIN_MARKET_VALUE = 10_000_000; // €10m minimum to be considered
 const MAX_RESULTS = 50; // Return top candidates, client filters further
@@ -30,16 +30,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const positionType = searchParams.get("position") || "cf";
 
-  if (!["forward", "cf", "midfielder"].includes(positionType)) {
+  if (!["forward", "cf", "non-forward"].includes(positionType)) {
     return NextResponse.json({ error: "Invalid position type" }, { status: 400 });
   }
 
   try {
     const allMV = await getMinutesValueData();
-    const positions = POSITION_MAP[positionType] || [];
-    const allPlayers = allMV
-      .filter((p) => positions.some((pos) => p.position === pos))
-      .map(toPlayerStats);
+    let allPlayers;
+    if (positionType === "non-forward") {
+      allPlayers = allMV.filter((p) => !FORWARD_POSITIONS.includes(p.position)).map(toPlayerStats);
+    } else {
+      const positions = POSITION_MAP[positionType] || [];
+      allPlayers = allMV.filter((p) => positions.some((pos) => p.position === pos)).map(toPlayerStats);
+    }
 
     const candidates = findCandidates(allPlayers);
     const underperformers = candidates.sort((a, b) => b.marketValue - a.marketValue).slice(0, MAX_RESULTS);

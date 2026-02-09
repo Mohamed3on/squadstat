@@ -127,6 +127,7 @@ export interface PlayerStats {
   imageUrl: string;
   playerId: string;
   minutes?: number;
+  isNewSigning?: boolean;
 }
 
 export interface MinutesValuePlayer {
@@ -147,6 +148,7 @@ export interface MinutesValuePlayer {
   imageUrl: string;
   profileUrl: string;
   playerId: string;
+  isNewSigning?: boolean;
 }
 
 export interface PlayerStatsResult {
@@ -156,4 +158,5 @@ export interface PlayerStatsResult {
   assists: number;
   club: string;
   league: string;
+  isNewSigning?: boolean;
 }
