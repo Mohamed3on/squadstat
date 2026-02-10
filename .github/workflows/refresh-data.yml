@@ -71,5 +71,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "chore: refresh minutes-value data"
+            git pull --rebase
             git push
           fi
