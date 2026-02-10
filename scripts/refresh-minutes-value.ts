@@ -9,9 +9,11 @@ const INITIAL_CONCURRENCY = 30;
 const MIN_CONCURRENCY = 5;
 const INITIAL_DELAY_MS = 500;
 const BACKOFF_MULTIPLIER = 2;
-const FAILURE_THRESHOLD = 0.3; // back off if >30% of batch fails
+const FAILURE_THRESHOLD = 0.3;
+const CLEAN_BATCHES_TO_RAMP_UP = 3;
 
 type PlayerCache = Record<string, PlayerStatsResult>;
+type PlayerEntry = { playerId: string };
 
 const CACHE_PATH = join(process.cwd(), "data", "player-cache.json");
 
@@ -19,12 +21,68 @@ async function saveCache(cache: PlayerCache): Promise<void> {
   await writeFile(CACHE_PATH, JSON.stringify(cache));
 }
 
+async function fetchBatched(
+  players: PlayerEntry[],
+  cache: PlayerCache,
+  state: { concurrency: number; delayMs: number },
+) {
+  let cleanStreak = 0;
+  let batchNum = 0;
+  const failed: PlayerEntry[] = [];
+  const total = players.length;
+
+  for (let i = 0; i < total; i += state.concurrency) {
+    batchNum++;
+    const batch = players.slice(i, i + state.concurrency);
+    const results = await Promise.allSettled(
+      batch.map((p) => fetchPlayerMinutesRaw(p.playerId))
+    );
+
+    let batchFailures = 0;
+    batch.forEach((p, j) => {
+      if (results[j].status === "fulfilled") {
+        cache[p.playerId] = results[j].value;
+      } else {
+        batchFailures++;
+        failed.push(p);
+      }
+    });
+
+    const failRate = batchFailures / batch.length;
+    if (failRate > FAILURE_THRESHOLD && state.concurrency > MIN_CONCURRENCY) {
+      state.concurrency = Math.max(MIN_CONCURRENCY, Math.floor(state.concurrency / 2));
+      state.delayMs *= BACKOFF_MULTIPLIER;
+      cleanStreak = 0;
+      console.log(`[refresh] Batch ${batchNum}: ${batchFailures}/${batch.length} failed → concurrency=${state.concurrency}, delay=${state.delayMs}ms`);
+    } else {
+      console.log(`[refresh] Batch ${batchNum}: ${batch.length - batchFailures}/${batch.length} ok (${Object.keys(cache).length}/${total} total)`);
+      if (batchFailures === 0) {
+        cleanStreak++;
+        if (cleanStreak >= CLEAN_BATCHES_TO_RAMP_UP && state.concurrency < INITIAL_CONCURRENCY) {
+          state.concurrency = Math.min(INITIAL_CONCURRENCY, state.concurrency * 2);
+          state.delayMs = Math.max(INITIAL_DELAY_MS, Math.floor(state.delayMs / BACKOFF_MULTIPLIER));
+          cleanStreak = 0;
+          console.log(`[refresh] Ramping up → concurrency=${state.concurrency}, delay=${state.delayMs}ms`);
+        }
+      } else {
+        cleanStreak = 0;
+      }
+    }
+
+    await saveCache(cache);
+    if (i + state.concurrency < total) {
+      await new Promise((r) => setTimeout(r, state.delayMs));
+    }
+  }
+
+  return failed;
+}
+
 async function main() {
   console.log("[refresh] Fetching MV pages...");
   const players = await fetchMinutesValueRaw();
   console.log(`[refresh] Got ${players.length} players from MV pages`);
 
-  // Merge top scorers not already in MV set
   console.log("[refresh] Fetching top scorers...");
   const scorers = await fetchTopScorersRaw();
   const mvIds = new Set(players.map((p) => p.playerId));
@@ -39,39 +97,23 @@ async function main() {
   console.log(`[refresh] Added ${added} new players from top scorers (${scorers.length} total, ${scorers.length - added} already in MV)`);
 
   const cache: PlayerCache = {};
+  const state = { concurrency: INITIAL_CONCURRENCY, delayMs: INITIAL_DELAY_MS };
+  console.log(`[refresh] Fetching stats for ${players.length} players (concurrency: ${state.concurrency})...`);
 
-  let concurrency = INITIAL_CONCURRENCY;
-  let delayMs = INITIAL_DELAY_MS;
-  console.log(`[refresh] Fetching stats for ${players.length} players (concurrency: ${concurrency})...`);
+  const failed = await fetchBatched(players, cache, state);
 
-  for (let i = 0; i < players.length; i += concurrency) {
-    const batch = players.slice(i, i + concurrency);
-    const results = await Promise.allSettled(
-      batch.map((p) => fetchPlayerMinutesRaw(p.playerId))
-    );
-    const failures = results.filter((r) => r.status === "rejected").length;
-    batch.forEach((p, j) => {
-      if (results[j].status === "fulfilled") {
-        cache[p.playerId] = results[j].value;
-      }
-    });
-
-    const batchNum = Math.floor(i / concurrency) + 1;
-    if (failures / batch.length > FAILURE_THRESHOLD && concurrency > MIN_CONCURRENCY) {
-      concurrency = Math.max(MIN_CONCURRENCY, Math.floor(concurrency / 2));
-      delayMs *= BACKOFF_MULTIPLIER;
-      console.log(`[refresh] Batch ${batchNum}: ${failures}/${batch.length} failed, backing off → concurrency=${concurrency}, delay=${delayMs}ms`);
-    } else {
-      console.log(`[refresh] Batch ${batchNum}: ${batch.length - failures}/${batch.length} ok`);
-    }
-
-    await saveCache(cache);
-    if (i + concurrency < players.length) {
-      await new Promise((r) => setTimeout(r, delayMs));
+  // Retry failures once with conservative settings
+  if (failed.length > 0) {
+    console.log(`[refresh] Retrying ${failed.length} failed players...`);
+    state.concurrency = MIN_CONCURRENCY;
+    state.delayMs = INITIAL_DELAY_MS * 4;
+    const stillFailed = await fetchBatched(failed, cache, state);
+    if (stillFailed.length > 0) {
+      console.warn(`[refresh] ${stillFailed.length} players failed permanently: ${stillFailed.map((p) => p.playerId).join(", ")}`);
     }
   }
 
-  // Merge cached stats into players
+  // Merge stats into players
   for (const p of players) {
     const entry = cache[p.playerId];
     if (entry) {
@@ -93,7 +135,7 @@ async function main() {
   await mkdir(outDir, { recursive: true });
   const outPath = join(outDir, "minutes-value.json");
   await writeFile(outPath, JSON.stringify(players));
-  console.log(`[refresh] Wrote ${players.length} players to ${outPath}`);
+  console.log(`[refresh] Done: ${Object.keys(cache).length}/${players.length} players fetched → ${outPath}`);
 }
 
 main().catch((err) => {
