@@ -54,6 +54,10 @@ export const metadata: Metadata = {
     description:
       "Track football team form, injuries, and player performance across Europe's top 5 leagues.",
   },
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
   robots: {
     index: true,
     follow: true,
