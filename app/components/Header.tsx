@@ -77,7 +77,7 @@ export function Header() {
     try {
       const result = await revalidateCaches(pathname);
       if (result === "dispatched") {
-        toast.info("Data refresh queued — updated data will appear after next deploy");
+        toast.info("Data refresh queued — will auto-deploy in a few minutes");
         setIsRevalidating(false);
       } else {
         queryClient.clear();
