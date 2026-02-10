@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect, startTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
@@ -12,6 +12,31 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getLeagueLogoUrl } from "@/lib/leagues";
+
+function DebouncedInput({
+  value: externalValue,
+  onChange,
+  delay = 300,
+  ...props
+}: { value: string; onChange: (value: string) => void; delay?: number } & Omit<React.ComponentProps<typeof Input>, "value" | "onChange">) {
+  const [value, setValue] = useState(externalValue);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    setValue(externalValue);
+  }, [externalValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => onChange(newValue), delay);
+  };
+
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+
+  return <Input value={value} onChange={handleChange} {...props} />;
+}
 
 interface PlayerStats {
   name: string;
@@ -821,9 +846,9 @@ function UnderperformersSection({
             </option>
           ))}
         </SelectNative>
-        <Input
+        <DebouncedInput
           value={clubFilter}
-          onChange={(e) => onClubFilterChange(e.target.value)}
+          onChange={onClubFilterChange}
           placeholder="Filter by club"
           className="h-10"
         />
@@ -1049,9 +1074,9 @@ function ScorersSection({
               </option>
             ))}
           </SelectNative>
-          <Input
+          <DebouncedInput
             value={clubFilter}
-            onChange={(e) => onClubFilterChange(e.target.value)}
+            onChange={onClubFilterChange}
             placeholder="Filter by club"
             className="h-10"
           />
@@ -1160,7 +1185,9 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
     }
 
     const qs = params.toString();
-    router.replace(qs ? `?${qs}` : "/player-form", { scroll: false });
+    startTransition(() => {
+      router.replace(qs ? `?${qs}` : "/player-form", { scroll: false });
+    });
   }, [router, urlParams]);
 
   const updateUrl = useCallback((name: string | null) => {
