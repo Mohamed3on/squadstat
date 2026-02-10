@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,14 +23,22 @@ const PAGE_TAGS: Record<string, string[]> = {
   "/injured": ["injured"],
 };
 
-async function revalidateCaches(pathname: string): Promise<boolean> {
+const STATIC_DATA_PAGES = new Set(["/minutes-value", "/player-form"]);
+
+async function revalidateCaches(pathname: string): Promise<"revalidated" | "dispatched"> {
+  if (STATIC_DATA_PAGES.has(pathname)) {
+    const res = await fetch("/api/refresh-data", { method: "POST" });
+    if (!res.ok) throw new Error("Failed to trigger data refresh");
+    return "dispatched";
+  }
   const tags = PAGE_TAGS[pathname];
   const res = await fetch("/api/revalidate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(tags ? { tags } : {}),
   });
-  return res.ok;
+  if (!res.ok) throw new Error("Failed to revalidate");
+  return "revalidated";
 }
 
 function RefreshIcon({ className }: { className?: string }) {
@@ -66,9 +75,14 @@ export function Header() {
   const handleBustCache = async () => {
     setIsRevalidating(true);
     try {
-      await revalidateCaches(pathname);
-      queryClient.clear();
-      window.location.reload();
+      const result = await revalidateCaches(pathname);
+      if (result === "dispatched") {
+        toast.info("Data refresh queued — updated data will appear after next deploy");
+        setIsRevalidating(false);
+      } else {
+        queryClient.clear();
+        window.location.reload();
+      }
     } catch {
       setIsRevalidating(false);
     }
