@@ -23,7 +23,7 @@ function findCandidates(players: PlayerStats[]): Candidate[] {
       (p.minutes === undefined || p.minutes <= player.minutes!)
     ).length;
 
-    if (outperformedByCount > 0) {
+    if (outperformedByCount >= 2) {
       candidates.push({ ...player, outperformedByCount });
     }
   }
