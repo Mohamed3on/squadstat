@@ -4,7 +4,7 @@ import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
 
-const SCORER_PAGES = 2;
+const SCORER_PAGES = 5;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseTopScorerRow($: cheerio.CheerioAPI, row: any): MinutesValuePlayer | null {
@@ -75,7 +75,7 @@ function parseTopScorerRow($: cheerio.CheerioAPI, row: any): MinutesValuePlayer 
   };
 }
 
-/** Fetches top scorers from Transfermarkt (2 pages, ~50 players). */
+/** Fetches top scorers from Transfermarkt (5 pages, ~125 players). Each page has 25 players. */
 export async function fetchTopScorersRaw(): Promise<MinutesValuePlayer[]> {
   const baseUrl = `${BASE_URL}/scorer/topscorer/statistik/2024/saison_id/2025/selectedOptionKey/6/land_id/0/altersklasse//ausrichtung//spielerposition_id//filter/0/yt0/Show/plus/1/galerie/0`;
   const urls = Array.from({ length: SCORER_PAGES }, (_, i) => {
