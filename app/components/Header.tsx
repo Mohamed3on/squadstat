@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 
 const PAGE_TAGS: Record<string, string[]> = {
-  "/form-signals": ["form-analysis", "manager"],
+  "/form": ["form-analysis", "manager"],
   "/team-form": ["team-form"],
   "/injured": ["injured"],
 };
@@ -60,7 +60,7 @@ function SpinnerIcon({ className }: { className?: string }) {
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/form-signals", label: "Recent Form" },
+  { href: "/form", label: "Recent Form" },
   { href: "/team-form", label: "Value vs Table" },
   { href: "/player-form", label: "Player Output" },
   { href: "/injured", label: "Injury Impact" },

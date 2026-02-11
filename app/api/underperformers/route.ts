@@ -1,63 +1,55 @@
 import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
 import { getPlayerStatsData } from "@/lib/fetch-minutes-value";
-import { canBeUnderperformerAgainst, isDefensivePosition } from "@/lib/positions";
+import { canBeUnderperformerAgainst, canBeOutperformerAgainst, isDefensivePosition } from "@/lib/positions";
+
+type Candidate = PlayerStats & { outperformedByCount: number };
 
 const MIN_DISCOVERY_MINUTES = 260;
 
-/**
- * Find candidates - players who seem to underperform based on points vs cheaper players
- * A player is a candidate if there exists a cheaper player with more points
- * from the same or a lower position class.
- */
-function findCandidates(players: PlayerStats[]): PlayerStats[] {
+function findCandidates(players: PlayerStats[]): Candidate[] {
   const sorted = [...players].sort((a, b) => b.marketValue - a.marketValue);
-  const candidates: PlayerStats[] = [];
+  const candidates: Candidate[] = [];
 
   for (let i = 0; i < sorted.length; i++) {
     const player = sorted[i];
-    if (
-      isDefensivePosition(player.position) ||
-      player.position === "Central Midfield"
-    ) continue;
+    if (isDefensivePosition(player.position) || player.position === "Central Midfield") continue;
     if (player.minutes === undefined || player.minutes < MIN_DISCOVERY_MINUTES) continue;
 
-    const cheaperWithMorePoints = sorted.slice(i + 1).some((p) =>
-      p.points > player.points && canBeUnderperformerAgainst(player.position, p.position)
-    );
-    if (cheaperWithMorePoints) {
-      candidates.push(player);
+    const cheaper = sorted.slice(i + 1);
+    const outperformedByCount = cheaper.filter((p) =>
+      p.points > player.points &&
+      canBeOutperformerAgainst(p.position, player.position) &&
+      (p.minutes === undefined || p.minutes <= player.minutes!)
+    ).length;
+
+    if (outperformedByCount > 0) {
+      candidates.push({ ...player, outperformedByCount });
     }
   }
 
   return candidates;
 }
 
-function filterUndominatedCandidates(candidates: PlayerStats[]): PlayerStats[] {
+function filterUndominated(candidates: Candidate[]): Candidate[] {
   return candidates.filter((player) => {
-    const playerMins = player.minutes;
-    if (playerMins === undefined) return true;
-
-    const dominated = candidates.some(
+    if (player.minutes === undefined) return true;
+    return !candidates.some(
       (other) =>
         other.playerId !== player.playerId &&
         other.minutes !== undefined &&
         canBeUnderperformerAgainst(other.position, player.position) &&
         other.marketValue >= player.marketValue &&
-        other.minutes >= playerMins &&
+        other.minutes >= player.minutes! &&
         other.points < player.points
     );
-
-    return !dominated;
   });
 }
 
 export async function GET() {
   try {
     const allPlayers = await getPlayerStatsData();
-
-    const candidates = findCandidates(allPlayers);
-    const underperformers = filterUndominatedCandidates(candidates)
+    const underperformers = filterUndominated(findCandidates(allPlayers))
       .sort((a, b) => b.marketValue - a.marketValue);
     return NextResponse.json({ underperformers });
   } catch (error) {

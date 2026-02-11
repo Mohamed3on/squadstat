@@ -55,6 +55,7 @@ interface PlayerStats {
   playerId: string;
   minutes?: number;
   isNewSigning?: boolean;
+  outperformedByCount?: number;
 }
 
 interface PlayerFormResult {
@@ -75,6 +76,7 @@ const QUERY_PARAM_KEYS = {
   benchTop5: "bTop5",
   underLeague: "uLeague",
   underClub: "uClub",
+  underSort: "uSort",
   scorersSort: "sSort",
   scorersTop5: "sTop5",
   scorersNew: "sNew",
@@ -562,37 +564,17 @@ function OutperformerCard({
   );
 }
 
-function SearchSkeleton() {
+function CardSkeletonList({ count = 5, fadeStep = 0.1 }: { count?: number; fadeStep?: number }) {
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Target skeleton */}
-      <div
-        className="rounded-2xl p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
-      >
-        <div className="flex items-start gap-5">
-          <Skeleton className="w-20 h-20 rounded-xl" />
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-40" />
-          </div>
-          <div className="flex gap-6">
-            <Skeleton className="h-12 w-20" />
-            <Skeleton className="h-12 w-12" />
-          </div>
-        </div>
-      </div>
-
-      {/* Underperformer skeletons */}
-      {[1, 2, 3, 4].map((i) => (
+    <div className="space-y-3 animate-fade-in">
+      {Array.from({ length: count }, (_, i) => (
         <div
           key={i}
           className="rounded-xl p-4"
           style={{
             background: "var(--bg-card)",
             border: "1px solid var(--border-subtle)",
-            opacity: 1 - i * 0.15,
+            opacity: 1 - (i + 1) * fadeStep,
           }}
         >
           <div className="flex items-center gap-4">
@@ -614,34 +596,27 @@ function SearchSkeleton() {
   );
 }
 
-function DiscoverySkeleton() {
+function SearchSkeleton() {
   return (
-    <div className="space-y-3 animate-fade-in">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          className="rounded-xl p-4"
-          style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-subtle)",
-            opacity: 1 - i * 0.1,
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <Skeleton className="w-8 h-8 rounded-lg" />
-            <Skeleton className="w-12 h-12 rounded-lg" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-3 w-48" />
-            </div>
-            <div className="flex gap-3">
-              <Skeleton className="h-10 w-16" />
-              <Skeleton className="h-10 w-14" />
-              <Skeleton className="h-10 w-16" />
-            </div>
+    <div className="space-y-6 animate-fade-in">
+      <div
+        className="rounded-2xl p-6"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+      >
+        <div className="flex items-start gap-5">
+          <Skeleton className="w-20 h-20 rounded-xl" />
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+          <div className="flex gap-6">
+            <Skeleton className="h-12 w-20" />
+            <Skeleton className="h-12 w-12" />
           </div>
         </div>
-      ))}
+      </div>
+      <CardSkeletonList count={4} fadeStep={0.15} />
     </div>
   );
 }
@@ -720,6 +695,19 @@ function UnderperformerListCard({
 
         {/* Metrics - desktop */}
         <div className="hidden sm:flex items-center gap-3 shrink-0">
+          {player.outperformedByCount !== undefined && player.outperformedByCount > 0 && (
+            <>
+              <div className="text-right min-w-[4rem]">
+                <div className="text-sm font-bold tabular-nums" style={{ color: "#00ff87" }}>
+                  {player.outperformedByCount}
+                </div>
+                <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                  doing better
+                </div>
+              </div>
+              <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+            </>
+          )}
           <div className="text-right">
             <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
               {player.marketValueDisplay}
@@ -754,6 +742,11 @@ function UnderperformerListCard({
 
         {/* Metrics - mobile */}
         <div className="sm:hidden text-right shrink-0">
+          {player.outperformedByCount !== undefined && player.outperformedByCount > 0 && (
+            <div className="text-[10px] font-bold tabular-nums mb-0.5" style={{ color: "#00ff87" }}>
+              {player.outperformedByCount} doing better
+            </div>
+          )}
           <div className="text-xs font-bold tabular-nums" style={{ color: "#ff6b7a" }}>
             {player.marketValueDisplay}
           </div>
@@ -782,20 +775,24 @@ function UnderperformerListCard({
   );
 }
 
+type UnderperformerSortKey = "value" | "most-outperformed";
+
 function UnderperformersSection({
-  title,
   candidates,
   isLoading,
   error,
+  sortBy,
+  onSortChange,
   leagueFilter,
   clubFilter,
   onLeagueFilterChange,
   onClubFilterChange,
 }: {
-  title: string;
   candidates: PlayerStats[];
   isLoading: boolean;
   error: Error | null;
+  sortBy: UnderperformerSortKey;
+  onSortChange: (value: UnderperformerSortKey) => void;
   leagueFilter: string;
   clubFilter: string;
   onLeagueFilterChange: (value: string) => void;
@@ -806,10 +803,13 @@ function UnderperformersSection({
     [candidates]
   );
 
-  const filteredCandidates = useMemo(
-    () => filterPlayersByLeagueAndClub(candidates, leagueFilter, clubFilter),
-    [candidates, leagueFilter, clubFilter]
-  );
+  const filteredCandidates = useMemo(() => {
+    const filtered = filterPlayersByLeagueAndClub(candidates, leagueFilter, clubFilter);
+    if (sortBy === "most-outperformed") {
+      return [...filtered].sort((a, b) => (b.outperformedByCount || 0) - (a.outperformedByCount || 0));
+    }
+    return filtered;
+  }, [candidates, leagueFilter, clubFilter, sortBy]);
 
   return (
     <section>
@@ -820,7 +820,7 @@ function UnderperformersSection({
             style={{ background: "#ff4757" }}
           />
           <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "#ff6b7a" }}>
-            {title}
+            Underdelivering
           </h2>
         </div>
         {filteredCandidates.length > 0 && (
@@ -833,28 +833,51 @@ function UnderperformersSection({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-        <SelectNative
-          value={leagueFilter}
-          onChange={(e) => onLeagueFilterChange(e.target.value)}
-          className="h-10"
+      <div className="flex flex-col gap-3 mb-4">
+        <ToggleGroup
+          type="single"
+          value={sortBy}
+          onValueChange={(v) => v && onSortChange(v as UnderperformerSortKey)}
+          size="sm"
+          className="self-start"
         >
-          <option value="all">All leagues</option>
-          {leagueOptions.map((league) => (
-            <option key={league} value={league}>
-              {league}
-            </option>
-          ))}
-        </SelectNative>
-        <DebouncedInput
-          value={clubFilter}
-          onChange={onClubFilterChange}
-          placeholder="Filter by club"
-          className="h-10"
-        />
+          <ToggleGroupItem value="value" className="rounded-lg px-3">
+            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m4 0l4 4m0 0l4-4m-4 4V4" />
+            </svg>
+            Value
+          </ToggleGroupItem>
+          <ToggleGroupItem value="most-outperformed" className="rounded-lg px-3">
+            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+            </svg>
+            Most underperforming
+          </ToggleGroupItem>
+        </ToggleGroup>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <SelectNative
+            value={leagueFilter}
+            onChange={(e) => onLeagueFilterChange(e.target.value)}
+            className="h-10"
+          >
+            <option value="all">All leagues</option>
+            {leagueOptions.map((league) => (
+              <option key={league} value={league}>
+                {league}
+              </option>
+            ))}
+          </SelectNative>
+          <DebouncedInput
+            value={clubFilter}
+            onChange={onClubFilterChange}
+            placeholder="Filter by club"
+            className="h-10"
+          />
+        </div>
       </div>
 
-      {isLoading && <DiscoverySkeleton />}
+      {isLoading && <CardSkeletonList />}
 
       {error && (
         <div
@@ -873,10 +896,10 @@ function UnderperformersSection({
           style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
         >
           <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
-            No underperformers found
+            No underdelivering players found
           </p>
           <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-            All players are performing as expected for their market value
+            Everyone is producing as expected for their price tag
           </p>
         </div>
       )}
@@ -1034,7 +1057,7 @@ function ScorersSection({
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });
 
-  if (isLoading) return <DiscoverySkeleton />;
+  if (isLoading) return <CardSkeletonList />;
 
   return (
     <div className="space-y-4">
@@ -1196,6 +1219,7 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
 
   const underLeagueFilter = urlParams.get(QUERY_PARAM_KEYS.underLeague) || "all";
   const underClubFilter = urlParams.get(QUERY_PARAM_KEYS.underClub) || "";
+  const underSortBy: UnderperformerSortKey = urlParams.get(QUERY_PARAM_KEYS.underSort) === "most-outperformed" ? "most-outperformed" : "value";
   const scorersSortBy = urlParams.get(QUERY_PARAM_KEYS.scorersSort) === "minutes" ? "minutes" : "points";
   const scorersTop5Only = urlParams.get(QUERY_PARAM_KEYS.scorersTop5) === "1";
   const scorersNewOnly = urlParams.get(QUERY_PARAM_KEYS.scorersNew) === "1";
@@ -1261,7 +1285,7 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
             Player <span style={{ color: "var(--accent-blue)" }}>Output</span> vs Value
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Overpriced flops and hidden gems across top European leagues
+            Who&apos;s delivering for their price tag and who isn&apos;t
           </p>
         </div>
         {/* Search Form */}
@@ -1364,11 +1388,11 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
               </button>
             </div>
 
-            {/* Tabs: Overpriced / Better Value */}
-            <Tabs defaultValue="overpriced">
+            {/* Tabs: Underdelivering / Better Value */}
+            <Tabs defaultValue="underdelivering">
               <TabsList className="w-full">
-                <TabsTrigger value="overpriced" className="flex-1 gap-2">
-                  Overpriced
+                <TabsTrigger value="underdelivering" className="flex-1 gap-2">
+                  Underdelivering
                   <span
                     className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums"
                     style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}
@@ -1387,8 +1411,8 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Overpriced Tab */}
-              <TabsContent value="overpriced">
+              {/* Underdelivering Tab */}
+              <TabsContent value="underdelivering">
                 {filteredUnderperformers.length === 0 ? (
                   <div
                     className="rounded-xl p-6 sm:p-8 animate-fade-in"
@@ -1405,11 +1429,11 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
                       </div>
                       <div>
                         <p className="font-semibold text-base" style={{ color: "#ff6b7a" }}>
-                          {data.targetPlayer.name} is the biggest underperformer
+                          Nobody more expensive is doing worse
                         </p>
                         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                          Every player worth {data.targetPlayer.marketValueDisplay} or more has better goal contributions.
-                          At {data.targetPlayer.points} points and {data.targetPlayer.marketValueDisplay}, {data.targetPlayer.name} has the worst output relative to their price tag.
+                          Every player worth {data.targetPlayer.marketValueDisplay} or more has produced more G+A.
+                          At {data.targetPlayer.points} points for {data.targetPlayer.marketValueDisplay}, {data.targetPlayer.name} has the lowest output at this price range.
                         </p>
                       </div>
                     </div>
@@ -1498,7 +1522,7 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
           <Tabs defaultValue="underperformers">
             <TabsList className="w-full mb-2">
               <TabsTrigger value="underperformers" className="flex-1">
-                Underperformers
+                Underdelivering
               </TabsTrigger>
               <TabsTrigger value="scorers" className="flex-1">
                 Top Scorers
@@ -1507,10 +1531,15 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
 
             <TabsContent value="underperformers">
               <UnderperformersSection
-                title="Underperformers"
                 candidates={discoveryQuery.data?.underperformers || []}
                 isLoading={discoveryQuery.isLoading}
                 error={(discoveryQuery.error as Error | null) ?? null}
+                sortBy={underSortBy}
+                onSortChange={(value) =>
+                  updateQueryParams({
+                    [QUERY_PARAM_KEYS.underSort]: value === "value" ? null : value,
+                  })
+                }
                 leagueFilter={underLeagueFilter}
                 clubFilter={underClubFilter}
                 onLeagueFilterChange={(value) =>

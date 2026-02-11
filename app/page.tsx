@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const pages = [
   {
     title: "Recent Form",
-    href: "/form-signals",
+    href: "/form",
     tag: "FORM",
     description:
       "Who's hot and who's not. Compare form over 5, 10, 15, and 20-match windows across all leagues.",

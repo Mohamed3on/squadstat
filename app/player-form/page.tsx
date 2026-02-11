@@ -6,7 +6,7 @@ import { PlayerFormUI } from "./PlayerFormUI";
 export const metadata: Metadata = {
   title: "Player Output vs Value",
   description:
-    "Compare player scoring output against market value. Find overpriced flops and hidden gems across top European leagues.",
+    "Compare player scoring output against market value. Who's delivering for their price tag and who isn't.",
 };
 
 export default async function PlayerFormPage() {
