@@ -32,17 +32,14 @@ function SkeletonCard() {
 export default function Loading() {
   return (
     <>
-      {/* Stats skeleton */}
-      <div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-8 p-3 sm:p-4 rounded-xl"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
-      >
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="text-center space-y-1">
-            <Skeleton className="h-6 sm:h-8 w-12 mx-auto" />
-            <Skeleton className="h-3 w-16 mx-auto" />
-          </div>
-        ))}
+      {/* League filter skeleton */}
+      <div className="mb-4 sm:mb-6">
+        <Skeleton className="h-4 w-24 mb-3" />
+        <div className="flex flex-wrap gap-2">
+          {["w-24", "w-28", "w-24", "w-20", "w-28", "w-20"].map((w, i) => (
+            <Skeleton key={i} className={`h-9 ${w} rounded-lg`} />
+          ))}
+        </div>
       </div>
 
       {/* Cards grid */}
