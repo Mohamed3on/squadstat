@@ -172,20 +172,20 @@ function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
           {/* Manager info */}
           {manager && (
             <div className="mt-2 text-[11px] sm:text-sm" style={{ color: "var(--text-muted)" }}>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span>
-                  Manager:{" "}
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-x-2 sm:gap-y-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="shrink-0">Manager:</span>
                   <a
                     href={manager.profileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold hover:underline"
+                    className="font-semibold hover:underline truncate"
                     style={{ color: manager.isCurrentManager ? "var(--accent-blue)" : "var(--text-muted)" }}
                   >
                     {manager.name}
                   </a>
                   <ManagerSackedBadge manager={manager} />
-                </span>
+                </div>
                 <ManagerPPGBadge manager={manager} />
               </div>
             </div>
