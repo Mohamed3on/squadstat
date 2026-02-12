@@ -72,6 +72,21 @@ function formatValueNum(value: number): string {
   return `€${value}`;
 }
 
+function formatReturnInfo(dateStr: string) {
+  if (!dateStr) return null;
+  const [d, m, y] = dateStr.split("/").map(Number);
+  if (!d || !m || !y) return null;
+  const target = new Date(y, m - 1, d);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const days = Math.ceil((target.getTime() - now.getTime()) / 86400000);
+  const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1];
+  if (days <= 0) return { label: `${mon} ${d}`, imminent: true };
+  if (days <= 14) return { label: `${days}d`, imminent: true };
+  if (days <= 60) return { label: `~${Math.ceil(days / 7)}w`, imminent: false };
+  return { label: `${mon} ${d}`, imminent: false };
+}
+
 function RankBadge({ rank }: { rank: number }) {
   return (
     <div
@@ -89,6 +104,7 @@ function RankBadge({ rank }: { rank: number }) {
 
 function PlayerCard({ player, rank, index = 0 }: { player: InjuredPlayer; rank: number; index?: number }) {
   const leagueStyle = getLeagueStyle(player.league);
+  const returnInfo = formatReturnInfo(player.returnDate);
 
   return (
     <Card
@@ -153,9 +169,15 @@ function PlayerCard({ player, rank, index = 0 }: { player: InjuredPlayer; rank: 
                 </svg>
                 <span>{player.injury}</span>
               </Badge>
-              {player.returnDate && (
-                <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                  Until {player.returnDate}
+              {returnInfo && (
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "text-[10px] sm:text-xs",
+                    returnInfo.imminent && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  )}
+                >
+                  {returnInfo.imminent ? "Back " : "Until "}{returnInfo.label}
                 </Badge>
               )}
             </div>
@@ -213,24 +235,28 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
 
         {/* Player Pills */}
         <div className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
-          {team.players.map((player) => (
-            <a
-              key={player.profileUrl || player.name}
-              href={player.profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:bg-[var(--bg-card-hover)] transition-colors duration-150 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
-            >
-              {player.imageUrl && !player.imageUrl.includes("data:image") && (
-                <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />
-              )}
-              <span className="text-[var(--text-primary)]">{player.name}</span>
-              {player.injury && (
-                <span className="text-[var(--text-secondary)]">{player.injury}</span>
-              )}
-              <span className="text-[var(--accent-hot)] font-medium font-value">{player.marketValue}</span>
-            </a>
-          ))}
+          {team.players.map((player) => {
+            const ri = formatReturnInfo(player.returnDate);
+            return (
+              <a
+                key={player.profileUrl || player.name}
+                href={player.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:bg-[var(--bg-card-hover)] transition-colors duration-150 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
+              >
+                {player.imageUrl && !player.imageUrl.includes("data:image") && (
+                  <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />
+                )}
+                <span className="text-[var(--text-primary)]">{player.name}</span>
+                {player.injury && (
+                  <span className="text-[var(--text-secondary)]">{player.injury}</span>
+                )}
+                <span className="text-[var(--accent-hot)] font-medium font-value">{player.marketValue}</span>
+                {ri && <span className={cn("font-medium", ri.imminent ? "text-emerald-500" : "text-[var(--text-muted)]")}>{ri.label}</span>}
+              </a>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
@@ -255,22 +281,26 @@ function InjuryTypeCard({ group, rank, index = 0 }: { group: InjuryTypeGroup; ra
 
       <CollapsibleContent>
         <div className="px-3 py-2 sm:px-4 sm:py-2.5 border-t border-[var(--border-subtle)] flex flex-wrap gap-1.5">
-          {group.players.map((player) => (
-            <a
-              key={player.profileUrl || player.name}
-              href={player.profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:bg-[var(--bg-card-hover)] transition-colors duration-150 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
-            >
-              {player.imageUrl && !player.imageUrl.includes("data:image") && (
-                <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />
-              )}
-              <span className="text-[var(--text-primary)]">{player.name}</span>
-              <span className="text-[var(--text-secondary)]">{player.club}</span>
-              <span className="text-[var(--accent-hot)] font-medium font-value">{player.marketValue}</span>
-            </a>
-          ))}
+          {group.players.map((player) => {
+            const ri = formatReturnInfo(player.returnDate);
+            return (
+              <a
+                key={player.profileUrl || player.name}
+                href={player.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] sm:text-xs hover:bg-[var(--bg-card-hover)] transition-colors duration-150 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
+              >
+                {player.imageUrl && !player.imageUrl.includes("data:image") && (
+                  <img src={player.imageUrl} alt={player.name} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover" />
+                )}
+                <span className="text-[var(--text-primary)]">{player.name}</span>
+                <span className="text-[var(--text-secondary)]">{player.club}</span>
+                <span className="text-[var(--accent-hot)] font-medium font-value">{player.marketValue}</span>
+                {ri && <span className={cn("font-medium", ri.imminent ? "text-emerald-500" : "text-[var(--text-muted)]")}>{ri.label}</span>}
+              </a>
+            );
+          })}
         </div>
       </CollapsibleContent>
     </Collapsible>
