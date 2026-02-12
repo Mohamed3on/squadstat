@@ -55,6 +55,28 @@ function useIsTouchDevice() {
   return isTouch;
 }
 
+export function ManagerSection({ manager }: ManagerPPGBadgeProps) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-x-2 sm:gap-y-1">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="shrink-0" style={{ color: "var(--text-muted)" }}>Manager:</span>
+        <a
+          href={manager.profileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open manager profile on Transfermarkt"
+          className="font-semibold hover:underline transition-colors truncate"
+          style={{ color: manager.isCurrentManager ? "var(--accent-blue)" : "var(--text-muted)" }}
+        >
+          {manager.name}
+        </a>
+        <ManagerSackedBadge manager={manager} />
+      </div>
+      <ManagerPPGBadge manager={manager} />
+    </div>
+  );
+}
+
 export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
   const isTouchDevice = useIsTouchDevice();
 
