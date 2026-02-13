@@ -39,26 +39,26 @@ const pages = [
     glowVar: "--accent-blue",
   },
   {
-    title: "G+A vs Value",
-    href: "/player-form",
-    tag: "OUTPUT",
+    title: "Player Explorer",
+    href: "/players",
+    tag: "PLAYERS",
     description:
-      "Are expensive players producing enough goals and assists? Search any player to benchmark against peers.",
-    detail: "Find who's overpaid and who's a bargain.",
-    icon: TrendingUp,
-    accentVar: "--accent-gold",
-    glowVar: "--accent-gold",
-  },
-  {
-    title: "Minutes vs Value",
-    href: "/minutes-value",
-    tag: "MINUTES",
-    description:
-      "Browse 500+ elite players by value, minutes, games, and G+A. Search one to compare playing time at the same price.",
-    detail: "Spot benched stars and rotation risks.",
+      "Browse and sort 500+ elite players by value, minutes, games, and G+A across Europe's top leagues.",
+    detail: "Filter by league, club, or top 5.",
     icon: Clock,
     accentVar: "--accent-hot",
     glowVar: "--accent-hot-glow",
+  },
+  {
+    title: "Underperformers",
+    href: "/underperformers",
+    tag: "OUTPUT",
+    description:
+      "Two lenses on underperformance — G+A output and minutes played. Search any player to benchmark against peers.",
+    detail: "Find who's overpaid and who's benched.",
+    icon: TrendingUp,
+    accentVar: "--accent-gold",
+    glowVar: "--accent-gold",
   },
   {
     title: "Injury Impact",

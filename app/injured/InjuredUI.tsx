@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { cn } from "@/lib/utils";
 import type { InjuredPlayer } from "@/app/types";
 import { getLeagueLogoUrl } from "@/lib/leagues";
+import { formatReturnInfo } from "@/lib/format";
 import { useProgressiveFetch } from "@/lib/use-progressive-fetch";
 
 interface TeamInjuryGroup {
@@ -70,21 +71,6 @@ function formatValueNum(value: number): string {
     return `€${(value / 1_000).toFixed(0)}K`;
   }
   return `€${value}`;
-}
-
-function formatReturnInfo(dateStr: string) {
-  if (!dateStr) return null;
-  const [d, m, y] = dateStr.split("/").map(Number);
-  if (!d || !m || !y) return null;
-  const target = new Date(y, m - 1, d);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const days = Math.ceil((target.getTime() - now.getTime()) / 86400000);
-  const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1];
-  if (days <= 0) return { label: `${mon} ${d}`, imminent: true };
-  if (days <= 14) return { label: `${days}d`, imminent: true };
-  if (days <= 60) return { label: `~${Math.ceil(days / 7)}w`, imminent: false };
-  return { label: `${mon} ${d}`, imminent: false };
 }
 
 function RankBadge({ rank }: { rank: number }) {

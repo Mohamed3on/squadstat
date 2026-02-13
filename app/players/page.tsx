@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
-import { MinutesValueUI } from "./MinutesValueUI";
+import { PlayersUI } from "./PlayersUI";
 
 export const metadata: Metadata = {
-  title: "Minutes vs Market Value",
+  title: "Player Explorer",
   description:
-    "Browse and filter 500+ elite players by value, minutes, games, and G+A. Search any player to see who's playing less or more for the same price.",
+    "Browse and filter 500+ elite players by value, minutes, games, and G+A across Europe's top leagues.",
 };
 
 const SPIELER_RE = /\/spieler\/(\d+)/;
 
-export default async function MinutesValuePage() {
+export default async function PlayersPage() {
   const [players, injuredData] = await Promise.all([
     getMinutesValueData(),
     getInjuredPlayers(),
@@ -26,7 +26,7 @@ export default async function MinutesValuePage() {
 
   return (
     <>
-      <MinutesValueUI initialData={players} injuryMap={injuryMap} />
+      <PlayersUI initialData={players} injuryMap={injuryMap} />
       <DataLastUpdated />
     </>
   );

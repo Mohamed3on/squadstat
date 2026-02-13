@@ -7,25 +7,32 @@ export function useQueryParams(basePath: string) {
   const params = useSearchParams();
   const router = useRouter();
 
-  const update = useCallback(
+  const buildUrl = useCallback(
     (updates: Record<string, string | null>) => {
       const next = new URLSearchParams(params.toString());
-
       for (const [key, value] of Object.entries(updates)) {
-        if (value === null || value === "") {
-          next.delete(key);
-        } else {
-          next.set(key, value);
-        }
+        if (value === null || value === "") next.delete(key);
+        else next.set(key, value);
       }
-
       const qs = next.toString();
-      startTransition(() => {
-        router.replace(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
-      });
+      return qs ? `${basePath}?${qs}` : basePath;
     },
-    [router, params, basePath]
+    [params, basePath]
   );
 
-  return { params, update };
+  const update = useCallback(
+    (updates: Record<string, string | null>) => {
+      startTransition(() => { router.replace(buildUrl(updates), { scroll: false }); });
+    },
+    [router, buildUrl]
+  );
+
+  const push = useCallback(
+    (updates: Record<string, string | null>) => {
+      startTransition(() => { router.push(buildUrl(updates), { scroll: false }); });
+    },
+    [router, buildUrl]
+  );
+
+  return { params, update, push };
 }

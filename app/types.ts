@@ -128,6 +128,7 @@ export interface PlayerStats {
   playerId: string;
   minutes?: number;
   isNewSigning?: boolean;
+  outperformedByCount?: number;
 }
 
 export interface MinutesValuePlayer {
@@ -150,6 +151,8 @@ export interface MinutesValuePlayer {
   playerId: string;
   isNewSigning?: boolean;
 }
+
+export type InjuryMap = Record<string, { injury: string; returnDate: string }>;
 
 export interface PlayerStatsResult {
   minutes: number;
