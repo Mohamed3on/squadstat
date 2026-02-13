@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
 import { DebouncedInput } from "@/components/DebouncedInput";
@@ -54,11 +53,6 @@ const QUERY_PARAM_KEYS = {
   underLeague: "uLeague",
   underClub: "uClub",
   underSort: "uSort",
-  scorersSort: "sSort",
-  scorersTop5: "sTop5",
-  scorersNew: "sNew",
-  scorersLeague: "sLeague",
-  scorersClub: "sClub",
 } as const;
 
 async function fetchUnderperformers(signal?: AbortSignal): Promise<UnderperformersResult> {
@@ -884,266 +878,6 @@ function UnderperformersSection({
   );
 }
 
-function ScorerRow({
-  player,
-  rank,
-}: {
-  player: PlayerStats;
-  rank: number;
-}) {
-  return (
-    <div
-      className="flex items-center gap-3 sm:gap-4 py-2.5 sm:py-3 px-3 sm:px-4 transition-colors hover:bg-[var(--bg-card-hover)]"
-      style={{ borderBottom: "1px solid var(--border-subtle)" }}
-    >
-      <span
-        className="w-6 text-center text-xs font-bold tabular-nums shrink-0"
-        style={{ color: rank <= 3 ? "var(--accent-gold)" : "var(--text-muted)" }}
-      >
-        {rank}
-      </span>
-
-      {player.imageUrl ? (
-        <img
-          src={player.imageUrl}
-          alt={player.name}
-          className="w-8 h-8 rounded-md object-cover shrink-0"
-          style={{ background: "var(--bg-elevated)" }}
-        />
-      ) : (
-        <div
-          className="w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold shrink-0"
-          style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}
-        >
-          {player.name.charAt(0)}
-        </div>
-      )}
-
-      <div className="flex-1 min-w-0">
-        <a
-          href={`https://www.transfermarkt.com${player.profileUrl}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-sm hover:underline truncate block"
-          style={{ color: "var(--text-primary)" }}
-        >
-          {player.name}
-        </a>
-        <div className="text-[10px] truncate" style={{ color: "var(--text-muted)" }}>
-          {player.position} · {player.club}
-        </div>
-      </div>
-
-      {/* Desktop stats */}
-      <div className="hidden sm:flex items-center gap-4 shrink-0 text-sm tabular-nums">
-        <span style={{ color: "var(--text-secondary)" }}>{player.goals}G</span>
-        <span style={{ color: "var(--text-secondary)" }}>{player.assists}A</span>
-        <span className="font-bold min-w-[3rem] text-right" style={{ color: "var(--accent-hot)" }}>
-          {player.points} pts
-        </span>
-        <span className="min-w-[4rem] text-right" style={{ color: "var(--accent-blue)" }}>
-          {player.minutes?.toLocaleString() || "—"}&apos;
-        </span>
-        <span className="min-w-[4rem] text-right font-medium" style={{ color: "var(--text-secondary)" }}>
-          {player.marketValueDisplay}
-        </span>
-      </div>
-
-      {/* Mobile stats */}
-      <div className="sm:hidden text-right shrink-0">
-        <div className="text-xs font-bold tabular-nums" style={{ color: "var(--accent-hot)" }}>
-          {player.points} pts
-        </div>
-        <div className="text-[10px] tabular-nums" style={{ color: "var(--text-muted)" }}>
-          {player.minutes?.toLocaleString() || "—"}&apos; · {player.marketValueDisplay}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type ScorerSortKey = "points" | "minutes";
-
-
-function ScorersSection({
-  players,
-  isLoading,
-  sortBy,
-  onSortChange,
-  top5Only,
-  onTop5OnlyChange,
-  newSigningsOnly,
-  onNewSigningsOnlyChange,
-  leagueFilter,
-  onLeagueFilterChange,
-  clubFilter,
-  onClubFilterChange,
-}: {
-  players: PlayerStats[];
-  isLoading: boolean;
-  sortBy: ScorerSortKey;
-  onSortChange: (value: ScorerSortKey) => void;
-  top5Only: boolean;
-  onTop5OnlyChange: (value: boolean) => void;
-  newSigningsOnly: boolean;
-  onNewSigningsOnlyChange: (value: boolean) => void;
-  leagueFilter: string;
-  onLeagueFilterChange: (value: string) => void;
-  clubFilter: string;
-  onClubFilterChange: (value: string) => void;
-}) {
-  const leagueOptions = useMemo(
-    () => Array.from(new Set(players.map((p) => p.league).filter(Boolean))).sort(),
-    [players]
-  );
-
-  const filtered = useMemo(() => {
-    let list = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
-    if (top5Only) {
-      list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
-    }
-    if (newSigningsOnly) {
-      list = list.filter((p) => p.isNewSigning);
-    }
-    const sorted = [...list].sort((a, b) => {
-      if (sortBy === "points") return b.points - a.points || (b.minutes || 0) - (a.minutes || 0);
-      return (b.minutes || 0) - (a.minutes || 0) || b.points - a.points;
-    });
-    return sorted;
-  }, [players, sortBy, top5Only, newSigningsOnly, leagueFilter, clubFilter]);
-
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const virtualizer = useWindowVirtualizer({
-    count: filtered.length,
-    estimateSize: () => 60,
-    overscan: 10,
-    scrollMargin: listRef.current?.offsetTop ?? 0,
-  });
-
-  if (isLoading) return <CardSkeletonList />;
-
-  return (
-    <div className="space-y-4">
-      {/* Controls */}
-      <div className="flex flex-col gap-3">
-        <ToggleGroup
-          type="single"
-          value={sortBy}
-          onValueChange={(v) => v && onSortChange(v as ScorerSortKey)}
-          size="sm"
-          className="self-start"
-        >
-          <ToggleGroupItem value="points" className="rounded-lg px-3">
-            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-            </svg>
-            Points
-          </ToggleGroupItem>
-          <ToggleGroupItem value="minutes" className="rounded-lg px-3">
-            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Minutes
-          </ToggleGroupItem>
-        </ToggleGroup>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <SelectNative
-            value={leagueFilter}
-            onChange={(e) => onLeagueFilterChange(e.target.value)}
-            className="h-10"
-          >
-            <option value="all">All leagues</option>
-            {leagueOptions.map((league) => (
-              <option key={league} value={league}>
-                {league}
-              </option>
-            ))}
-          </SelectNative>
-          <DebouncedInput
-            value={clubFilter}
-            onChange={onClubFilterChange}
-            placeholder="Filter by club"
-            className="h-10"
-          />
-        </div>
-
-        {/* Extra filters */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onTop5OnlyChange(!top5Only)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-            style={{
-              background: top5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
-              color: top5Only ? "var(--accent-blue)" : "var(--text-muted)",
-              border: top5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
-            }}
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Top 5 leagues
-          </button>
-          <button
-            type="button"
-            onClick={() => onNewSigningsOnlyChange(!newSigningsOnly)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-            style={{
-              background: newSigningsOnly ? "rgba(0, 255, 135, 0.15)" : "var(--bg-elevated)",
-              color: newSigningsOnly ? "#00ff87" : "var(--text-muted)",
-              border: newSigningsOnly ? "1px solid rgba(0, 255, 135, 0.3)" : "1px solid var(--border-subtle)",
-            }}
-          >
-            New signings
-          </button>
-        </div>
-      </div>
-
-      {/* Scorer list */}
-      {filtered.length === 0 ? (
-        <div
-          className="rounded-xl p-8 text-center"
-          style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", color: "var(--text-muted)" }}
-        >
-          No players found for this filter combination
-        </div>
-      ) : (
-        <div
-          ref={listRef}
-          className="rounded-xl overflow-hidden"
-          style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
-        >
-          <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
-            {virtualizer.getVirtualItems().map((virtualRow) => {
-              const player = filtered[virtualRow.index];
-              return (
-                <div
-                  key={player.playerId}
-                  data-index={virtualRow.index}
-                  ref={virtualizer.measureElement}
-                  className="absolute left-0 w-full"
-                  style={{ top: virtualRow.start - (virtualizer.options.scrollMargin || 0) }}
-                >
-                  <ScorerRow player={player} rank={virtualRow.index + 1} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {filtered.length > 0 && (
-        <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
-          Showing {filtered.length} players by {sortBy === "points" ? "goal contributions" : "minutes played"}
-          {top5Only ? " (Top 5 leagues)" : ""}
-        </p>
-      )}
-    </div>
-  );
-}
-
 interface PlayerFormUIProps {
   initialAllPlayers: PlayerStats[];
 }
@@ -1166,15 +900,10 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   const underLeagueFilter = urlParams.get(QUERY_PARAM_KEYS.underLeague) || "all";
   const underClubFilter = urlParams.get(QUERY_PARAM_KEYS.underClub) || "";
   const underSortBy: UnderperformerSortKey = urlParams.get(QUERY_PARAM_KEYS.underSort) === "most-outperformed" ? "most-outperformed" : "value";
-  const scorersSortBy = urlParams.get(QUERY_PARAM_KEYS.scorersSort) === "minutes" ? "minutes" : "points";
-  const scorersTop5Only = urlParams.get(QUERY_PARAM_KEYS.scorersTop5) === "1";
-  const scorersNewOnly = urlParams.get(QUERY_PARAM_KEYS.scorersNew) === "1";
-  const scorersLeagueFilter = urlParams.get(QUERY_PARAM_KEYS.scorersLeague) || "all";
-  const scorersClubFilter = urlParams.get(QUERY_PARAM_KEYS.scorersClub) || "";
   const benchTop5Only = urlParams.get(QUERY_PARAM_KEYS.benchTop5) === "1";
 
   // Fetch player list for autocomplete
-  const { data: playersData, isLoading: playersLoading } = useQuery({
+  const { data: playersData } = useQuery({
     queryKey: ["players"],
     queryFn: ({ signal }) => fetchPlayers(signal),
     staleTime: 5 * 60 * 1000,
@@ -1465,79 +1194,29 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
 
         {/* Default Discovery View */}
         {!isLoading && !data && (
-          <Tabs defaultValue="underperformers">
-            <TabsList className="w-full mb-2">
-              <TabsTrigger value="underperformers" className="flex-1">
-                Underdelivering
-              </TabsTrigger>
-              <TabsTrigger value="scorers" className="flex-1">
-                Top Scorers
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="underperformers">
-              <UnderperformersSection
-                candidates={discoveryQuery.data?.underperformers || []}
-                isLoading={discoveryQuery.isLoading}
-                error={(discoveryQuery.error as Error | null) ?? null}
-                sortBy={underSortBy}
-                onSortChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.underSort]: value === "value" ? null : value,
-                  })
-                }
-                leagueFilter={underLeagueFilter}
-                clubFilter={underClubFilter}
-                onLeagueFilterChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.underLeague]: value === "all" ? null : value,
-                  })
-                }
-                onClubFilterChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.underClub]: value || null,
-                  })
-                }
-              />
-            </TabsContent>
-
-            <TabsContent value="scorers">
-              <ScorersSection
-                players={playersData || []}
-                isLoading={playersLoading}
-                sortBy={scorersSortBy}
-                onSortChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.scorersSort]: value === "points" ? null : value,
-                  })
-                }
-                top5Only={scorersTop5Only}
-                onTop5OnlyChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.scorersTop5]: value ? "1" : null,
-                  })
-                }
-                newSigningsOnly={scorersNewOnly}
-                onNewSigningsOnlyChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.scorersNew]: value ? "1" : null,
-                  })
-                }
-                leagueFilter={scorersLeagueFilter}
-                onLeagueFilterChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.scorersLeague]: value === "all" ? null : value,
-                  })
-                }
-                clubFilter={scorersClubFilter}
-                onClubFilterChange={(value) =>
-                  updateQueryParams({
-                    [QUERY_PARAM_KEYS.scorersClub]: value || null,
-                  })
-                }
-              />
-            </TabsContent>
-          </Tabs>
+          <UnderperformersSection
+            candidates={discoveryQuery.data?.underperformers || []}
+            isLoading={discoveryQuery.isLoading}
+            error={(discoveryQuery.error as Error | null) ?? null}
+            sortBy={underSortBy}
+            onSortChange={(value) =>
+              updateQueryParams({
+                [QUERY_PARAM_KEYS.underSort]: value === "value" ? null : value,
+              })
+            }
+            leagueFilter={underLeagueFilter}
+            clubFilter={underClubFilter}
+            onLeagueFilterChange={(value) =>
+              updateQueryParams({
+                [QUERY_PARAM_KEYS.underLeague]: value === "all" ? null : value,
+              })
+            }
+            onClubFilterChange={(value) =>
+              updateQueryParams({
+                [QUERY_PARAM_KEYS.underClub]: value || null,
+              })
+            }
+          />
         )}
       </div>
     </main>
