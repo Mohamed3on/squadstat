@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
-function getSearchParams() {
-  return new URLSearchParams(typeof window === "undefined" ? "" : window.location.search);
+function getSearch() {
+  return typeof window === "undefined" ? "" : window.location.search;
 }
 
 const subscribe = (cb: () => void) => {
@@ -12,7 +12,8 @@ const subscribe = (cb: () => void) => {
 };
 
 export function useQueryParams(basePath: string) {
-  const params = useSyncExternalStore(subscribe, getSearchParams, getSearchParams);
+  const search = useSyncExternalStore(subscribe, getSearch, getSearch);
+  const params = useMemo(() => new URLSearchParams(search), [search]);
 
   const buildUrl = useCallback(
     (updates: Record<string, string | null>) => {
@@ -29,8 +30,7 @@ export function useQueryParams(basePath: string) {
 
   const update = useCallback(
     (updates: Record<string, string | null>) => {
-      const url = buildUrl(updates);
-      window.history.replaceState(null, "", url);
+      window.history.replaceState(null, "", buildUrl(updates));
       window.dispatchEvent(new PopStateEvent("popstate"));
     },
     [buildUrl]
@@ -38,8 +38,7 @@ export function useQueryParams(basePath: string) {
 
   const push = useCallback(
     (updates: Record<string, string | null>) => {
-      const url = buildUrl(updates);
-      window.history.pushState(null, "", url);
+      window.history.pushState(null, "", buildUrl(updates));
       window.dispatchEvent(new PopStateEvent("popstate"));
     },
     [buildUrl]
