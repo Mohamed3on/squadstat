@@ -1,15 +1,24 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
+import { DebouncedInput } from "@/components/DebouncedInput";
 import { Card } from "@/components/ui/card";
+import { SelectNative } from "@/components/ui/select-native";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useQueryParams } from "@/lib/hooks/use-query-params";
+import { filterPlayersByLeagueAndClub, filterTop5 } from "@/lib/filter-players";
 import type { MinutesValuePlayer } from "@/app/types";
 
 const PROFIL_RE = /\/profil\//;
 const EMPTY_PLAYERS: MinutesValuePlayer[] = [];
 type CompareTab = "less" | "more";
+type SortKey = "value" | "mins" | "games" | "ga";
+type InjuryMap = Record<string, { injury: string; returnDate: string }>;
+
+const SORT_LABELS: Record<SortKey, string> = { value: "Value", mins: "Mins", games: "Games", ga: "G+A" };
 
 const THEME = {
   less: { bg: "rgba(255, 71, 87, 0.06)", border: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a", rankBg: "rgba(255, 71, 87, 0.15)", imgBorder: "1px solid rgba(255, 71, 87, 0.2)" },
@@ -20,6 +29,21 @@ function formatValue(v: number): string {
   if (v >= 1_000_000) return `\u20AC${(v / 1_000_000).toFixed(1)}m`;
   if (v >= 1_000) return `\u20AC${(v / 1_000).toFixed(0)}k`;
   return `\u20AC${v}`;
+}
+
+function formatReturnInfo(dateStr: string) {
+  if (!dateStr) return null;
+  const [d, m, y] = dateStr.split("/").map(Number);
+  if (!d || !m || !y) return null;
+  const target = new Date(y, m - 1, d);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const days = Math.ceil((target.getTime() - now.getTime()) / 86400000);
+  const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1];
+  if (days <= 0) return `${mon} ${d}`;
+  if (days <= 14) return `${days}d`;
+  if (days <= 60) return `~${Math.ceil(days / 7)}w`;
+  return `${mon} ${d}`;
 }
 
 function BenchmarkCard({ player }: { player: MinutesValuePlayer }) {
@@ -138,7 +162,7 @@ function BenchmarkCard({ player }: { player: MinutesValuePlayer }) {
   );
 }
 
-function PlayerCard({ player, target, index, variant = "less" }: { player: MinutesValuePlayer; target?: MinutesValuePlayer; index: number; variant?: CompareTab }) {
+function PlayerCard({ player, target, index, variant = "less", onSelect, injuryMap }: { player: MinutesValuePlayer; target?: MinutesValuePlayer; index: number; variant?: CompareTab; onSelect?: (p: MinutesValuePlayer) => void; injuryMap?: InjuryMap }) {
   const t = THEME[variant];
   const valueDiff = target ? player.marketValue - target.marketValue : 0;
   const valueDiffDisplay = valueDiff > 0 ? `+${formatValue(valueDiff)}` : formatValue(valueDiff);
@@ -180,17 +204,28 @@ function PlayerCard({ player, target, index, variant = "less" }: { player: Minut
         </div>
 
         <div className="flex-1 min-w-0">
-          <a
-            href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors"
+          <button
+            type="button"
+            onClick={() => onSelect?.(player)}
+            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors text-left"
             style={{ color: "var(--text-primary)" }}
           >
             {player.name}
-          </a>
+          </button>
           <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
             <span>{player.position}</span>
+            {variant === "less" && injuryMap?.[player.playerId] && (() => {
+              const info = injuryMap[player.playerId];
+              const ret = formatReturnInfo(info.returnDate);
+              return (
+                <>
+                  <span style={{ opacity: 0.4 }}>·</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(255,71,87,0.12)] text-[#ff6b7a]">
+                    {info.injury}{ret ? ` · ${ret}` : ""}
+                  </span>
+                </>
+              );
+            })()}
             <span className="hidden sm:inline" style={{ opacity: 0.4 }}>·</span>
             <span className="hidden sm:inline">{player.age}y</span>
           </div>
@@ -250,7 +285,7 @@ function PlayerCard({ player, target, index, variant = "less" }: { player: Minut
 const ROW_HEIGHT = 100;
 const GAP = 12;
 
-function VirtualPlayerList({ items, target, variant = "less" }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer; variant?: CompareTab }) {
+function VirtualPlayerList({ items, target, variant = "less", onSelect, injuryMap }: { items: MinutesValuePlayer[]; target?: MinutesValuePlayer; variant?: CompareTab; onSelect?: (p: MinutesValuePlayer) => void; injuryMap?: InjuryMap }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
@@ -271,7 +306,7 @@ function VirtualPlayerList({ items, target, variant = "less" }: { items: Minutes
             className="absolute left-0 w-full"
             style={{ top: virtualRow.start - (virtualizer.options.scrollMargin || 0) }}
           >
-            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} variant={variant} />
+            <PlayerCard player={items[virtualRow.index]} target={target} index={virtualRow.index} variant={variant} onSelect={onSelect} injuryMap={injuryMap} />
           </div>
         ))}
       </div>
@@ -279,13 +314,42 @@ function VirtualPlayerList({ items, target, variant = "less" }: { items: Minutes
   );
 }
 
-export function MinutesValueUI({ initialData: players }: { initialData: MinutesValuePlayer[] }) {
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<MinutesValuePlayer | null>(null);
-  const [sortBy, setSortBy] = useState<"value" | "minutes" | "games">("minutes");
-  const [sortAsc, setSortAsc] = useState(false);
-  const [tab, setTab] = useState<CompareTab>("less");
+function parseSortKey(v: string | null): SortKey {
+  if (v === "value" || v === "mins" || v === "games" || v === "ga") return v;
+  return "mins";
+}
 
+export function MinutesValueUI({ initialData: players, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
+  const { params, update } = useQueryParams("/minutes-value");
+
+  // URL-derived state
+  const urlName = params.get("name") || "";
+  const sortBy = parseSortKey(params.get("sort"));
+  const sortAsc = params.get("dir") === "asc";
+  const tab: CompareTab = params.get("tab") === "more" ? "more" : "less";
+  const leagueFilter = params.get("league") || "all";
+  const clubFilter = params.get("club") || "";
+  const top5Only = params.get("top5") === "1";
+
+  // Local state for search input (synced from URL)
+  const [query, setQuery] = useState(urlName);
+  useEffect(() => { setQuery(urlName); }, [urlName]);
+
+  // Derive selected player from URL name
+  const selected = useMemo(() => {
+    if (!urlName) return null;
+    return players.find((p) => p.name === urlName) ?? null;
+  }, [urlName, players]);
+
+  const handleSelect = (p: MinutesValuePlayer) => {
+    update({ name: p.name });
+  };
+
+  const handleClear = () => {
+    update({ name: null, tab: null });
+  };
+
+  // Comparison lists
   const playingLess = useMemo(() => {
     if (!selected) return [];
     return players.filter(
@@ -302,12 +366,27 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
 
   const results = tab === "less" ? playingLess : playingMore;
 
-  const sortedPlayers = useMemo(() =>
-    [...players].sort((a, b) => {
-      const diff = sortBy === "minutes" ? b.minutes - a.minutes : sortBy === "games" ? b.totalMatches - a.totalMatches : b.marketValue - a.marketValue;
+  // Discovery mode: league options from data
+  const leagueOptions = useMemo(
+    () => Array.from(new Set(players.map((p) => p.league).filter(Boolean))).sort(),
+    [players]
+  );
+
+  // Discovery mode: filtered + sorted list
+  const sortedPlayers = useMemo(() => {
+    let list = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
+    if (top5Only) list = filterTop5(list);
+    return [...list].sort((a, b) => {
+      let diff: number;
+      switch (sortBy) {
+        case "mins": diff = b.minutes - a.minutes; break;
+        case "games": diff = b.totalMatches - a.totalMatches; break;
+        case "ga": diff = (b.goals + b.assists) - (a.goals + a.assists); break;
+        default: diff = b.marketValue - a.marketValue;
+      }
       return sortAsc ? -diff : diff;
-    }),
-  [players, sortBy, sortAsc]);
+    });
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, top5Only]);
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -328,11 +407,11 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
             value={query}
             onChange={(val) => {
               setQuery(val);
-              if (!val.trim() || val !== selected?.name) setSelected(null);
+              if (!val.trim() || val !== selected?.name) handleClear();
             }}
             onSelect={(player) => {
-              setSelected(player);
               setQuery(player.name);
+              handleSelect(player);
             }}
             placeholder="Search player (e.g. Kenan Yildiz)"
             renderTrailing={(player) => (
@@ -355,44 +434,63 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
             </section>
 
             <section>
-              <div className="flex items-center justify-between mb-4">
-                <ToggleGroup
-                  type="single"
-                  value={tab}
-                  onValueChange={(v) => v && setTab(v as CompareTab)}
-                  size="sm"
-                  className="flex-wrap"
-                >
-                  <ToggleGroupItem
-                    value="less"
-                    className="rounded-lg px-3 text-[var(--text-muted)] data-[state=on]:bg-[rgba(255,71,87,0.15)] data-[state=on]:text-[#ff6b7a]"
-                  >
-                    Playing Less ({playingLess.length})
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="more"
-                    className="rounded-lg px-3 text-[var(--text-muted)] data-[state=on]:bg-[rgba(34,197,94,0.15)] data-[state=on]:text-[#22c55e]"
-                  >
-                    Playing More ({playingMore.length})
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+              <Tabs
+                value={tab}
+                onValueChange={(v) => update({ tab: v === "less" ? null : v })}
+              >
+                <TabsList className="w-full mb-4">
+                  <TabsTrigger value="less" className="flex-1 gap-2">
+                    Playing Less
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums"
+                      style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}
+                    >
+                      {playingLess.length}
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="more" className="flex-1 gap-2">
+                    Playing More
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums"
+                      style={{ background: "rgba(34, 197, 94, 0.15)", color: "#22c55e" }}
+                    >
+                      {playingMore.length}
+                    </span>
+                  </TabsTrigger>
+                </TabsList>
 
-              {results.length === 0 ? (
-                <div
-                  className="rounded-xl p-10 text-center animate-fade-in"
-                  style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
-                >
-                  <p className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>No results</p>
-                  <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                    {tab === "less"
-                      ? `No higher-valued players have fewer minutes than ${selected.name}`
-                      : `No higher-valued players have more minutes than ${selected.name}`}
-                  </p>
-                </div>
-              ) : (
-                <VirtualPlayerList items={results} target={selected} variant={tab} />
-              )}
+                <TabsContent value="less">
+                  {playingLess.length === 0 ? (
+                    <div
+                      className="rounded-xl p-10 text-center animate-fade-in"
+                      style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+                    >
+                      <p className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>No results</p>
+                      <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+                        No higher-valued players have fewer minutes than {selected.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <VirtualPlayerList items={playingLess} target={selected} variant="less" onSelect={handleSelect} injuryMap={injuryMap} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="more">
+                  {playingMore.length === 0 ? (
+                    <div
+                      className="rounded-xl p-10 text-center animate-fade-in"
+                      style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+                    >
+                      <p className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>No results</p>
+                      <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+                        No higher-valued players have more minutes than {selected.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <VirtualPlayerList items={playingMore} target={selected} variant="more" onSelect={handleSelect} />
+                  )}
+                </TabsContent>
+              </Tabs>
             </section>
 
             <div
@@ -417,20 +515,19 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
                   type="single"
                   value={sortBy}
                   onValueChange={(value) => {
-                    if (!value) { setSortAsc((v) => !v); return; }
-                    setSortBy(value as "value" | "minutes" | "games");
-                    setSortAsc(false);
+                    if (!value) { update({ dir: sortAsc ? null : "asc" }); return; }
+                    update({ sort: value === "mins" ? null : value, dir: null });
                   }}
                   className="ml-2 rounded-lg overflow-hidden"
                   style={{ border: "1px solid var(--border-subtle)" }}
                 >
-                  {(["value", "minutes", "games"] as const).map((key) => (
+                  {(["value", "mins", "games", "ga"] as const).map((key) => (
                     <ToggleGroupItem
                       key={key}
                       value={key}
                       className="px-2.5 py-1 text-[10px] sm:text-xs font-medium uppercase tracking-wide rounded-none border-0 flex items-center gap-1 text-[var(--text-muted)] data-[state=on]:bg-[var(--bg-elevated)] data-[state=on]:text-[var(--text-primary)]"
                     >
-                      {key === "value" ? "Value" : key === "minutes" ? "Mins" : "Games"}
+                      {SORT_LABELS[key]}
                       {sortBy === key && (
                         <span className="text-[10px]">{sortAsc ? "▲" : "▼"}</span>
                       )}
@@ -442,10 +539,53 @@ export function MinutesValueUI({ initialData: players }: { initialData: MinutesV
                 className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums"
                 style={{ background: "rgba(100, 180, 255, 0.15)", color: "var(--accent-blue)" }}
               >
-                {players.length}
+                {sortedPlayers.length}
               </span>
             </div>
-            <VirtualPlayerList items={sortedPlayers} />
+
+            {/* Filters */}
+            <div className="flex flex-col gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <SelectNative
+                  value={leagueFilter}
+                  onChange={(e) => update({ league: e.target.value === "all" ? null : e.target.value })}
+                  className="h-10"
+                >
+                  <option value="all">All leagues</option>
+                  {leagueOptions.map((league) => (
+                    <option key={league} value={league}>
+                      {league}
+                    </option>
+                  ))}
+                </SelectNative>
+                <DebouncedInput
+                  value={clubFilter}
+                  onChange={(value) => update({ club: value || null })}
+                  placeholder="Filter by club"
+                  className="h-10"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => update({ top5: top5Only ? null : "1" })}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                  style={{
+                    background: top5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
+                    color: top5Only ? "var(--accent-blue)" : "var(--text-muted)",
+                    border: top5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
+                  }}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Top 5 leagues
+                </button>
+              </div>
+            </div>
+
+            <VirtualPlayerList items={sortedPlayers} onSelect={handleSelect} />
           </section>
         )}
       </div>

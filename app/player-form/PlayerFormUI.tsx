@@ -1,42 +1,19 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback, useEffect, startTransition } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
+import { DebouncedInput } from "@/components/DebouncedInput";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getLeagueLogoUrl } from "@/lib/leagues";
+import { filterPlayersByLeagueAndClub, TOP_5_LEAGUES } from "@/lib/filter-players";
+import { useQueryParams } from "@/lib/hooks/use-query-params";
 
-function DebouncedInput({
-  value: externalValue,
-  onChange,
-  delay = 300,
-  ...props
-}: { value: string; onChange: (value: string) => void; delay?: number } & Omit<React.ComponentProps<typeof Input>, "value" | "onChange">) {
-  const [value, setValue] = useState(externalValue);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => {
-    setValue(externalValue);
-  }, [externalValue]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => onChange(newValue), delay);
-  };
-
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
-  return <Input value={value} onChange={handleChange} {...props} />;
-}
 
 interface PlayerStats {
   name: string;
@@ -108,18 +85,6 @@ function getPlayerBenchmarkHref(name: string): string {
   return `/player-form?${new URLSearchParams({ [QUERY_PARAM_KEYS.name]: name }).toString()}`;
 }
 
-function filterPlayersByLeagueAndClub(
-  players: PlayerStats[],
-  leagueFilter: string,
-  clubFilter: string
-): PlayerStats[] {
-  const normalizedClub = clubFilter.trim().toLowerCase();
-  return players.filter((player) => {
-    if (leagueFilter !== "all" && player.league !== leagueFilter) return false;
-    if (normalizedClub && !player.club.toLowerCase().includes(normalizedClub)) return false;
-    return true;
-  });
-}
 
 function MinutesDisplay({
   minutes,
@@ -999,7 +964,6 @@ function ScorerRow({
 
 type ScorerSortKey = "points" | "minutes";
 
-const TOP_5_LEAGUES = ["Premier League", "LaLiga", "Bundesliga", "Serie A", "Ligue 1"];
 
 function ScorersSection({
   players,
@@ -1185,8 +1149,7 @@ interface PlayerFormUIProps {
 }
 
 export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
-  const urlParams = useSearchParams();
-  const router = useRouter();
+  const { params: urlParams, update: updateQueryParams } = useQueryParams("/player-form");
 
   const urlName = urlParams.get(QUERY_PARAM_KEYS.name) || "";
   const [playerName, setPlayerName] = useState(urlName);
@@ -1195,23 +1158,6 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
   useEffect(() => {
     setPlayerName(urlName);
   }, [urlName]);
-
-  const updateQueryParams = useCallback((updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(urlParams.toString());
-
-    for (const [key, value] of Object.entries(updates)) {
-      if (value === null || value === "") {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    }
-
-    const qs = params.toString();
-    startTransition(() => {
-      router.replace(qs ? `?${qs}` : "/player-form", { scroll: false });
-    });
-  }, [router, urlParams]);
 
   const updateUrl = useCallback((name: string | null) => {
     updateQueryParams({ [QUERY_PARAM_KEYS.name]: name });
