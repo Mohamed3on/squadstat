@@ -4,7 +4,7 @@ import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
 
-const SCORER_PAGES = 5;
+const SCORER_PAGES = 10;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseTopScorerRow($: cheerio.CheerioAPI, row: any): MinutesValuePlayer | null {
