@@ -957,10 +957,10 @@ export function PlayerFormUI({ initialAllPlayers }: PlayerFormUIProps) {
             className="text-lg sm:text-xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Player <span style={{ color: "var(--accent-blue)" }}>Output</span> vs Value
+            <span style={{ color: "var(--accent-blue)" }}>G+A</span> vs Value
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Who&apos;s delivering for their price tag and who isn&apos;t
+            Are expensive players producing enough goals and assists?
           </p>
         </div>
         {/* Search Form */}

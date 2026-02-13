@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Player Output vs Market Value",
-  description: "Compare player market value against goal output and minutes across Europe's top leagues",
+  title: "G+A vs Market Value",
+  description: "Which expensive players are underdelivering on goals and assists? Benchmark any player against similarly valued peers.",
 };
 
 export default function PlayerFormLayout({ children }: { children: React.ReactNode }) {

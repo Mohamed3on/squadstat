@@ -7,7 +7,7 @@ import { MinutesValueUI } from "./MinutesValueUI";
 export const metadata: Metadata = {
   title: "Minutes vs Market Value",
   description:
-    "Track high-value players with low minutes. Compare who is playing less than expected for their market value.",
+    "Browse and filter 500+ elite players by value, minutes, games, and G+A. Search any player to see who's playing less or more for the same price.",
 };
 
 const SPIELER_RE = /\/spieler\/(\d+)/;

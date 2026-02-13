@@ -393,10 +393,10 @@ export function MinutesValueUI({ initialData: players, injuryMap }: { initialDat
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Benched <span style={{ color: "#ff6b7a" }}>Stars</span>
+            Minutes vs <span style={{ color: "var(--accent-blue)" }}>Value</span>
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            High-value players getting the fewest minutes
+            Browse elite players or search one to compare minutes at the same price
           </p>
         </div>
 

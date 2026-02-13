@@ -5,9 +5,9 @@ import { DataLastUpdated } from "@/app/components/DataLastUpdated";
 import { PlayerFormUI } from "./PlayerFormUI";
 
 export const metadata: Metadata = {
-  title: "Player Output vs Value",
+  title: "G+A vs Market Value",
   description:
-    "Compare player scoring output against market value. Who's delivering for their price tag and who isn't.",
+    "Which expensive players are underdelivering on goals and assists? Search any player to benchmark their output against similarly valued peers.",
 };
 
 export default async function PlayerFormPage() {

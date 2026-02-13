@@ -39,12 +39,12 @@ const pages = [
     glowVar: "--accent-blue",
   },
   {
-    title: "Player Output",
+    title: "G+A vs Value",
     href: "/player-form",
-    tag: "PLAYERS",
+    tag: "OUTPUT",
     description:
-      "Are expensive attackers and midfielders producing enough goals + assists for their price?",
-    detail: "Settle recruitment debates with data.",
+      "Are expensive players producing enough goals and assists? Search any player to benchmark against peers.",
+    detail: "Find who's overpaid and who's a bargain.",
     icon: TrendingUp,
     accentVar: "--accent-gold",
     glowVar: "--accent-gold",
@@ -54,8 +54,8 @@ const pages = [
     href: "/minutes-value",
     tag: "MINUTES",
     description:
-      "High-value players sitting on the bench. Rotation risk and inefficiency surfaced.",
-    detail: "Find the expensive benchwarmers.",
+      "Browse 500+ elite players by value, minutes, games, and G+A. Search one to compare playing time at the same price.",
+    detail: "Spot benched stars and rotation risks.",
     icon: Clock,
     accentVar: "--accent-hot",
     glowVar: "--accent-hot-glow",
@@ -131,7 +131,7 @@ export default function Home() {
 
           <p className="mt-5 max-w-xl animate-slide-up text-base text-[var(--text-secondary)] sm:text-lg [animation-delay:0.08s]">
             Cut through the noise. Five analytical lenses on Europe&rsquo;s top leagues &mdash;
-            form, value, output, minutes, and injury impact &mdash; updated daily from Transfermarkt.
+            form, team value, player output, minutes, and injury impact &mdash; updated daily from Transfermarkt.
           </p>
 
           {/* Mini stat preview */}
