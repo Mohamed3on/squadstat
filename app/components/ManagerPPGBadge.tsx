@@ -82,10 +82,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
 
   if (manager.matches === 0) {
     return (
-      <span
-        className="px-1.5 py-0.5 rounded text-[10px] sm:text-xs"
-        style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}
-      >
+      <span className="shrink-0 px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
         New manager
       </span>
     );
