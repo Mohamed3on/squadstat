@@ -754,14 +754,13 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
   }, [handleSelect]);
 
   return (
-    <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        {/* Title */}
-        <div className="mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Value <span style={{ color: "var(--accent-gold)" }}>Analysis</span>
-          </h2>
-          <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
+    <>
+      {/* Title */}
+      <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black mb-1 sm:mb-2 text-[var(--text-primary)]">
+            Value <span className="text-[var(--accent-gold)]">Analysis</span>
+          </h1>
+          <p className="text-sm sm:text-base text-[var(--text-muted)]">
             {mode === "ga"
               ? "Find overpriced players outperformed by cheaper peers and bargain players who punch above their price tag — based on G+A output."
               : "Expensive players ranked by fewest minutes played. Search any player to compare against others at the same or higher market value."}
@@ -1077,7 +1076,6 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
             )}
           </>
         )}
-      </div>
-    </main>
+    </>
   );
 }

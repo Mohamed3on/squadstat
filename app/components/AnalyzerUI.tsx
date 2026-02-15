@@ -238,7 +238,7 @@ export function AnalyzerUI({ initialData }: { initialData: AnalysisResult }) {
       {/* Hero Section - Match Result */}
       {data.success && data.analysis.find((p) => p.hasMatch) ? (
         <div
-          className="rounded-2xl p-4 sm:p-8 animate-scale-in relative overflow-hidden"
+          className="rounded-2xl p-4 sm:p-6 animate-scale-in relative overflow-hidden"
           style={{
             background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%)",
             border: "1px solid var(--accent-hot)",
@@ -293,7 +293,7 @@ export function AnalyzerUI({ initialData }: { initialData: AnalysisResult }) {
         </div>
       ) : (
         <Card
-          className="rounded-2xl p-6 sm:p-8 text-center animate-scale-in"
+          className="rounded-2xl p-4 sm:p-6 text-center animate-scale-in"
           style={{ borderColor: "var(--accent-cold)" }}
         >
           <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📊</div>

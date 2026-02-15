@@ -105,11 +105,11 @@ function MiniBar({ height, delay, color }: { height: string; delay: string; colo
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[var(--bg-base)]">
+    <>
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden border-b border-[var(--border-subtle)]">
+      <section className="full-bleed relative overflow-hidden border-b border-[var(--border-subtle)]">
         <HeroVisual />
-        <div className="relative mx-auto max-w-5xl px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
+        <div className="relative page-container pb-14 pt-12 sm:pb-20 sm:pt-16">
           {/* Live tag */}
           <div className="mb-5 flex items-center gap-2 animate-fade-in">
             <span className="relative flex h-2 w-2">
@@ -151,7 +151,7 @@ export default function Home() {
       </section>
 
       {/* ── Cards Grid ── */}
-      <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      <section className="py-10 sm:py-14">
         <div className="mb-8 flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-[var(--border-subtle)] to-transparent" />
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
@@ -257,6 +257,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

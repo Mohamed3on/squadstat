@@ -104,24 +104,28 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
     );
   }
 
-  const isBest = manager.ppgRank === 1;
-  const isWorst = manager.ppgRank === manager.totalComparableManagers && !isBest;
+  const isOnly = manager.totalComparableManagers === 1;
+  const isBest = manager.ppgRank === 1 && !isOnly;
+  const isWorst = manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
 
   const badge = (
     <span
-      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] sm:text-xs cursor-help transition-opacity hover:opacity-80 ${isBest || isWorst ? "font-semibold" : ""}`}
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] sm:text-xs cursor-help transition-opacity hover:opacity-80 ${isBest || isWorst || isOnly ? "font-semibold" : ""}`}
       style={{
         background: isBest
           ? "rgba(22, 163, 74, 0.15)"
           : isWorst
           ? "rgba(220, 38, 38, 0.15)"
+          : isOnly
+          ? "rgba(59, 130, 246, 0.15)"
           : "var(--bg-elevated)",
-        color: isBest ? "#22c55e" : isWorst ? "#ef4444" : "var(--text-secondary)",
-        border: `1px solid ${isBest ? "rgba(22, 163, 74, 0.3)" : isWorst ? "rgba(220, 38, 38, 0.3)" : "var(--border-subtle)"}`,
+        color: isBest ? "#22c55e" : isWorst ? "#ef4444" : isOnly ? "#3b82f6" : "var(--text-secondary)",
+        border: `1px solid ${isBest ? "rgba(22, 163, 74, 0.3)" : isWorst ? "rgba(220, 38, 38, 0.3)" : isOnly ? "rgba(59, 130, 246, 0.3)" : "var(--border-subtle)"}`,
       }}
     >
       {isBest && <span>🏆</span>}
       {isWorst && <span>⚠️</span>}
+      {isOnly && <span>👑</span>}
       <span>{manager.ppg!.toFixed(2)} PPG</span>
       <span style={{ opacity: 0.7 }}>({manager.ppgRank}/{manager.totalComparableManagers})</span>
     </span>
@@ -130,11 +134,17 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
   const tooltipContent = (
     <div className="space-y-2 text-xs sm:text-sm">
       <div style={{ color: "var(--text-secondary)" }}>
-        {isBest ? "Best" : isWorst ? "Worst" : `#${manager.ppgRank}`} PPG among{" "}
-        <span style={{ color: "var(--text-primary)" }}>{manager.totalComparableManagers}</span> managers
-        with {manager.matches}+ games since 1995
+        {isOnly ? (
+          <>Only manager with {manager.matches}+ games since 1995</>
+        ) : (
+          <>
+            {isBest ? "Best" : isWorst ? "Worst" : `#${manager.ppgRank}`} PPG among{" "}
+            <span style={{ color: "var(--text-primary)" }}>{manager.totalComparableManagers}</span> managers
+            with {manager.matches}+ games since 1995
+          </>
+        )}
       </div>
-      {manager.bestManager && manager.worstManager && (
+      {!isOnly && manager.bestManager && manager.worstManager && (
         <div
           className="pt-2 space-y-1.5"
           style={{ borderTop: "1px solid var(--border-subtle)" }}

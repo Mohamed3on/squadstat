@@ -59,7 +59,8 @@ function parseManagerTable($: cheerio.CheerioAPI): ManagerHistoryEntry[] {
     const ppgText = $(cells[6]).text().trim();
 
     const matches = parseInt(matchesText, 10) || 0;
-    const ppg = ppgText === "-" ? null : parseFloat(ppgText) || null;
+    const parsed = parseFloat(ppgText);
+    const ppg = ppgText === "-" || isNaN(parsed) ? null : parsed;
 
     managers.push({
       name,

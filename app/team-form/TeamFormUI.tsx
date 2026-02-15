@@ -35,6 +35,12 @@ function formatValue(value: string): string {
   return value || "-";
 }
 
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 function LeagueFilter({ selectedLeague, onValueChange }: { selectedLeague: string; onValueChange: (value: string) => void }) {
   return (
     <div className="mb-4 sm:mb-6">
@@ -90,37 +96,42 @@ interface TeamCardProps {
 function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
   const isOver = type === "over";
   const manager = team.manager;
+  const accentColor = isOver ? "#16a34a" : "#dc2626";
+  const accentFaint = isOver ? "rgba(22,163,74,0.06)" : "rgba(220,38,38,0.06)";
+  const accentBorder = isOver ? "rgba(22,163,74,0.2)" : "rgba(220,38,38,0.2)";
+  const accentMuted = isOver ? "rgba(22,163,74,0.6)" : "rgba(220,38,38,0.6)";
 
   return (
     <Card
-      className="h-full w-full p-3 sm:p-4 hover-lift animate-slide-up"
+      className="h-full w-full overflow-hidden hover-lift animate-slide-up"
       style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
     >
-      <div className="flex items-center gap-3 sm:gap-4">
-        {/* Rank */}
-        <div
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm shrink-0"
-          style={{
-            background: rank <= 3 ? (isOver ? "#16a34a" : "#dc2626") : "var(--bg-elevated)",
-            color: rank <= 3 ? "#fff" : "var(--text-muted)",
-          }}
-        >
-          {rank}
-        </div>
+      <div className="flex items-stretch">
+        {/* Main content */}
+        <div className="flex-1 min-w-0 p-3 sm:p-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Rank */}
+            <div
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm shrink-0"
+              style={{
+                background: rank <= 3 ? accentColor : "var(--bg-elevated)",
+                color: rank <= 3 ? "#fff" : "var(--text-muted)",
+              }}
+            >
+              {rank}
+            </div>
 
-        {/* Club Logo */}
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center p-1.5" style={{ background: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
-          {team.logoUrl ? (
-            <img src={team.logoUrl} alt={team.name} className="w-full h-full object-contain" />
-          ) : (
-            <div className="text-xl" style={{ color: "var(--text-muted)" }}>?</div>
-          )}
-        </div>
+            {/* Club Logo */}
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1" style={{ background: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
+              {team.logoUrl ? (
+                <img src={team.logoUrl} alt={team.name} className="w-full h-full object-contain" />
+              ) : (
+                <div className="text-xl" style={{ color: "var(--text-muted)" }}>?</div>
+              )}
+            </div>
 
-        {/* Team Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
+            {/* Team Info */}
+            <div className="flex-1 min-w-0">
               <a
                 href={team.clubUrl}
                 target="_blank"
@@ -130,40 +141,30 @@ function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
               >
                 {team.name}
               </a>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Badge
-                  className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs shrink-0 flex items-center gap-1"
-                  style={{
-                    background: getLeagueColor(team.league),
-                    color: team.league === "Ligue 1" ? "#000" : "#fff",
-                    border: "none",
-                  }}
-                >
-                  {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
-                  {team.league}
-                </Badge>
-              </div>
-            </div>
-            {/* Delta */}
-            <div
-              className="text-lg sm:text-xl font-black shrink-0"
-              style={{ color: isOver ? "#16a34a" : "#dc2626" }}
-            >
-              {team.deltaPts > 0 ? `+${team.deltaPts}` : team.deltaPts}
+              <Badge
+                className="mt-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs shrink-0 flex items-center gap-1 w-fit"
+                style={{
+                  background: getLeagueColor(team.league),
+                  color: team.league === "Ligue 1" ? "#000" : "#fff",
+                  border: "none",
+                }}
+              >
+                {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
+                {team.league}
+              </Badge>
             </div>
           </div>
 
           {/* Stats Row */}
-          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 mt-2 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
+          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 mt-2.5 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
             <span>
-              <span style={{ color: "var(--text-secondary)" }}>Pos:</span> {team.leaguePosition}
+              <span style={{ color: "var(--text-secondary)" }}>{ordinal(team.leaguePosition)}</span> · {team.points}pts
             </span>
+            <span style={{ color: "var(--border-medium)" }}>|</span>
             <span>
-              <span style={{ color: "var(--text-secondary)" }}>Pts:</span> {team.points}
+              <span style={{ color: "var(--text-secondary)" }}>Exp:</span> {ordinal(team.marketValueRank)} → {team.expectedPoints}pts
             </span>
-            <span>
-              <span style={{ color: "var(--text-secondary)" }}>Expected:</span> {team.marketValueRank}th → {team.expectedPoints}pts
-            </span>
+            <span style={{ color: "var(--border-medium)" }}>|</span>
             <span>
               <span style={{ color: "var(--text-secondary)" }}>Avg:</span> {formatValue(team.marketValue)}
             </span>
@@ -175,6 +176,28 @@ function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
               <ManagerSection manager={manager} />
             </div>
           )}
+        </div>
+
+        {/* Delta strip */}
+        <div
+          className="w-16 sm:w-20 flex flex-col items-center justify-center shrink-0"
+          style={{
+            borderLeft: `1px solid ${accentBorder}`,
+            background: accentFaint,
+          }}
+        >
+          <span
+            className="text-xl sm:text-2xl font-black font-value"
+            style={{ color: accentColor }}
+          >
+            {team.deltaPts > 0 ? `+${team.deltaPts}` : team.deltaPts}
+          </span>
+          <span
+            className="text-[9px] uppercase tracking-wider mt-0.5"
+            style={{ color: accentMuted }}
+          >
+            pts
+          </span>
         </div>
       </div>
     </Card>
@@ -205,19 +228,31 @@ function TeamListsGrid({
       {/* Desktop: aligned grid rows */}
       <div className="hidden md:block">
         {/* Headers */}
-        <div className="grid grid-cols-2 gap-6 mb-3">
-          <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2" style={{ color: "#16a34a" }}>
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-            Overperformers
-          </h2>
-          <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2" style={{ color: "#dc2626" }}>
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Underperformers
-          </h2>
+        <div className="grid grid-cols-2 gap-6 mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 shrink-0" style={{ color: "#16a34a" }}>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              Overperformers
+            </h2>
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(22,163,74,0.1)", color: "rgba(22,163,74,0.7)" }}>
+              {overperformers.length}
+            </span>
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(22,163,74,0.3), transparent)" }} />
+          </div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 shrink-0" style={{ color: "#dc2626" }}>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              Underperformers
+            </h2>
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(220,38,38,0.1)", color: "rgba(220,38,38,0.7)" }}>
+              {underperformers.length}
+            </span>
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(220,38,38,0.3), transparent)" }} />
+          </div>
         </div>
 
         {/* Card rows */}
@@ -244,12 +279,18 @@ function TeamListsGrid({
       <div className="md:hidden space-y-6">
         {/* Overperformers */}
         <div>
-          <h2 className="text-lg font-bold flex items-center gap-2 mb-3" style={{ color: "#16a34a" }}>
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-            Overperformers
-          </h2>
+          <div className="flex items-center gap-3 mb-3">
+            <h2 className="text-lg font-bold flex items-center gap-2 shrink-0" style={{ color: "#16a34a" }}>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              Overperformers
+            </h2>
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(22,163,74,0.1)", color: "rgba(22,163,74,0.7)" }}>
+              {overperformers.length}
+            </span>
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(22,163,74,0.3), transparent)" }} />
+          </div>
           <div className="space-y-3">
             {overperformers.map((team, idx) => (
               <div key={`${team.name}-${team.league}`}>
@@ -261,12 +302,18 @@ function TeamListsGrid({
 
         {/* Underperformers */}
         <div>
-          <h2 className="text-lg font-bold flex items-center gap-2 mb-3" style={{ color: "#dc2626" }}>
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Underperformers
-          </h2>
+          <div className="flex items-center gap-3 mb-3">
+            <h2 className="text-lg font-bold flex items-center gap-2 shrink-0" style={{ color: "#dc2626" }}>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              Underperformers
+            </h2>
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: "rgba(220,38,38,0.1)", color: "rgba(220,38,38,0.7)" }}>
+              {underperformers.length}
+            </span>
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(220,38,38,0.3), transparent)" }} />
+          </div>
           <div className="space-y-3">
             {underperformers.map((team, idx) => (
               <div key={`${team.name}-${team.league}`}>

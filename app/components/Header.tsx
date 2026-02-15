@@ -90,7 +90,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[rgba(8,10,12,0.9)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-3 py-3 sm:px-4 sm:py-4">
+      <div className="page-container flex items-center justify-between py-3 sm:py-4">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-2">
           <Image

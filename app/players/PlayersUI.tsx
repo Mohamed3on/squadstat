@@ -186,13 +186,12 @@ export function PlayersUI({ initialData: players, injuryMap }: { initialData: Mi
   }, [players, sortBy, sortAsc, leagueFilter, clubFilter, top5Only, newSigningsOnly]);
 
   return (
-    <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <div className="mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Player <span style={{ color: "var(--accent-blue)" }}>Explorer</span>
-          </h2>
-          <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
+    <>
+      <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black mb-1 sm:mb-2 text-[var(--text-primary)]">
+            Player <span className="text-[var(--accent-blue)]">Explorer</span>
+          </h1>
+          <p className="text-sm sm:text-base text-[var(--text-muted)]">
             {players.length.toLocaleString()} players from Europe&apos;s top 5 leagues, sortable by market value, minutes played, appearances, and goal contributions. Data from Transfermarkt, updated daily.
           </p>
         </div>
@@ -290,7 +289,6 @@ export function PlayersUI({ initialData: players, injuryMap }: { initialData: Mi
 
           <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} />
         </section>
-      </div>
-    </main>
+    </>
   );
 }

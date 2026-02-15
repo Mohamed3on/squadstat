@@ -77,7 +77,7 @@ export default function RootLayout({
       >
         <Providers>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="page-container flex-1">{children}</main>
           <Footer />
           <Toaster />
         </Providers>

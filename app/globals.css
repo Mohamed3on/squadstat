@@ -61,6 +61,32 @@
   box-sizing: border-box;
 }
 
+/* Single source of truth for page container */
+.page-container {
+  width: 100%;
+  max-width: 72rem; /* 6xl */
+  margin-inline: auto;
+  padding-inline: 0.75rem; /* px-3 */
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    padding-inline: 1rem; /* sm:px-4 */
+  }
+}
+
+/* Break out of page-container to full viewport width */
+.full-bleed {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+html {
+  overflow-x: clip;
+}
+
 body {
   background: var(--bg-base);
   color: var(--text-primary);

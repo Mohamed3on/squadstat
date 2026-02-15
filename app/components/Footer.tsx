@@ -9,7 +9,7 @@ export function Footer() {
         background: "rgba(8, 10, 12, 0.9)",
       }}
     >
-      <div className="max-w-5xl mx-auto px-4 py-4">
+      <div className="page-container py-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
             Data from{" "}

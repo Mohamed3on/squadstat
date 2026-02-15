@@ -30,7 +30,7 @@ export default function Loading() {
     <div className="space-y-8">
       {/* Hero card skeleton */}
       <div
-        className="rounded-2xl p-4 sm:p-8"
+        className="rounded-2xl p-4 sm:p-6"
         style={{
           background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%)",
           border: "1px solid var(--border-subtle)",

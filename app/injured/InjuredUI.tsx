@@ -476,7 +476,7 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
         </TabsList>
 
         <TabsContent value="players">
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {players.map((player, idx) => (
               <PlayerCard key={`${player.name}-${player.club}`} player={player} rank={idx + 1} index={idx} />
             ))}
@@ -485,7 +485,7 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
 
         <TabsContent value="teams">
           <SortToggle value={teamSort} onChange={(v) => update({ tSort: v === "value" ? null : v })} />
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {teamGroups.map((team, idx) => (
               <TeamInjuryCard key={team.club} team={team} rank={idx + 1} index={idx} />
             ))}
@@ -494,7 +494,7 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
 
         <TabsContent value="injuries">
           <SortToggle value={injurySort} onChange={(v) => update({ iSort: v === "value" ? null : v })} />
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {injuryTypeGroups.map((group, idx) => (
               <InjuryTypeCard key={group.injury} group={group} rank={idx + 1} index={idx} />
             ))}
