@@ -439,27 +439,20 @@ function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, s
           variant="outline"
           value={sortGroup}
           onValueChange={(v) => {
-            if (!v) return;
             if (v === "count") onSortChange("count");
             else if (v === "value") onSortChange(isOverpriced ? "value-desc" : "value-asc");
             else if (v === "ga") onSortChange("ga-desc");
+            else if (isValueActive) onSortChange(sortBy === "value-asc" ? "value-desc" : "value-asc");
+            else if (isGaActive) onSortChange(sortBy === "ga-desc" ? "ga-asc" : "ga-desc");
           }}
         >
           <ToggleGroupItem value="count" className="rounded-lg">
             {isOverpriced ? "Most outperformed" : "Most outperforming"}
           </ToggleGroupItem>
-          <ToggleGroupItem
-            value="value"
-            className="rounded-lg"
-            onClick={() => { if (isValueActive) onSortChange(sortBy === "value-asc" ? "value-desc" : "value-asc"); }}
-          >
+          <ToggleGroupItem value="value" className="rounded-lg">
             Value {isValueActive && (sortBy === "value-asc" ? "\u2191" : "\u2193")}
           </ToggleGroupItem>
-          <ToggleGroupItem
-            value="ga"
-            className="rounded-lg"
-            onClick={() => { if (isGaActive) onSortChange(sortBy === "ga-desc" ? "ga-asc" : "ga-desc"); }}
-          >
+          <ToggleGroupItem value="ga" className="rounded-lg">
             G+A {isGaActive && (sortBy === "ga-desc" ? "\u2193" : "\u2191")}
           </ToggleGroupItem>
         </ToggleGroup>
