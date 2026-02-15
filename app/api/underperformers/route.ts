@@ -8,16 +8,15 @@ type Candidate = PlayerStats & { outperformedByCount: number };
 const MIN_DISCOVERY_MINUTES = 260;
 
 function findCandidates(players: PlayerStats[]): Candidate[] {
-  const sorted = [...players].sort((a, b) => b.marketValue - a.marketValue);
   const candidates: Candidate[] = [];
 
-  for (let i = 0; i < sorted.length; i++) {
-    const player = sorted[i];
+  for (const player of players) {
     if (isDefensivePosition(player.position) || player.position === "Central Midfield") continue;
     if (player.minutes === undefined || player.minutes < MIN_DISCOVERY_MINUTES) continue;
 
-    const cheaper = sorted.slice(i + 1);
-    const outperformedByCount = cheaper.filter((p) =>
+    const outperformedByCount = players.filter((p) =>
+      p.playerId !== player.playerId &&
+      p.marketValue <= player.marketValue &&
       strictlyOutperforms(p, player) &&
       canBeOutperformerAgainst(p.position, player.position)
     ).length;

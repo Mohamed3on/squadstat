@@ -27,33 +27,36 @@ function findPlayerByName(players: PlayerStats[], searchName: string): PlayerSta
 
 function findUnderperformers(players: PlayerStats[], target: PlayerStats): PlayerStats[] {
   return players.filter(
-    (p) => p.name !== target.name && p.marketValue >= target.marketValue && strictlyOutperforms(target, p)
+    (p) => p.playerId !== target.playerId && p.marketValue >= target.marketValue && strictlyOutperforms(target, p)
   );
 }
 
 function findOutperformers(players: PlayerStats[], target: PlayerStats): PlayerStats[] {
   return players.filter(
-    (p) => p.name !== target.name && p.marketValue <= target.marketValue && strictlyOutperforms(p, target)
+    (p) => p.playerId !== target.playerId && p.marketValue <= target.marketValue && strictlyOutperforms(p, target)
   );
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const playerId = searchParams.get("id");
   const playerName = searchParams.get("name");
 
-  if (!playerName) {
-    return NextResponse.json({ error: "Player name is required" }, { status: 400 });
+  if (!playerId && !playerName) {
+    return NextResponse.json({ error: "Player id or name is required" }, { status: 400 });
   }
 
   try {
     const allPlayers = await getPlayerStatsData();
 
-    const targetPlayer = findPlayerByName(allPlayers, playerName);
+    const targetPlayer = (playerId && allPlayers.find((p) => p.playerId === playerId))
+      || (playerName && findPlayerByName(allPlayers, playerName))
+      || null;
 
     if (!targetPlayer) {
       return NextResponse.json({
         error: "Player not found",
-        searchedName: playerName,
+        searchedName: playerName || playerId,
         totalPlayers: allPlayers.length,
       }, { status: 404 });
     }

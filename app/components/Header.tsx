@@ -23,7 +23,7 @@ const PAGE_TAGS: Record<string, string[]> = {
   "/injured": ["injured"],
 };
 
-const STATIC_DATA_PAGES = new Set(["/players", "/underperformers"]);
+const STATIC_DATA_PAGES = new Set(["/players", "/value-analysis"]);
 
 async function revalidateCaches(pathname: string): Promise<"revalidated" | "dispatched"> {
   if (STATIC_DATA_PAGES.has(pathname)) {
@@ -63,7 +63,7 @@ const navItems = [
   { href: "/form", label: "Recent Form" },
   { href: "/team-form", label: "Value vs Table" },
   { href: "/players", label: "Players" },
-  { href: "/underperformers", label: "Underperformers" },
+  { href: "/value-analysis", label: "Value Analysis" },
   { href: "/injured", label: "Injury Impact" },
 ] as const;
 

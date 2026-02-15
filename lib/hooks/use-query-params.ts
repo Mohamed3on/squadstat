@@ -1,48 +1,44 @@
 "use client";
 
-import { useCallback, useMemo, useSyncExternalStore } from "react";
-
-function getSearch() {
-  return typeof window === "undefined" ? "" : window.location.search;
-}
-
-const subscribe = (cb: () => void) => {
-  window.addEventListener("popstate", cb);
-  return () => window.removeEventListener("popstate", cb);
-};
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function useQueryParams(basePath: string) {
-  const search = useSyncExternalStore(subscribe, getSearch, getSearch);
-  const params = useMemo(() => new URLSearchParams(search), [search]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState(() => new URLSearchParams(searchParams.toString()));
+  const ref = useRef(params);
+  ref.current = params;
+  const baseRef = useRef(basePath);
+  baseRef.current = basePath;
 
-  const buildUrl = useCallback(
-    (updates: Record<string, string | null>) => {
-      const next = new URLSearchParams(window.location.search);
-      for (const [key, value] of Object.entries(updates)) {
-        if (value === null || value === "") next.delete(key);
-        else next.set(key, value);
-      }
-      const qs = next.toString();
-      return qs ? `${basePath}?${qs}` : basePath;
-    },
-    [basePath]
-  );
+  useEffect(() => {
+    setParams(new URLSearchParams(searchParams.toString()));
+  }, [searchParams]);
 
-  const update = useCallback(
-    (updates: Record<string, string | null>) => {
-      window.history.replaceState(null, "", buildUrl(updates));
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    },
-    [buildUrl]
-  );
+  const update = useCallback((updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(ref.current.toString());
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === "") next.delete(key);
+      else next.set(key, value);
+    }
+    ref.current = next;
+    setParams(next);
+    const qs = next.toString();
+    window.history.replaceState(window.history.state, "", qs ? `${baseRef.current}?${qs}` : baseRef.current);
+  }, []);
 
-  const push = useCallback(
-    (updates: Record<string, string | null>) => {
-      window.history.pushState(null, "", buildUrl(updates));
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    },
-    [buildUrl]
-  );
+  const push = useCallback((updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(ref.current.toString());
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === "") next.delete(key);
+      else next.set(key, value);
+    }
+    ref.current = next;
+    setParams(next);
+    const qs = next.toString();
+    router.push(qs ? `${baseRef.current}?${qs}` : baseRef.current, { scroll: false });
+  }, [router]);
 
   return { params, update, push };
 }

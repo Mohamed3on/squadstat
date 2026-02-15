@@ -50,12 +50,12 @@ const pages = [
     glowVar: "--accent-hot-glow",
   },
   {
-    title: "Underperformers",
-    href: "/underperformers",
+    title: "Value Analysis",
+    href: "/value-analysis",
     tag: "OUTPUT",
     description:
-      "Two lenses on underperformance — G+A output and minutes played. Search any player to benchmark against peers.",
-    detail: "Find who's overpaid and who's benched.",
+      "Find overpriced players and hidden bargains — two lenses (G+A and minutes) to spot who's overpaid and who punches above their price tag.",
+    detail: "Overpriced vs bargain players.",
     icon: TrendingUp,
     accentVar: "--accent-gold",
     glowVar: "--accent-gold",

@@ -3,17 +3,17 @@ import { Suspense } from "react";
 import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
-import { UnderperformersUI } from "./UnderperformersUI";
+import { ValueAnalysisUI } from "./ValueAnalysisUI";
 
 export const metadata: Metadata = {
-  title: "Underperformers",
+  title: "Value Analysis",
   description:
-    "Which expensive players are underdelivering? Two lenses — G+A output and minutes played — to spot who's not earning their price tag.",
+    "Find overpriced players who underdeliver and bargain players who outperform their price tag. Two lenses — G+A output and minutes played.",
 };
 
 const SPIELER_RE = /\/spieler\/(\d+)/;
 
-export default async function UnderperformersPage() {
+export default async function ValueAnalysisPage() {
   const [mvPlayers, injuredData] = await Promise.all([
     getMinutesValueData(),
     getInjuredPlayers(),
@@ -30,7 +30,7 @@ export default async function UnderperformersPage() {
   return (
     <>
       <Suspense>
-        <UnderperformersUI
+        <ValueAnalysisUI
           initialAllPlayers={allPlayerStats}
           initialData={mvPlayers}
           injuryMap={injuryMap}

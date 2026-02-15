@@ -5,15 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
-import { DebouncedInput } from "@/components/DebouncedInput";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SelectNative } from "@/components/ui/select-native";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem, toggleVariants } from "@/components/ui/toggle-group";
 import { ExternalLink } from "lucide-react";
 import { getLeagueLogoUrl } from "@/lib/leagues";
 import { filterPlayersByLeagueAndClub, TOP_5_LEAGUES } from "@/lib/filter-players";
-import { canBeOutperformerAgainst, strictlyOutperforms } from "@/lib/positions";
+import { canBeOutperformerAgainst, canBeUnderperformerAgainst, strictlyOutperforms } from "@/lib/positions";
 import { formatReturnInfo, formatInjuryDuration, PROFIL_RE } from "@/lib/format";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { BenchmarkCard, BigNumber } from "./BenchmarkCard";
@@ -21,7 +21,9 @@ import type { PlayerStats, MinutesValuePlayer, InjuryMap } from "@/app/types";
 
 type Mode = "ga" | "mins";
 type CompareTab = "less" | "more";
-type UnderperformerSortKey = "value" | "most-outperformed";
+type DiscoverySortKey = "count" | "value-asc" | "value-desc" | "ga-desc" | "ga-asc";
+type DiscoveryTab = "overpriced" | "bargains";
+type DiscoveryCandidate = PlayerStats & { comparisonCount: number };
 
 interface PlayerFormResult {
   targetPlayer: PlayerStats;
@@ -33,7 +35,11 @@ interface PlayerFormResult {
 }
 
 interface UnderperformersResult {
-  underperformers: PlayerStats[];
+  underperformers: (PlayerStats & { outperformedByCount: number })[];
+}
+
+interface OverperformersResult {
+  overperformers: (PlayerStats & { outperformsCount?: number })[];
 }
 
 const EMPTY_MV: MinutesValuePlayer[] = [];
@@ -44,8 +50,10 @@ function formatValue(v: number): string {
   return `\u20AC${v}`;
 }
 
-function getPlayerBenchmarkHref(name: string): string {
-  return `/underperformers?${new URLSearchParams({ name }).toString()}`;
+function getPlayerBenchmarkHref(id: string, name: string, top5?: boolean): string {
+  const p = new URLSearchParams({ id, name });
+  if (top5) p.set("bTop5", "1");
+  return `/value-analysis?${p.toString()}`;
 }
 
 function getLeistungsdatenUrl(profileUrl: string): string {
@@ -59,8 +67,15 @@ async function fetchUnderperformers(signal?: AbortSignal): Promise<Underperforme
   return res.json();
 }
 
-async function fetchPlayerForm(name: string, signal?: AbortSignal): Promise<PlayerFormResult> {
-  const params = new URLSearchParams({ name });
+async function fetchOverperformers(signal?: AbortSignal): Promise<OverperformersResult> {
+  const res = await fetch("/api/overperformers", { signal });
+  return res.json();
+}
+
+async function fetchPlayerForm(id: string, name: string, signal?: AbortSignal): Promise<PlayerFormResult> {
+  const params = new URLSearchParams();
+  if (id) params.set("id", id);
+  if (name) params.set("name", name);
   const res = await fetch(`/api/player-form?${params}`, { signal });
   return res.json();
 }
@@ -105,6 +120,7 @@ const CARD_THEMES = {
   underperformer: { gradientStart: "var(--accent-cold-faint)", border: "var(--accent-cold-glow)", rankBg: "var(--accent-cold-glow)", rankColor: "var(--accent-cold-soft)", imageBorder: "var(--accent-cold-border)" },
   outperformer: { gradientStart: "var(--accent-hot-faint)", border: "var(--accent-hot-glow)", rankBg: "var(--accent-hot-glow)", rankColor: "var(--accent-hot)", imageBorder: "var(--accent-hot-border)" },
   discoveryRed: { gradientStart: "rgba(255, 71, 87, 0.06)", border: "rgba(255, 71, 87, 0.15)", rankBg: "rgba(255, 71, 87, 0.15)", rankColor: "#ff6b7a", imageBorder: "rgba(255, 71, 87, 0.2)" },
+  discoveryGreen: { gradientStart: "rgba(34, 197, 94, 0.06)", border: "rgba(34, 197, 94, 0.15)", rankBg: "rgba(34, 197, 94, 0.15)", rankColor: "#22c55e", imageBorder: "rgba(34, 197, 94, 0.2)" },
   minsMore: { gradientStart: "rgba(34, 197, 94, 0.06)", border: "rgba(34, 197, 94, 0.15)", rankBg: "rgba(34, 197, 94, 0.15)", rankColor: "#22c55e", imageBorder: "rgba(34, 197, 94, 0.2)" },
 } as const satisfies Record<string, CardTheme>;
 
@@ -164,8 +180,8 @@ function PlayerCard({ index = 0, theme, name, imageUrl, profileUrl, nameElement,
   );
 }
 
-function ComparisonCard({ player, targetPlayer, index = 0, variant }: {
-  player: PlayerStats; targetPlayer: PlayerStats; index?: number; variant: ComparisonCardVariant;
+function ComparisonCard({ player, targetPlayer, index = 0, variant, top5 }: {
+  player: PlayerStats; targetPlayer: PlayerStats; index?: number; variant: ComparisonCardVariant; top5?: boolean;
 }) {
   const theme = CARD_THEMES[variant];
   const mutedColor = variant === "underperformer" ? "var(--accent-cold-muted)" : "var(--accent-hot-muted)";
@@ -192,7 +208,7 @@ function ComparisonCard({ player, targetPlayer, index = 0, variant }: {
       imageUrl={player.imageUrl}
       profileUrl={leistungsdatenUrl}
       nameElement={
-        <Link href={getPlayerBenchmarkHref(player.name)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors" style={{ color: "var(--text-primary)" }}>
+        <Link href={getPlayerBenchmarkHref(player.playerId, player.name, top5)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors" style={{ color: "var(--text-primary)" }}>
           {player.name}
         </Link>
       }
@@ -267,16 +283,41 @@ function SearchSkeleton() {
   );
 }
 
-function UnderperformerListCard({ player, index = 0 }: { player: PlayerStats; index?: number }) {
+function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+      style={{
+        background: active ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
+        color: active ? "var(--accent-blue)" : "var(--text-muted)",
+        border: active ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DiscoveryListCard({ player, index = 0, top5, variant }: {
+  player: DiscoveryCandidate; index?: number; top5?: boolean; variant: DiscoveryTab;
+}) {
+  const isOverpriced = variant === "overpriced";
+  const theme = isOverpriced ? CARD_THEMES.discoveryRed : CARD_THEMES.discoveryGreen;
+  const countColor = isOverpriced ? "#00ff87" : "#22c55e";
+  const countLabel = isOverpriced ? "doing better" : "outperforms";
+  const valueColor = isOverpriced ? "#ff6b7a" : "#22c55e";
+
   return (
     <PlayerCard
       index={index}
-      theme={CARD_THEMES.discoveryRed}
+      theme={theme}
       name={player.name}
       imageUrl={player.imageUrl}
       profileUrl={getLeistungsdatenUrl(player.profileUrl)}
       nameElement={
-        <Link href={getPlayerBenchmarkHref(player.name)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors" style={{ color: "var(--text-primary)" }}>
+        <Link href={getPlayerBenchmarkHref(player.playerId, player.name, top5)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors" style={{ color: "var(--text-primary)" }}>
           {player.name}
         </Link>
       }
@@ -288,17 +329,17 @@ function UnderperformerListCard({ player, index = 0 }: { player: PlayerStats; in
         <span className="hidden sm:inline">{player.age}y</span>
       </>}
       desktopStats={<>
-        {player.outperformedByCount !== undefined && player.outperformedByCount > 0 && (
+        {player.comparisonCount > 0 && (
           <>
             <div className="text-right min-w-[4rem]">
-              <div className="text-sm font-bold tabular-nums" style={{ color: "#00ff87" }}>{player.outperformedByCount}</div>
-              <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>doing better</div>
+              <div className="text-sm font-bold tabular-nums" style={{ color: countColor }}>{player.comparisonCount}</div>
+              <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>{countLabel}</div>
             </div>
             <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
           </>
         )}
         <div className="text-right">
-          <div className="text-sm font-bold tabular-nums" style={{ color: "#ff6b7a" }}>{player.marketValueDisplay}</div>
+          <div className="text-sm font-bold tabular-nums" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
           <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>value</div>
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
@@ -313,10 +354,10 @@ function UnderperformerListCard({ player, index = 0 }: { player: PlayerStats; in
         </div>
       </>}
       mobileStats={<>
-        {player.outperformedByCount !== undefined && player.outperformedByCount > 0 && (
-          <div className="text-[10px] font-bold tabular-nums mb-0.5" style={{ color: "#00ff87" }}>{player.outperformedByCount} doing better</div>
+        {player.comparisonCount > 0 && (
+          <div className="text-[10px] font-bold tabular-nums mb-0.5" style={{ color: countColor }}>{player.comparisonCount} {countLabel}</div>
         )}
-        <div className="text-xs font-bold tabular-nums" style={{ color: "#ff6b7a" }}>{player.marketValueDisplay}</div>
+        <div className="text-xs font-bold tabular-nums" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
         <div className="text-[10px] tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
       </>}
       footer={<>
@@ -334,13 +375,20 @@ function UnderperformerListCard({ player, index = 0 }: { player: PlayerStats; in
   );
 }
 
-function UnderperformersSection({ candidates, allPlayers, isLoading, error, sortBy, onSortChange, leagueFilter, clubFilter, onLeagueFilterChange, onClubFilterChange, top5Only, onTop5Change }: {
-  candidates: PlayerStats[]; allPlayers: PlayerStats[]; isLoading: boolean; error: Error | null;
-  sortBy: UnderperformerSortKey; onSortChange: (value: UnderperformerSortKey) => void;
+function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, sortBy, onSortChange, leagueFilter, clubFilter, onLeagueFilterChange, onClubFilterChange, top5Only, onTop5Change }: {
+  variant: DiscoveryTab;
+  candidates: DiscoveryCandidate[]; allPlayers: PlayerStats[]; isLoading: boolean; error: Error | null;
+  sortBy: DiscoverySortKey; onSortChange: (value: DiscoverySortKey) => void;
   leagueFilter: string; clubFilter: string; onLeagueFilterChange: (value: string) => void; onClubFilterChange: (value: string) => void;
   top5Only: boolean; onTop5Change: (value: boolean) => void;
 }) {
-  const leagueOptions = useMemo(() => Array.from(new Set(candidates.map((p) => p.league).filter(Boolean))).sort(), [candidates]);
+  const isOverpriced = variant === "overpriced";
+  const accentColor = isOverpriced ? "#ff6b7a" : "#22c55e";
+
+  const leagueOptions = useMemo(() =>
+    Array.from(new Set(candidates.map((p) => p.league).filter(Boolean))).sort(),
+    [candidates]
+  );
 
   const top5Players = useMemo(
     () => top5Only ? allPlayers.filter((p) => TOP_5_LEAGUES.includes(p.league)) : [],
@@ -352,80 +400,73 @@ function UnderperformersSection({ candidates, allPlayers, isLoading, error, sort
     if (top5Only) {
       filtered = filtered.filter((p) => TOP_5_LEAGUES.includes(p.league));
       filtered = filtered.map((player) => {
-        const count = top5Players.filter((p) =>
-          p.marketValue < player.marketValue &&
-          strictlyOutperforms(p, player) &&
-          canBeOutperformerAgainst(p.position, player.position)
-        ).length;
-        return { ...player, outperformedByCount: count };
+        const count = isOverpriced
+          ? top5Players.filter((p) => p.playerId !== player.playerId && p.marketValue <= player.marketValue && strictlyOutperforms(p, player) && canBeOutperformerAgainst(p.position, player.position)).length
+          : top5Players.filter((p) => p.playerId !== player.playerId && p.marketValue >= player.marketValue && strictlyOutperforms(player, p) && canBeUnderperformerAgainst(p.position, player.position)).length;
+        return { ...player, comparisonCount: count };
       });
     }
-    if (sortBy === "most-outperformed") return [...filtered].sort((a, b) => (b.outperformedByCount || 0) - (a.outperformedByCount || 0));
-    return filtered;
-  }, [candidates, top5Players, leagueFilter, clubFilter, sortBy, top5Only]);
+    if (sortBy === "count") return [...filtered].sort((a, b) => b.comparisonCount - a.comparisonCount);
+    if (sortBy === "value-asc") return [...filtered].sort((a, b) => a.marketValue - b.marketValue);
+    return [...filtered].sort((a, b) => b.marketValue - a.marketValue);
+  }, [candidates, top5Players, leagueFilter, clubFilter, sortBy, top5Only, isOverpriced]);
+
+  const isValueActive = sortBy === "value-asc" || sortBy === "value-desc";
+  const handleValueToggle = () => {
+    if (!isValueActive) onSortChange(isOverpriced ? "value-desc" : "value-asc");
+    else onSortChange(sortBy === "value-asc" ? "value-desc" : "value-asc");
+  };
 
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 rounded-full" style={{ background: "#ff4757" }} />
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "#ff6b7a" }}>Underdelivering</h2>
+          <div className="w-1 h-5 rounded-full" style={{ background: accentColor }} />
+          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+            {isOverpriced ? "Overpriced" : "Bargains"}
+          </h2>
         </div>
         {filteredCandidates.length > 0 && (
-          <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums" style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}>{filteredCandidates.length}</span>
+          <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums" style={{ background: `color-mix(in srgb, ${accentColor} 15%, transparent)`, color: accentColor }}>{filteredCandidates.length}</span>
         )}
       </div>
-      <div className="flex flex-col gap-3 mb-4">
-        <ToggleGroup type="single" value={sortBy} onValueChange={(v) => v && onSortChange(v as UnderperformerSortKey)} size="sm" className="self-start">
-          <ToggleGroupItem value="value" className="rounded-lg px-3">
-            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m4 0l4 4m0 0l4-4m-4 4V4" /></svg>
-            Value
-          </ToggleGroupItem>
-          <ToggleGroupItem value="most-outperformed" className="rounded-lg px-3">
-            <svg className="w-3 h-3 mr-1 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
-            Most underperforming
-          </ToggleGroupItem>
-        </ToggleGroup>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <SelectNative value={leagueFilter} onChange={(e) => onLeagueFilterChange(e.target.value)} className="h-10">
-            <option value="all">All leagues</option>
-            {leagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
-          </SelectNative>
-          <DebouncedInput value={clubFilter} onChange={onClubFilterChange} placeholder="Filter by club" className="h-10" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onTop5Change(!top5Only)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-            style={{
-              background: top5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
-              color: top5Only ? "var(--accent-blue)" : "var(--text-muted)",
-              border: top5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
-            }}
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            vs Top 5 leagues
-          </button>
-        </div>
+      <div className="flex flex-wrap items-center gap-1.5 mb-4">
+        <FilterButton active={sortBy === "count"} onClick={() => onSortChange("count")}>
+          {isOverpriced ? "Most outperformed" : "Most outperforming"}
+        </FilterButton>
+        <FilterButton active={isValueActive} onClick={handleValueToggle}>
+          Value {isValueActive && (sortBy === "value-asc" ? "\u2191" : "\u2193")}
+        </FilterButton>
+        <div className="hidden sm:block w-px h-4 mx-0.5 rounded-full bg-[var(--border-medium)]" />
+        <SelectNative value={leagueFilter} onChange={(e) => onLeagueFilterChange(e.target.value)} className="h-auto w-auto py-1.5 px-3 pr-7 text-xs font-medium bg-[length:1rem_1rem]">
+          <option value="all">All leagues</option>
+          {leagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
+        </SelectNative>
+        <DebouncedInput value={clubFilter} onChange={onClubFilterChange} placeholder="Club…" className="h-auto w-28 py-1.5 px-3 text-xs font-medium" />
+        <FilterButton active={top5Only} onClick={() => onTop5Change(!top5Only)}>
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Top 5 only
+        </FilterButton>
       </div>
       {isLoading && <CardSkeletonList />}
       {error && (
-        <div className="rounded-xl p-5 animate-fade-in" style={{ background: "rgba(255, 71, 87, 0.1)", border: "1px solid rgba(255, 71, 87, 0.3)" }}>
-          <p className="font-medium" style={{ color: "#ff6b7a" }}>Error loading data. Please refresh.</p>
+        <div className="rounded-xl p-5 animate-fade-in" style={{ background: `color-mix(in srgb, ${accentColor} 10%, transparent)`, border: `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)` }}>
+          <p className="font-medium" style={{ color: accentColor }}>Error loading data. Please refresh.</p>
         </div>
       )}
       {!isLoading && !error && filteredCandidates.length === 0 && (
         <div className="rounded-xl p-8 text-center animate-fade-in" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
-          <p className="font-semibold" style={{ color: "var(--text-primary)" }}>No underdelivering players found</p>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Everyone is producing as expected for their price tag</p>
+          <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{isOverpriced ? "No overpriced players found" : "No bargain players found"}</p>
+          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{isOverpriced ? "Everyone is producing as expected for their price tag" : "No cheap players are outperforming their price tag right now"}</p>
         </div>
       )}
       {filteredCandidates.length > 0 && (
         <div className="space-y-3">
-          {filteredCandidates.map((player, index) => (<UnderperformerListCard key={player.playerId} player={player} index={index} />))}
+          {filteredCandidates.map((player, index) => (
+            <DiscoveryListCard key={player.playerId} player={player} index={index} top5={top5Only} variant={variant} />
+          ))}
         </div>
       )}
     </section>
@@ -568,30 +609,40 @@ function MvVirtualPlayerList({ items, target, variant = "less", onSelect, injury
 
 /* ── Main Component ── */
 
-interface UnderperformersUIProps {
+interface ValueAnalysisUIProps {
   initialAllPlayers: PlayerStats[];
   initialData: MinutesValuePlayer[];
   injuryMap?: InjuryMap;
 }
 
-export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }: UnderperformersUIProps) {
-  const { params, update, push } = useQueryParams("/underperformers");
+export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: ValueAnalysisUIProps) {
+  const { params, update, push } = useQueryParams("/value-analysis");
 
   // Mode
   const mode: Mode = params.get("mode") === "mins" ? "mins" : "ga";
+  const urlId = params.get("id") || "";
   const urlName = params.get("name") || "";
+  const hasPlayer = !!(urlId || urlName);
   const [query, setQuery] = useState(urlName);
   useEffect(() => { setQuery(urlName); }, [urlName]);
 
-  const handleSelect = useCallback((name: string) => { push({ name }); }, [push]);
-  const handleClear = useCallback(() => { push({ name: null, tab: null }); }, [push]);
+  const handleSelect = useCallback((id: string, name: string) => { push({ id, name }); }, [push]);
+  const handleClear = useCallback(() => { push({ id: null, name: null, tab: null }); }, [push]);
 
   // ── G+A state ──
   const underLeagueFilter = params.get("uLeague") || "all";
   const underClubFilter = params.get("uClub") || "";
-  const underSortBy: UnderperformerSortKey = params.get("uSort") === "value" ? "value" : "most-outperformed";
-  const underTop5Only = params.get("uTop5") === "1";
+  const underSortBy: DiscoverySortKey = (params.get("uSort") as DiscoverySortKey) || "count";
+  const discoveryTop5Only = params.get("dTop5") === "1";
   const benchTop5Only = params.get("bTop5") === "1";
+
+  // ── Overperformer state ──
+  const overLeagueFilter = params.get("oLeague") || "all";
+  const overClubFilter = params.get("oClub") || "";
+  const overSortBy: DiscoverySortKey = (params.get("oSort") as DiscoverySortKey) || "count";
+
+  // ── Discovery tab state ──
+  const discoveryTab: DiscoveryTab = params.get("dTab") === "bargains" ? "bargains" : "overpriced";
 
   // ── Shared tab state (both modes use `tab` param since they're mutually exclusive) ──
   const gaTab = params.get("tab") === "better-value" ? "better-value" : "underdelivering";
@@ -601,17 +652,24 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
   const minsHideInjured = params.get("noInj") === "1";
 
   // ── G+A queries ──
-  const discoveryQuery = useQuery({
+  const underperformersQuery = useQuery({
     queryKey: ["underperformers"],
     queryFn: ({ signal }) => fetchUnderperformers(signal),
     staleTime: 5 * 60 * 1000,
-    enabled: mode === "ga" && !urlName,
+    enabled: mode === "ga" && !hasPlayer,
+  });
+
+  const overperformersQuery = useQuery({
+    queryKey: ["overperformers"],
+    queryFn: ({ signal }) => fetchOverperformers(signal),
+    staleTime: 5 * 60 * 1000,
+    enabled: mode === "ga" && !hasPlayer,
   });
 
   const { data: gaData, isLoading: gaLoading, error: gaError } = useQuery({
-    queryKey: ["player-form", urlName],
-    queryFn: ({ signal }) => fetchPlayerForm(urlName, signal),
-    enabled: mode === "ga" && !!urlName,
+    queryKey: ["player-form", urlId, urlName],
+    queryFn: ({ signal }) => fetchPlayerForm(urlId, urlName, signal),
+    enabled: mode === "ga" && hasPlayer,
     staleTime: 2 * 60 * 1000,
   });
 
@@ -630,11 +688,30 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
     return gaData.outperformers;
   }, [gaData?.outperformers, benchTop5Only]);
 
+  // ── Discovery candidates (normalized to DiscoveryCandidate) ──
+  const underCandidates: DiscoveryCandidate[] = useMemo(
+    () => (underperformersQuery.data?.underperformers || []).map((p) => ({ ...p, comparisonCount: p.outperformedByCount })),
+    [underperformersQuery.data]
+  );
+  const overCandidates: DiscoveryCandidate[] = useMemo(
+    () => (overperformersQuery.data?.overperformers || []).map((p) => ({ ...p, comparisonCount: p.outperformsCount || 0 })),
+    [overperformersQuery.data]
+  );
+
+  // ── Discovery tab counts (adjusted for top-5 filter) ──
+  const underTabCount = underperformersQuery.data
+    ? (discoveryTop5Only ? underCandidates.filter((p) => TOP_5_LEAGUES.includes(p.league)).length : underCandidates.length)
+    : undefined;
+  const overTabCount = overperformersQuery.data
+    ? (discoveryTop5Only ? overCandidates.filter((p) => TOP_5_LEAGUES.includes(p.league)).length : overCandidates.length)
+    : undefined;
+
   // ── Minutes player selection ──
   const minsSelected = useMemo(() => {
-    if (!urlName) return null;
+    if (!hasPlayer) return null;
+    if (urlId) return initialData.find((p) => p.playerId === urlId) ?? null;
     return initialData.find((p) => p.name === urlName) ?? null;
-  }, [urlName, initialData]);
+  }, [hasPlayer, urlId, urlName, initialData]);
 
   const playingLess = useMemo(() => {
     if (!minsSelected) return [];
@@ -660,7 +737,7 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
 
   const handleMvSelect = useCallback((p: MinutesValuePlayer) => {
     setQuery(p.name);
-    handleSelect(p.name);
+    handleSelect(p.playerId, p.name);
   }, [handleSelect]);
 
   return (
@@ -669,11 +746,11 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
         {/* Title */}
         <div className="mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            <span style={{ color: "#ff6b7a" }}>Under</span>performers
+            Value <span style={{ color: "#ffd700" }}>Analysis</span>
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
             {mode === "ga"
-              ? "Flags expensive players outperformed by 2+ cheaper peers who produced more G+A in equal or fewer minutes. When multiple players at the same position and value qualify, only the most extreme case is shown."
+              ? "Find overpriced players outperformed by cheaper peers and bargain players who punch above their price tag — based on G+A output."
               : "Expensive players ranked by fewest minutes played. Search any player to compare against others at the same or higher market value."}
           </p>
         </div>
@@ -704,7 +781,7 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
               }}
               onSelect={(player) => {
                 setQuery(player.name);
-                handleSelect(player.name);
+                handleSelect(player.playerId, player.name);
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
@@ -721,7 +798,7 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
               }}
               onSelect={(player) => {
                 setQuery(player.name);
-                handleSelect(player.name);
+                handleSelect(player.playerId, player.name);
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
@@ -765,23 +842,12 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
                   <TargetPlayerCard player={gaData!.targetPlayer} minutes={targetMinutes} />
                 </section>
 
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => update({ bTop5: benchTop5Only ? null : "1" })}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                    style={{
-                      background: benchTop5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
-                      color: benchTop5Only ? "var(--accent-blue)" : "var(--text-muted)",
-                      border: benchTop5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
-                    }}
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Top 5 leagues
-                  </button>
-                </div>
+                <FilterButton active={benchTop5Only} onClick={() => update({ bTop5: benchTop5Only ? null : "1" })}>
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Top 5 leagues
+                </FilterButton>
 
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                   Comparing against players at similar or higher positions. &ldquo;Underdelivering&rdquo; = more expensive, same or worse G+A in same or more minutes. &ldquo;Better Value&rdquo; = cheaper, same or better G+A in same or fewer minutes.
@@ -819,7 +885,7 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
                     ) : (
                       <div className="space-y-3">
                         {filteredUnderperformers.map((player, index) => (
-                          <ComparisonCard key={player.playerId} player={player} targetPlayer={gaData!.targetPlayer} variant="underperformer" index={index} />
+                          <ComparisonCard key={player.playerId} player={player} targetPlayer={gaData!.targetPlayer} variant="underperformer" index={index} top5={benchTop5Only} />
                         ))}
                       </div>
                     )}
@@ -845,7 +911,7 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
                     ) : (
                       <div className="space-y-3">
                         {filteredOutperformers.map((player, index) => (
-                          <ComparisonCard key={player.playerId} player={player} targetPlayer={gaData!.targetPlayer} variant="outperformer" index={index} />
+                          <ComparisonCard key={player.playerId} player={player} targetPlayer={gaData!.targetPlayer} variant="outperformer" index={index} top5={benchTop5Only} />
                         ))}
                       </div>
                     )}
@@ -860,20 +926,56 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
 
             {/* Discovery */}
             {!gaLoading && !gaData && (
-              <UnderperformersSection
-                candidates={discoveryQuery.data?.underperformers || []}
-                allPlayers={initialAllPlayers}
-                isLoading={discoveryQuery.isLoading}
-                error={(discoveryQuery.error as Error | null) ?? null}
-                sortBy={underSortBy}
-                onSortChange={(value) => update({ uSort: value === "most-outperformed" ? null : value })}
-                leagueFilter={underLeagueFilter}
-                clubFilter={underClubFilter}
-                onLeagueFilterChange={(value) => update({ uLeague: value === "all" ? null : value })}
-                onClubFilterChange={(value) => update({ uClub: value || null })}
-                top5Only={underTop5Only}
-                onTop5Change={(on) => update({ uTop5: on ? "1" : null })}
-              />
+              <Tabs value={discoveryTab} onValueChange={(v) => update({ dTab: v === "overpriced" ? null : v })}>
+                <TabsList className="w-full mb-6">
+                  <TabsTrigger value="overpriced" className="flex-1 gap-2">
+                    Overpriced
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}>
+                      {underTabCount ?? "—"}
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="bargains" className="flex-1 gap-2">
+                    Bargains
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(34, 197, 94, 0.15)", color: "#22c55e" }}>
+                      {overTabCount ?? "—"}
+                    </span>
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="overpriced">
+                  <DiscoverySection
+                    variant="overpriced"
+                    candidates={underCandidates}
+                    allPlayers={initialAllPlayers}
+                    isLoading={underperformersQuery.isLoading}
+                    error={(underperformersQuery.error as Error | null) ?? null}
+                    sortBy={underSortBy}
+                    onSortChange={(value) => update({ uSort: value === "count" ? null : value })}
+                    leagueFilter={underLeagueFilter}
+                    clubFilter={underClubFilter}
+                    onLeagueFilterChange={(value) => update({ uLeague: value === "all" ? null : value })}
+                    onClubFilterChange={(value) => update({ uClub: value || null })}
+                    top5Only={discoveryTop5Only}
+                    onTop5Change={(on) => update({ dTop5: on ? "1" : null })}
+                  />
+                </TabsContent>
+                <TabsContent value="bargains">
+                  <DiscoverySection
+                    variant="bargains"
+                    candidates={overCandidates}
+                    allPlayers={initialAllPlayers}
+                    isLoading={overperformersQuery.isLoading}
+                    error={(overperformersQuery.error as Error | null) ?? null}
+                    sortBy={overSortBy}
+                    onSortChange={(value) => update({ oSort: value === "count" ? null : value })}
+                    leagueFilter={overLeagueFilter}
+                    clubFilter={overClubFilter}
+                    onLeagueFilterChange={(value) => update({ oLeague: value === "all" ? null : value })}
+                    onClubFilterChange={(value) => update({ oClub: value || null })}
+                    top5Only={discoveryTop5Only}
+                    onTop5Change={(on) => update({ dTop5: on ? "1" : null })}
+                  />
+                </TabsContent>
+              </Tabs>
             )}
           </>
         )}
@@ -946,31 +1048,18 @@ export function UnderperformersUI({ initialAllPlayers, initialData, injuryMap }:
                   )}
                 </div>
 
-                <div className="flex flex-col gap-3 mb-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <SelectNative value={minsLeagueFilter} onChange={(e) => update({ mLeague: e.target.value === "all" ? null : e.target.value })} className="h-10">
-                      <option value="all">All leagues</option>
-                      {minsLeagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
-                    </SelectNative>
-                    <DebouncedInput value={minsClubFilter} onChange={(value) => update({ mClub: value || null })} placeholder="Filter by club" className="h-10" />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => update({ noInj: minsHideInjured ? null : "1" })}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                      style={{
-                        background: minsHideInjured ? "rgba(255, 71, 87, 0.15)" : "var(--bg-elevated)",
-                        color: minsHideInjured ? "#ff6b7a" : "var(--text-muted)",
-                        border: minsHideInjured ? "1px solid rgba(255, 71, 87, 0.3)" : "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                      </svg>
-                      Exclude injured
-                    </button>
-                  </div>
+                <div className="flex flex-wrap items-center gap-1.5 mb-4">
+                  <SelectNative value={minsLeagueFilter} onChange={(e) => update({ mLeague: e.target.value === "all" ? null : e.target.value })} className="h-auto w-auto py-1.5 px-3 pr-7 text-xs font-medium bg-[length:1rem_1rem]">
+                    <option value="all">All leagues</option>
+                    {minsLeagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
+                  </SelectNative>
+                  <DebouncedInput value={minsClubFilter} onChange={(value) => update({ mClub: value || null })} placeholder="Club…" className="h-auto w-28 py-1.5 px-3 text-xs font-medium" />
+                  <FilterButton active={minsHideInjured} onClick={() => update({ noInj: minsHideInjured ? null : "1" })}>
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                    Exclude injured
+                  </FilterButton>
                 </div>
 
                 <MvVirtualPlayerList items={minsDiscoveryList} variant="less" onSelect={handleMvSelect} injuryMap={injuryMap} />
