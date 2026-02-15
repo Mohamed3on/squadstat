@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { PlayerAutocomplete } from "@/components/PlayerAutocomplete";
-import { Input } from "@/components/ui/input";
+import { DebouncedInput } from "@/components/DebouncedInput";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SelectNative } from "@/components/ui/select-native";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -109,8 +109,8 @@ function TargetPlayerCard({ player, minutes }: { player: PlayerStats; minutes?: 
       subtitle={<><span className="font-medium">{player.position}</span><span style={{ opacity: 0.4 }}>•</span><span className="truncate opacity-80">{player.club}</span></>}
       desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
-      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="#ffd700" /><BigNumber value={String(player.points)} label="Points" color="#00ff87" /></>}
-      mobileBigNumbers={<><div className="text-lg font-black tabular-nums" style={{ color: "#ffd700" }}>{player.marketValueDisplay}</div><div className="text-lg font-black tabular-nums" style={{ color: "#00ff87" }}>{player.points}</div></>}
+      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="Points" color="var(--accent-hot)" /></>}
+      mobileBigNumbers={<><div className="text-lg font-black tabular-nums" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div><div className="text-lg font-black tabular-nums" style={{ color: "var(--accent-hot)" }}>{player.points}</div></>}
       footer={<><span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Minutes Played</span><span className="text-base sm:text-lg font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{minutes?.toLocaleString() || "—"}&apos;</span></>}
     />
   );
@@ -124,9 +124,9 @@ interface CardTheme {
 const CARD_THEMES = {
   underperformer: { gradientStart: "var(--accent-cold-faint)", border: "var(--accent-cold-glow)", rankBg: "var(--accent-cold-glow)", rankColor: "var(--accent-cold-soft)", imageBorder: "var(--accent-cold-border)" },
   outperformer: { gradientStart: "var(--accent-hot-faint)", border: "var(--accent-hot-glow)", rankBg: "var(--accent-hot-glow)", rankColor: "var(--accent-hot)", imageBorder: "var(--accent-hot-border)" },
-  discoveryRed: { gradientStart: "rgba(255, 71, 87, 0.06)", border: "rgba(255, 71, 87, 0.15)", rankBg: "rgba(255, 71, 87, 0.15)", rankColor: "#ff6b7a", imageBorder: "rgba(255, 71, 87, 0.2)" },
-  discoveryGreen: { gradientStart: "rgba(34, 197, 94, 0.06)", border: "rgba(34, 197, 94, 0.15)", rankBg: "rgba(34, 197, 94, 0.15)", rankColor: "#22c55e", imageBorder: "rgba(34, 197, 94, 0.2)" },
-  minsMore: { gradientStart: "rgba(34, 197, 94, 0.06)", border: "rgba(34, 197, 94, 0.15)", rankBg: "rgba(34, 197, 94, 0.15)", rankColor: "#22c55e", imageBorder: "rgba(34, 197, 94, 0.2)" },
+  discoveryRed: { gradientStart: "var(--accent-cold-faint)", border: "var(--accent-cold-glow)", rankBg: "var(--accent-cold-glow)", rankColor: "var(--accent-cold-soft)", imageBorder: "var(--accent-cold-border)" },
+  discoveryGreen: { gradientStart: "var(--accent-green-faint)", border: "var(--accent-green-glow)", rankBg: "var(--accent-green-glow)", rankColor: "var(--accent-green)", imageBorder: "var(--accent-green-border)" },
+  minsMore: { gradientStart: "var(--accent-green-faint)", border: "var(--accent-green-glow)", rankBg: "var(--accent-green-glow)", rankColor: "var(--accent-green)", imageBorder: "var(--accent-green-border)" },
 } as const satisfies Record<string, CardTheme>;
 
 type ComparisonCardVariant = "underperformer" | "outperformer";
@@ -306,9 +306,9 @@ function DiscoveryListCard({ player, index = 0, top5, variant }: {
 }) {
   const isOverpriced = variant === "overpriced";
   const theme = isOverpriced ? CARD_THEMES.discoveryRed : CARD_THEMES.discoveryGreen;
-  const countColor = isOverpriced ? "#00ff87" : "#22c55e";
+  const countColor = isOverpriced ? "var(--accent-hot)" : "var(--accent-green)";
   const countLabel = isOverpriced ? "doing better" : "outperforms";
-  const valueColor = isOverpriced ? "#ff6b7a" : "#22c55e";
+  const valueColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-green)";
 
   return (
     <PlayerCard
@@ -384,7 +384,7 @@ function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, s
   top5Only: boolean; onTop5Change: (value: boolean) => void;
 }) {
   const isOverpriced = variant === "overpriced";
-  const accentColor = isOverpriced ? "#ff6b7a" : "#22c55e";
+  const accentColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-green)";
 
   const leagueOptions = useMemo(() =>
     Array.from(new Set(candidates.map((p) => p.league).filter(Boolean))).sort(),
@@ -460,7 +460,7 @@ function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, s
           <option value="all">All leagues</option>
           {leagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
         </SelectNative>
-        <Input value={clubFilter} onChange={(e) => onClubFilterChange(e.target.value)} placeholder="Club…" className="h-8 w-28 text-xs" />
+        <DebouncedInput value={clubFilter} onChange={onClubFilterChange} placeholder="Club…" className="h-8 w-28 text-xs" />
         <FilterButton active={top5Only} onClick={() => onTop5Change(!top5Only)}>
           Top 5 only
         </FilterButton>
@@ -499,8 +499,8 @@ function MvBenchmarkCard({ player }: { player: MinutesValuePlayer }) {
       subtitle={<><span className="font-medium">{player.position}</span>{player.nationality && <><span style={{ opacity: 0.4 }}>·</span><span>{player.nationality}</span></>}</>}
       desktopStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals} goals</span><span className="tabular-nums">{player.assists} assists</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals}G {player.assists}A</span><span className="opacity-60">Age {player.age}</span></>}
-      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="#ffd700" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" /></>}
-      mobileBigNumbers={<div className="text-lg font-black tabular-nums" style={{ color: "#ffd700" }}>{player.marketValueDisplay}</div>}
+      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" /></>}
+      mobileBigNumbers={<div className="text-lg font-black tabular-nums" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div>}
     />
   );
 }
@@ -535,7 +535,7 @@ function MvPlayerCard({ player, target, index, variant = "less", onSelect, injur
           return (
             <>
               <span style={{ opacity: 0.4 }}>·</span>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(255,71,87,0.12)] text-[#ff6b7a]">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-[var(--accent-cold-glow)] text-[var(--accent-cold-soft)]">
                 {parts.join(" · ")}
               </span>
             </>
@@ -761,7 +761,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
         {/* Title */}
         <div className="mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Value <span style={{ color: "#ffd700" }}>Analysis</span>
+            Value <span style={{ color: "var(--accent-gold)" }}>Analysis</span>
           </h2>
           <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
             {mode === "ga"
@@ -800,7 +800,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
-                <div className="text-xs tabular-nums shrink-0" style={{ color: "#00ff87" }}>{player.points} pts</div>
+                <div className="text-xs tabular-nums shrink-0" style={{ color: "var(--accent-hot)" }}>{player.points} pts</div>
               )}
             />
           ) : (
@@ -831,13 +831,13 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
 
             {/* Error */}
             {gaError && (
-              <div className="rounded-xl p-5 mb-6 animate-fade-in" style={{ background: "rgba(255, 71, 87, 0.1)", border: "1px solid rgba(255, 71, 87, 0.3)" }}>
-                <p className="font-medium" style={{ color: "#ff6b7a" }}>Error fetching data. Please try again.</p>
+              <div className="rounded-xl p-5 mb-6 animate-fade-in" style={{ background: "var(--accent-cold-faint)", border: "1px solid var(--accent-cold-glow)" }}>
+                <p className="font-medium" style={{ color: "var(--accent-cold-soft)" }}>Error fetching data. Please try again.</p>
               </div>
             )}
             {gaData?.error && (
-              <div className="rounded-xl p-5 mb-6 animate-fade-in" style={{ background: "rgba(255, 71, 87, 0.1)", border: "1px solid rgba(255, 71, 87, 0.3)" }}>
-                <p className="font-medium" style={{ color: "#ff6b7a" }}>{gaData.error}</p>
+              <div className="rounded-xl p-5 mb-6 animate-fade-in" style={{ background: "var(--accent-cold-faint)", border: "1px solid var(--accent-cold-glow)" }}>
+                <p className="font-medium" style={{ color: "var(--accent-cold-soft)" }}>{gaData.error}</p>
                 {gaData.searchedName && (
                   <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
                     Searched for &ldquo;{gaData.searchedName}&rdquo; across {gaData.totalPlayers} players
@@ -851,8 +851,8 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
               <div className="space-y-6">
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-5 rounded-full" style={{ background: "#ffd700" }} />
-                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "#ffd700" }}>Benchmark Player</h2>
+                    <div className="w-1 h-5 rounded-full" style={{ background: "var(--accent-gold)" }} />
+                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--accent-gold)" }}>Benchmark Player</h2>
                   </div>
                   <TargetPlayerCard player={gaData!.targetPlayer} minutes={targetMinutes} />
                 </section>
@@ -872,24 +872,24 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                   <TabsList className="w-full">
                     <TabsTrigger value="underdelivering" className="flex-1 gap-2">
                       Underdelivering
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}>{filteredUnderperformers.length}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{filteredUnderperformers.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="better-value" className="flex-1 gap-2">
                       Better Value
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(0, 255, 135, 0.15)", color: "#00ff87" }}>{filteredOutperformers.length}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-hot-glow)", color: "var(--accent-hot)" }}>{filteredOutperformers.length}</span>
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="underdelivering">
                     {filteredUnderperformers.length === 0 ? (
-                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in" style={{ background: "rgba(255, 71, 87, 0.06)", border: "1px solid rgba(255, 71, 87, 0.2)" }}>
+                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in" style={{ background: "var(--accent-cold-faint)", border: "1px solid var(--accent-cold-border)" }}>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(255, 71, 87, 0.15)" }}>
-                            <svg className="w-5 h-5" style={{ color: "#ff6b7a" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--accent-cold-glow)" }}>
+                            <svg className="w-5 h-5" style={{ color: "var(--accent-cold-soft)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                             </svg>
                           </div>
                           <div>
-                            <p className="font-semibold text-base" style={{ color: "#ff6b7a" }}>Nobody more expensive is doing worse</p>
+                            <p className="font-semibold text-base" style={{ color: "var(--accent-cold-soft)" }}>Nobody more expensive is doing worse</p>
                             <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
                               Every player worth {gaData!.targetPlayer.marketValueDisplay} or more has produced more G+A.
                               At {gaData!.targetPlayer.points} points for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} has the lowest output at this price range.
@@ -907,15 +907,15 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                   </TabsContent>
                   <TabsContent value="better-value">
                     {filteredOutperformers.length === 0 ? (
-                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in" style={{ background: "rgba(0, 255, 135, 0.06)", border: "1px solid rgba(0, 255, 135, 0.2)" }}>
+                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in" style={{ background: "var(--accent-hot-faint)", border: "1px solid var(--accent-hot-border)" }}>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(0, 255, 135, 0.15)" }}>
-                            <svg className="w-5 h-5" style={{ color: "#00ff87" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--accent-hot-glow)" }}>
+                            <svg className="w-5 h-5" style={{ color: "var(--accent-hot)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
                           <div>
-                            <p className="font-semibold text-base" style={{ color: "#00ff87" }}>{gaData!.targetPlayer.name} is a top performer for their price</p>
+                            <p className="font-semibold text-base" style={{ color: "var(--accent-hot)" }}>{gaData!.targetPlayer.name} is a top performer for their price</p>
                             <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
                               No cheaper player has produced more goal contributions in the same or fewer minutes.
                               At {gaData!.targetPlayer.points} points for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} offers excellent value.
@@ -945,13 +945,13 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                 <TabsList className="w-full mb-6">
                   <TabsTrigger value="overpriced" className="flex-1 gap-2">
                     Overpriced
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>
                       {underTabCount ?? "—"}
                     </span>
                   </TabsTrigger>
                   <TabsTrigger value="bargains" className="flex-1 gap-2">
                     Bargains
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(34, 197, 94, 0.15)", color: "#22c55e" }}>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>
                       {overTabCount ?? "—"}
                     </span>
                   </TabsTrigger>
@@ -1003,8 +1003,8 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
               <div className="space-y-8">
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-5 rounded-full" style={{ background: "#ffd700" }} />
-                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "#ffd700" }}>Benchmark Player</h2>
+                    <div className="w-1 h-5 rounded-full" style={{ background: "var(--accent-gold)" }} />
+                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--accent-gold)" }}>Benchmark Player</h2>
                   </div>
                   <MvBenchmarkCard player={minsSelected} />
                 </section>
@@ -1014,11 +1014,11 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                     <TabsList className="w-full mb-4">
                       <TabsTrigger value="less" className="flex-1 gap-2">
                         Playing Less
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}>{playingLess.length}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{playingLess.length}</span>
                       </TabsTrigger>
                       <TabsTrigger value="more" className="flex-1 gap-2">
                         Playing More
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "rgba(34, 197, 94, 0.15)", color: "#22c55e" }}>{playingMore.length}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>{playingMore.length}</span>
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="less">
@@ -1055,11 +1055,11 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
               <section>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 rounded-full" style={{ background: "#ff4757" }} />
-                    <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "#ff6b7a" }}>Fewest Minutes</h2>
+                    <div className="w-1 h-5 rounded-full" style={{ background: "var(--accent-cold)" }} />
+                    <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--accent-cold-soft)" }}>Fewest Minutes</h2>
                   </div>
                   {minsDiscoveryList.length > 0 && (
-                    <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums" style={{ background: "rgba(255, 71, 87, 0.15)", color: "#ff6b7a" }}>{minsDiscoveryList.length}</span>
+                    <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{minsDiscoveryList.length}</span>
                   )}
                 </div>
 
@@ -1068,7 +1068,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                     <option value="all">All leagues</option>
                     {minsLeagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
                   </SelectNative>
-                  <Input value={minsClubFilter} onChange={(e) => update({ mClub: e.target.value || null })} placeholder="Club…" className="h-8 w-28 text-xs" />
+                  <DebouncedInput value={minsClubFilter} onChange={(value) => update({ mClub: value || null })} placeholder="Club…" className="h-8 w-28 text-xs" />
                   <FilterButton active={minsHideInjured} onClick={() => update({ noInj: minsHideInjured ? null : "1" })}>
                     Exclude injured
                   </FilterButton>

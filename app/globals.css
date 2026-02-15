@@ -24,6 +24,10 @@
   --accent-cold-border: rgba(255, 71, 87, 0.2);
   --accent-cold-soft: #ff6b7a;
   --accent-cold-muted: rgba(255, 107, 122, 0.7);
+  --accent-green: #22c55e;
+  --accent-green-glow: rgba(34, 197, 94, 0.15);
+  --accent-green-faint: rgba(34, 197, 94, 0.06);
+  --accent-green-border: rgba(34, 197, 94, 0.2);
   --accent-blue: #58a6ff;
   --accent-gold: #ffd700;
 
