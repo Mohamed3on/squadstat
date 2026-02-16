@@ -25,6 +25,7 @@ export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
     playerId: p.playerId,
     minutes: p.minutes,
     isNewSigning: p.isNewSigning,
+    isOnLoan: p.isOnLoan,
   };
 }
 

@@ -11,22 +11,32 @@ import { formatReturnInfo, formatInjuryDuration, PROFIL_RE } from "@/lib/format"
 import type { MinutesValuePlayer, InjuryMap } from "@/app/types";
 
 type SortKey = "value" | "mins" | "games" | "ga";
+type SigningFilter = "transfer" | "loan" | null;
 
 const SORT_LABELS: Record<SortKey, string> = { value: "Value", mins: "Mins", games: "Games", ga: "G+A" };
 
 function PlayerCard({ player, index, injuryMap }: { player: MinutesValuePlayer; index: number; injuryMap?: InjuryMap }) {
+  const injuryInfo = injuryMap?.[player.playerId];
+
+  const borderColor = player.isOnLoan
+    ? "rgba(255, 215, 0, 0.5)"
+    : player.isNewSigning
+      ? "rgba(0, 255, 135, 0.4)"
+      : "var(--border-subtle)";
+
   return (
     <div
-      className="group rounded-xl p-3 sm:p-4 animate-slide-up hover-lift"
+      className="group rounded-xl p-2.5 sm:p-3 animate-slide-up hover-lift"
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-subtle)",
+        borderLeft: `3px solid ${borderColor}`,
         animationDelay: `${Math.min(index * 0.03, 0.3)}s`,
       }}
     >
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-2.5 sm:gap-3">
         <div
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold shrink-0"
+          className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0"
           style={{ background: "rgba(100, 180, 255, 0.15)", color: "var(--accent-blue)" }}
         >
           {index + 1}
@@ -37,12 +47,12 @@ function PlayerCard({ player, index, injuryMap }: { player: MinutesValuePlayer; 
             <img
               src={player.imageUrl}
               alt={player.name}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg object-cover"
               style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)" }}
             />
           ) : (
             <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-sm sm:text-base font-bold"
               style={{ background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}
             >
               {player.name.charAt(0)}
@@ -55,18 +65,21 @@ function PlayerCard({ player, index, injuryMap }: { player: MinutesValuePlayer; 
             href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-sm sm:text-base hover:underline block truncate transition-colors text-left"
+            className="font-semibold text-sm hover:underline block truncate transition-colors text-left"
             style={{ color: "var(--text-primary)" }}
           >
             {player.name}
           </a>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-muted)" }}>
             <span>{player.position}</span>
-            {injuryMap?.[player.playerId] && (() => {
-              const info = injuryMap[player.playerId];
-              const dur = formatInjuryDuration(info.injurySince);
-              const ret = formatReturnInfo(info.returnDate);
-              const parts = [info.injury, dur && `since ${dur}`, ret?.label].filter(Boolean);
+            <span style={{ opacity: 0.4 }}>·</span>
+            <span className="truncate max-w-[8rem] sm:max-w-none">{player.club}</span>
+            <span className="hidden sm:inline" style={{ opacity: 0.4 }}>·</span>
+            <span className="hidden sm:inline">{player.age}y</span>
+            {injuryInfo && (() => {
+              const dur = formatInjuryDuration(injuryInfo.injurySince);
+              const ret = formatReturnInfo(injuryInfo.returnDate);
+              const parts = [injuryInfo.injury, dur && `since ${dur}`, ret?.label].filter(Boolean);
               return (
                 <>
                   <span style={{ opacity: 0.4 }}>·</span>
@@ -76,8 +89,6 @@ function PlayerCard({ player, index, injuryMap }: { player: MinutesValuePlayer; 
                 </>
               );
             })()}
-            <span className="hidden sm:inline" style={{ opacity: 0.4 }}>·</span>
-            <span className="hidden sm:inline">{player.age}y</span>
           </div>
         </div>
 
@@ -86,13 +97,13 @@ function PlayerCard({ player, index, injuryMap }: { player: MinutesValuePlayer; 
           <div className="text-right">
             <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
           </div>
-          <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+          <div className="w-px h-7" style={{ background: "var(--border-subtle)" }} />
           <div className="text-right min-w-[4rem]">
             <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
               {player.minutes.toLocaleString()}&apos;
             </div>
           </div>
-          <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+          <div className="w-px h-7" style={{ background: "var(--border-subtle)" }} />
           <div className="flex items-center gap-2.5 text-right">
             <div>
               <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.totalMatches}</div>
@@ -117,8 +128,8 @@ function PlayerCard({ player, index, injuryMap }: { player: MinutesValuePlayer; 
   );
 }
 
-const ROW_HEIGHT = 100;
-const GAP = 12;
+const ROW_HEIGHT = 76;
+const GAP = 8;
 
 function VirtualPlayerList({ items, injuryMap }: { items: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
   const listRef = useRef<HTMLDivElement>(null);
@@ -154,6 +165,39 @@ function parseSortKey(v: string | null): SortKey {
   return "ga";
 }
 
+function parseSigningFilter(v: string | null): SigningFilter {
+  if (v === "transfer" || v === "loan") return v;
+  return null;
+}
+
+function FilterButton({ active, onClick, color, children }: {
+  active: boolean;
+  onClick: () => void;
+  color: "blue" | "green" | "gold";
+  children: React.ReactNode;
+}) {
+  const colors = {
+    blue: { bg: "rgba(88, 166, 255, 0.15)", text: "var(--accent-blue)", border: "rgba(88, 166, 255, 0.3)" },
+    green: { bg: "rgba(0, 255, 135, 0.15)", text: "#00ff87", border: "rgba(0, 255, 135, 0.3)" },
+    gold: { bg: "rgba(255, 215, 0, 0.15)", text: "#ffd700", border: "rgba(255, 215, 0, 0.3)" },
+  }[color];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+      style={{
+        background: active ? colors.bg : "var(--bg-elevated)",
+        color: active ? colors.text : "var(--text-muted)",
+        border: active ? `1px solid ${colors.border}` : "1px solid var(--border-subtle)",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function PlayersUI({ initialData: players, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
   const { params, update } = useQueryParams("/players");
 
@@ -162,17 +206,27 @@ export function PlayersUI({ initialData: players, injuryMap }: { initialData: Mi
   const leagueFilter = params.get("league") || "all";
   const clubFilter = params.get("club") || "";
   const top5Only = params.get("top5") === "1";
-  const newSigningsOnly = params.get("new") === "1";
+  const signingFilter = parseSigningFilter(params.get("signing"));
 
   const leagueOptions = useMemo(
     () => Array.from(new Set(players.map((p) => p.league).filter(Boolean))).sort(),
     [players]
   );
 
+  const signingCounts = useMemo(() => {
+    let base = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
+    if (top5Only) base = filterTop5(base);
+    return {
+      newSignings: base.filter((p) => p.isNewSigning).length,
+      loans: base.filter((p) => p.isOnLoan).length,
+    };
+  }, [players, leagueFilter, clubFilter, top5Only]);
+
   const sortedPlayers = useMemo(() => {
     let list = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
     if (top5Only) list = filterTop5(list);
-    if (newSigningsOnly) list = list.filter((p) => p.isNewSigning);
+    if (signingFilter === "transfer") list = list.filter((p) => p.isNewSigning);
+    if (signingFilter === "loan") list = list.filter((p) => p.isOnLoan);
     return [...list].sort((a, b) => {
       let diff: number;
       switch (sortBy) {
@@ -183,7 +237,7 @@ export function PlayersUI({ initialData: players, injuryMap }: { initialData: Mi
       }
       return sortAsc ? -diff : diff;
     });
-  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, top5Only, newSigningsOnly]);
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, top5Only, signingFilter]);
 
   return (
     <>
@@ -257,33 +311,32 @@ export function PlayersUI({ initialData: players, injuryMap }: { initialData: Mi
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
+              <FilterButton
+                active={top5Only}
                 onClick={() => update({ top5: top5Only ? null : "1" })}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                style={{
-                  background: top5Only ? "rgba(88, 166, 255, 0.15)" : "var(--bg-elevated)",
-                  color: top5Only ? "var(--accent-blue)" : "var(--text-muted)",
-                  border: top5Only ? "1px solid rgba(88, 166, 255, 0.3)" : "1px solid var(--border-subtle)",
-                }}
+                color="blue"
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Top 5 leagues
-              </button>
-              <button
-                type="button"
-                onClick={() => update({ new: newSigningsOnly ? null : "1" })}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                style={{
-                  background: newSigningsOnly ? "rgba(0, 255, 135, 0.15)" : "var(--bg-elevated)",
-                  color: newSigningsOnly ? "#00ff87" : "var(--text-muted)",
-                  border: newSigningsOnly ? "1px solid rgba(0, 255, 135, 0.3)" : "1px solid var(--border-subtle)",
-                }}
+              </FilterButton>
+              <FilterButton
+                active={signingFilter === "transfer"}
+                onClick={() => update({ signing: signingFilter === "transfer" ? null : "transfer", new: null })}
+                color="green"
               >
                 New signings
-              </button>
+                <span className="tabular-nums opacity-60">{signingCounts.newSignings}</span>
+              </FilterButton>
+              <FilterButton
+                active={signingFilter === "loan"}
+                onClick={() => update({ signing: signingFilter === "loan" ? null : "loan", new: null })}
+                color="gold"
+              >
+                Loans
+                <span className="tabular-nums opacity-60">{signingCounts.loans}</span>
+              </FilterButton>
             </div>
           </div>
 
