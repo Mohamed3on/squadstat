@@ -147,6 +147,11 @@ async function main() {
       } else {
         delete p.isNewSigning;
       }
+      if (entry.isOnLoan) {
+        p.isOnLoan = true;
+      } else {
+        delete p.isOnLoan;
+      }
     }
   }
 

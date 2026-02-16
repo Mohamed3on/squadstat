@@ -11,6 +11,7 @@ const ZERO_STATS: PlayerStatsResult = {
   club: "",
   league: "",
   isNewSigning: false,
+  isOnLoan: false,
 };
 
 /** Raw fetch — no caching. Used by the offline refresh script. */
@@ -42,7 +43,8 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const minutes = parse(rechts.last().text());
 
   const ribbonText = $(".data-header__ribbon span").text().trim().toLowerCase();
-  const isNewSigning = ribbonText === "new arrival" || ribbonText === "on loan";
+  const isOnLoan = ribbonText === "on loan";
+  const isNewSigning = ribbonText === "new arrival" || isOnLoan;
 
-  return { minutes, appearances, goals, assists, club, league, isNewSigning };
+  return { minutes, appearances, goals, assists, club, league, isNewSigning, isOnLoan };
 }
