@@ -1,15 +1,22 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
 import { ValueAnalysisUI } from "./ValueAnalysisUI";
+import { createPageMetadata } from "@/lib/metadata";
+import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Value Analysis",
   description:
-    "Find overpriced players who underdeliver and bargain players who outperform their price tag. Two lenses — G+A output and minutes played.",
-};
+    "Find overpriced players who underdeliver and bargain players who outperform their price tag. Two lenses - G+A output and minutes played.",
+  path: "/value-analysis",
+  keywords: [
+    "overpriced football players",
+    "bargain football players",
+    "minutes value analysis",
+  ],
+});
 
 const SPIELER_RE = /\/spieler\/(\d+)/;
 
@@ -36,6 +43,13 @@ export default async function ValueAnalysisPage() {
           injuryMap={injuryMap}
         />
       </Suspense>
+      <DiscoveryLinkGrid
+        section="value-analysis"
+        title="Value Analysis Boards"
+        description="Jump straight into overpriced, bargain, and low-minutes views."
+        currentPath="/value-analysis"
+        currentAliases={["/value-analysis?mode=ga"]}
+      />
       <DataLastUpdated />
     </>
   );

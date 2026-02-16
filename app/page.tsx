@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import {
   TrendingUp,
@@ -8,12 +7,21 @@ import {
   HeartPulse,
   ArrowRight,
 } from "lucide-react";
+import { createPageMetadata } from "@/lib/metadata";
+import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Home",
   description:
     "FormTracker helps you scan recent form, value efficiency, injuries, and minutes trends across Europe's top football leagues.",
-};
+  path: "/",
+  keywords: [
+    "football analytics",
+    "soccer form tracker",
+    "player value rankings",
+    "injury impact football",
+  ],
+});
 
 const pages = [
   {
@@ -257,6 +265,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <DiscoveryLinkGrid
+        title="Popular Scouting Boards"
+        description="High-intent views with dedicated URLs you can share, bookmark, and revisit."
+        maxItems={9}
+        className="pb-10 sm:pb-14"
+        currentPath="/"
+      />
     </>
   );
 }

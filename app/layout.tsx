@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import { absoluteUrl, getSiteOrigin } from "@/lib/site-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +24,7 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteOrigin()),
   title: {
     default: "FormTracker - Football Form Analysis",
     template: "%s | FormTracker",
@@ -42,12 +44,16 @@ export const metadata: Metadata = {
     "football injuries",
     "player stats",
   ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "FormTracker - Football Form Analysis",
     description:
       "Track football team form, injuries, and player performance across Europe's top 5 leagues.",
     type: "website",
     locale: "en_US",
+    url: absoluteUrl("/"),
   },
   twitter: {
     card: "summary",

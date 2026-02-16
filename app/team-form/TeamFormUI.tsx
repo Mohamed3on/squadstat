@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { TeamFormEntry } from "@/app/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ManagerSection } from "@/app/components/ManagerPPGBadge";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
+import { useQueryParams } from "@/lib/hooks/use-query-params";
 
 export interface TeamFormResponse {
   success: boolean;
@@ -329,9 +330,11 @@ function TeamListsGrid({
 
 export function TeamFormUI({ initialData }: TeamFormUIProps) {
   const data = initialData;
-
-  // Initialize with all leagues shown
-  const [selectedLeague, setSelectedLeague] = useState<string>("all");
+  const { params, update } = useQueryParams("/team-form");
+  const requestedLeague = params.get("league");
+  const selectedLeague = requestedLeague && LEAGUES.some((league) => league.name === requestedLeague)
+    ? requestedLeague
+    : "all";
 
   // Filter teams based on selected league
   const filteredOverperformers = useMemo(
@@ -352,7 +355,7 @@ export function TeamFormUI({ initialData }: TeamFormUIProps) {
     <>
       <LeagueFilter
         selectedLeague={selectedLeague}
-        onValueChange={setSelectedLeague}
+        onValueChange={(value) => update({ league: value === "all" ? null : value })}
       />
 
       <TeamListsGrid

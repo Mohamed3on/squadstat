@@ -9,10 +9,11 @@ Live app: https://football-form.vercel.app
 | Route | Purpose |
 |---|---|
 | `/` | Landing page with tool overview and direct navigation |
-| `/form-signals` | Recent form windows (20, 15, 10, 5 matches) with top/bottom signal clusters |
+| `/discover` | Index of curated scouting-board shortcuts (direct links to live filtered views) |
+| `/form` | Recent form windows (20, 15, 10, 5 matches) with top/bottom signal clusters |
 | `/team-form` | Team value vs table performance (actual points vs expected points from value rank) |
-| `/player-form` | Player output vs market value (goal contributions and minutes context) |
-| `/minutes-value` | High-value players with low minutes |
+| `/players` | Player explorer (value, minutes, games, G+A with league/club/signing filters) |
+| `/value-analysis` | Player output vs market value (goal contributions and minutes context) |
 | `/injured` | Injury impact by player, team, and injury type |
 
 ## Tech Stack

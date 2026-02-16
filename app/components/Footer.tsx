@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function Footer() {
+  const pathname = usePathname();
+
   return (
     <footer
       className="mt-auto border-t"
@@ -35,6 +40,15 @@ export function Footer() {
           </p>
 
           <div className="flex items-center gap-4">
+            {pathname !== "/discover" && (
+              <Link
+                href="/discover"
+                className="text-sm transition-colors duration-150 hover:opacity-80"
+                style={{ color: "var(--accent-blue)" }}
+              >
+                Scouting Boards
+              </Link>
+            )}
             <Link
               href="https://github.com/mohamed3on"
               target="_blank"

@@ -60,6 +60,7 @@ function SpinnerIcon({ className }: { className?: string }) {
 
 const navItems = [
   { href: "/", label: "Home" },
+  { href: "/discover", label: "Boards" },
   { href: "/form", label: "Recent Form" },
   { href: "/team-form", label: "Value vs Table" },
   { href: "/players", label: "Players" },
@@ -108,20 +109,30 @@ export function Header() {
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 sm:flex">
           {navItems.map(({ href, label }) => {
-            const isActive = pathname === href;
+            const isActive = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
             return (
-              <Button
-                key={href}
-                variant="ghost"
-                size="sm"
-                asChild
-                className={cn(
-                  "h-auto px-3 py-1.5 text-sm",
-                  isActive && "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                )}
-              >
-                <Link href={href}>{label}</Link>
-              </Button>
+              isActive ? (
+                <Button
+                  key={href}
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto cursor-default px-3 py-1.5 text-sm bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                  disabled
+                  aria-current="page"
+                >
+                  {label}
+                </Button>
+              ) : (
+                <Button
+                  key={href}
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="h-auto px-3 py-1.5 text-sm"
+                >
+                  <Link href={href}>{label}</Link>
+                </Button>
+              )
             );
           })}
         </nav>
@@ -168,21 +179,29 @@ export function Header() {
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <nav className="mt-8 flex flex-col gap-1">
                 {navItems.map(({ href, label }) => {
-                  const isActive = pathname === href;
+                  const isActive = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
                   return (
-                    <SheetClose key={href} asChild>
-                      <Link
-                        href={href}
-                        className={cn(
-                          "rounded-md px-3 py-2.5 text-base font-medium transition-colors",
-                          isActive
-                            ? "bg-[var(--bg-elevated)] text-[var(--accent-hot)]"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
-                        )}
+                    isActive ? (
+                      <span
+                        key={href}
+                        aria-current="page"
+                        className="rounded-md bg-[var(--bg-elevated)] px-3 py-2.5 text-base font-medium text-[var(--accent-hot)]"
                       >
                         {label}
-                      </Link>
-                    </SheetClose>
+                      </span>
+                    ) : (
+                      <SheetClose key={href} asChild>
+                        <Link
+                          href={href}
+                          className={cn(
+                            "rounded-md px-3 py-2.5 text-base font-medium transition-colors",
+                            "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
+                          )}
+                        >
+                          {label}
+                        </Link>
+                      </SheetClose>
+                    )
                   );
                 })}
               </nav>
