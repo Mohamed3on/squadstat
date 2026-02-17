@@ -57,8 +57,8 @@ function useIsTouchDevice() {
 
 export function ManagerSection({ manager }: ManagerPPGBadgeProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-x-2 sm:gap-y-1">
-      <div className="flex items-center gap-1.5 min-w-0">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <div className="inline-flex min-w-0 items-center gap-1.5">
         <span className="shrink-0" style={{ color: "var(--text-muted)" }}>Manager:</span>
         <a
           href={manager.profileUrl}
@@ -82,8 +82,9 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
 
   if (manager.matches === 0) {
     return (
-      <span className="shrink-0 px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
-        New manager
+      <span className="inline-flex shrink-0 px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+        <span className="sm:hidden">New</span>
+        <span className="hidden sm:inline">New manager</span>
       </span>
     );
   }
@@ -95,7 +96,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
 
   if (!hasRanking) {
     return (
-      <span className="text-[10px] sm:text-xs" style={{ color: "var(--text-secondary)" }}>
+      <span className="inline-flex text-[10px] sm:text-xs" style={{ color: "var(--text-secondary)" }}>
         ({manager.matches} {manager.matches === 1 ? "game" : "games"})
       </span>
     );
@@ -107,7 +108,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
 
   const badge = (
     <span
-      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] sm:text-xs cursor-help transition-opacity hover:opacity-80 ${isBest || isWorst || isOnly ? "font-semibold" : ""}`}
+      className={`inline-flex max-w-full items-center gap-0.5 px-1 py-0.5 sm:px-1.5 rounded text-[9px] sm:text-xs cursor-help transition-opacity hover:opacity-80 ${isBest || isWorst || isOnly ? "font-semibold" : ""}`}
       style={{
         background: isBest
           ? "rgba(22, 163, 74, 0.15)"
@@ -120,11 +121,12 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
         border: `1px solid ${isBest ? "rgba(22, 163, 74, 0.3)" : isWorst ? "rgba(220, 38, 38, 0.3)" : isOnly ? "rgba(59, 130, 246, 0.3)" : "var(--border-subtle)"}`,
       }}
     >
-      {isBest && <span>🏆</span>}
-      {isWorst && <span>⚠️</span>}
-      {isOnly && <span>👑</span>}
-      <span>{manager.ppg!.toFixed(2)} PPG</span>
-      <span style={{ opacity: 0.7 }}>({manager.ppgRank}/{manager.totalComparableManagers})</span>
+      {isBest && <span className="hidden sm:inline">🏆</span>}
+      {isWorst && <span className="hidden sm:inline">⚠️</span>}
+      {isOnly && <span className="hidden sm:inline">👑</span>}
+      <span className="sm:hidden">{manager.ppg!.toFixed(2)}</span>
+      <span className="hidden sm:inline">{manager.ppg!.toFixed(2)} PPG</span>
+      <span className="opacity-70">({manager.ppgRank}/{manager.totalComparableManagers})</span>
     </span>
   );
 
@@ -193,7 +195,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
   };
 
   return (
-    <span className="inline-flex flex-wrap items-center gap-1">
+    <span className="inline-flex max-w-full flex-wrap items-center gap-1">
       <span className="text-[10px] sm:text-xs" style={{ color: "var(--text-secondary)" }}>
         ({manager.matches} {manager.matches === 1 ? "game" : "games"})
       </span>
