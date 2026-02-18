@@ -39,14 +39,6 @@ interface PlayerFormResult {
   searchedName?: string;
 }
 
-interface UnderperformersResult {
-  underperformers: (PlayerStats & { outperformedByCount: number })[];
-}
-
-interface OverperformersResult {
-  overperformers: (PlayerStats & { outperformsCount?: number })[];
-}
-
 const EMPTY_MV: MinutesValuePlayer[] = [];
 
 function formatValue(v: number): string {
@@ -65,16 +57,6 @@ function getLeistungsdatenUrl(profileUrl: string): string {
   const now = new Date();
   const season = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
   return `https://www.transfermarkt.com${profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}/saison/${season}/plus/1`;
-}
-
-async function fetchUnderperformers(signal?: AbortSignal): Promise<UnderperformersResult> {
-  const res = await fetch("/api/underperformers", { signal });
-  return res.json();
-}
-
-async function fetchOverperformers(signal?: AbortSignal): Promise<OverperformersResult> {
-  const res = await fetch("/api/overperformers", { signal });
-  return res.json();
 }
 
 async function fetchPlayerForm(id: string, name: string, signal?: AbortSignal): Promise<PlayerFormResult> {
@@ -377,9 +359,9 @@ function DiscoveryListCard({ player, index = 0, top5, variant }: {
   );
 }
 
-function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, sortBy, onSortChange, leagueFilter, clubFilter, onLeagueFilterChange, onClubFilterChange, top5Only, onTop5Change }: {
+function DiscoverySection({ variant, candidates, allPlayers, sortBy, onSortChange, leagueFilter, clubFilter, onLeagueFilterChange, onClubFilterChange, top5Only, onTop5Change }: {
   variant: DiscoveryTab;
-  candidates: DiscoveryCandidate[]; allPlayers: PlayerStats[]; isLoading: boolean; error: Error | null;
+  candidates: DiscoveryCandidate[]; allPlayers: PlayerStats[];
   sortBy: DiscoverySortKey; onSortChange: (value: DiscoverySortKey) => void;
   leagueFilter: string; clubFilter: string; onLeagueFilterChange: (value: string) => void; onClubFilterChange: (value: string) => void;
   top5Only: boolean; onTop5Change: (value: boolean) => void;
@@ -433,7 +415,7 @@ function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, s
           <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums" style={{ background: `color-mix(in srgb, ${accentColor} 15%, transparent)`, color: accentColor }}>{filteredCandidates.length}</span>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <ToggleGroup
           type="single"
           size="sm"
@@ -457,22 +439,18 @@ function DiscoverySection({ variant, candidates, allPlayers, isLoading, error, s
             G+A {isGaActive && (sortBy === "ga-desc" ? "\u2193" : "\u2191")}
           </ToggleGroupItem>
         </ToggleGroup>
-        <SelectNative value={leagueFilter} onChange={(e) => onLeagueFilterChange(e.target.value)} className="h-8 w-auto text-xs">
+      </div>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <SelectNative value={leagueFilter} onChange={(e) => onLeagueFilterChange(e.target.value)} className="h-9 w-auto text-sm">
           <option value="all">All leagues</option>
           {leagueOptions.map((league) => (<option key={league} value={league}>{league}</option>))}
         </SelectNative>
-        <DebouncedInput value={clubFilter} onChange={onClubFilterChange} placeholder="Club…" className="h-8 w-28 text-xs" />
+        <DebouncedInput value={clubFilter} onChange={onClubFilterChange} placeholder="Filter by club…" className="h-9 w-40 text-sm" />
         <FilterButton active={top5Only} onClick={() => onTop5Change(!top5Only)}>
           Top 5 only
         </FilterButton>
       </div>
-      {isLoading && <CardSkeletonList />}
-      {error && (
-        <div className="rounded-xl p-5 animate-fade-in" style={{ background: `color-mix(in srgb, ${accentColor} 10%, transparent)`, border: `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)` }}>
-          <p className="font-medium" style={{ color: accentColor }}>Error loading data. Please refresh.</p>
-        </div>
-      )}
-      {!isLoading && !error && filteredCandidates.length === 0 && (
+      {filteredCandidates.length === 0 && (
         <div className="rounded-xl p-8 text-center animate-fade-in" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
           <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{isOverpriced ? "No overpriced players found" : "No bargain players found"}</p>
           <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{isOverpriced ? "Everyone is producing as expected for their price tag" : "No cheap players are outperforming their price tag right now"}</p>
@@ -626,9 +604,11 @@ interface ValueAnalysisUIProps {
   initialAllPlayers: PlayerStats[];
   initialData: MinutesValuePlayer[];
   injuryMap?: InjuryMap;
+  initialUnderperformers: (PlayerStats & { outperformedByCount: number })[];
+  initialOverperformers: (PlayerStats & { outperformsCount?: number })[];
 }
 
-export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: ValueAnalysisUIProps) {
+export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, initialUnderperformers, initialOverperformers }: ValueAnalysisUIProps) {
   const { params, update, push } = useQueryParams("/value-analysis");
 
   // Mode
@@ -665,20 +645,6 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
   const minsHideInjured = params.get("noInj") === "1";
 
   // ── G+A queries ──
-  const underperformersQuery = useQuery({
-    queryKey: ["underperformers"],
-    queryFn: ({ signal }) => fetchUnderperformers(signal),
-    staleTime: 5 * 60 * 1000,
-    enabled: mode === "ga" && !hasPlayer,
-  });
-
-  const overperformersQuery = useQuery({
-    queryKey: ["overperformers"],
-    queryFn: ({ signal }) => fetchOverperformers(signal),
-    staleTime: 5 * 60 * 1000,
-    enabled: mode === "ga" && !hasPlayer,
-  });
-
   const { data: gaData, isLoading: gaLoading, error: gaError } = useQuery({
     queryKey: ["player-form", urlId, urlName],
     queryFn: ({ signal }) => fetchPlayerForm(urlId, urlName, signal),
@@ -703,21 +669,17 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
 
   // ── Discovery candidates (normalized to DiscoveryCandidate) ──
   const underCandidates: DiscoveryCandidate[] = useMemo(
-    () => (underperformersQuery.data?.underperformers || []).map((p) => ({ ...p, comparisonCount: p.outperformedByCount })),
-    [underperformersQuery.data]
+    () => initialUnderperformers.map((p) => ({ ...p, comparisonCount: p.outperformedByCount })),
+    [initialUnderperformers]
   );
   const overCandidates: DiscoveryCandidate[] = useMemo(
-    () => (overperformersQuery.data?.overperformers || []).map((p) => ({ ...p, comparisonCount: p.outperformsCount || 0 })),
-    [overperformersQuery.data]
+    () => initialOverperformers.map((p) => ({ ...p, comparisonCount: p.outperformsCount || 0 })),
+    [initialOverperformers]
   );
 
   // ── Discovery tab counts (adjusted for top-5 filter) ──
-  const underTabCount = underperformersQuery.data
-    ? (discoveryTop5Only ? underCandidates.filter((p) => TOP_5_LEAGUES.includes(p.league)).length : underCandidates.length)
-    : undefined;
-  const overTabCount = overperformersQuery.data
-    ? (discoveryTop5Only ? overCandidates.filter((p) => TOP_5_LEAGUES.includes(p.league)).length : overCandidates.length)
-    : undefined;
+  const underTabCount = discoveryTop5Only ? underCandidates.filter((p) => TOP_5_LEAGUES.includes(p.league)).length : underCandidates.length;
+  const overTabCount = discoveryTop5Only ? overCandidates.filter((p) => TOP_5_LEAGUES.includes(p.league)).length : overCandidates.length;
 
   // ── Minutes player selection ──
   const minsSelected = useMemo(() => {
@@ -958,8 +920,6 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                     variant="overpriced"
                     candidates={underCandidates}
                     allPlayers={initialAllPlayers}
-                    isLoading={underperformersQuery.isLoading}
-                    error={(underperformersQuery.error as Error | null) ?? null}
                     sortBy={underSortBy}
                     onSortChange={(value) => update({ uSort: value === "count" ? null : value })}
                     leagueFilter={underLeagueFilter}
@@ -975,8 +935,6 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap }: V
                     variant="bargains"
                     candidates={overCandidates}
                     allPlayers={initialAllPlayers}
-                    isLoading={overperformersQuery.isLoading}
-                    error={(overperformersQuery.error as Error | null) ?? null}
                     sortBy={overSortBy}
                     onSortChange={(value) => update({ oSort: value === "count" ? null : value })}
                     leagueFilter={overLeagueFilter}

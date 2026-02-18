@@ -1,8 +1,9 @@
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, readFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { fetchMinutesValueRaw } from "@/lib/fetch-minutes-value";
 import { fetchTopScorersRaw } from "@/lib/fetch-top-scorers";
 import { fetchPlayerMinutesRaw } from "@/lib/fetch-player-minutes";
+import type { MinutesValuePlayer } from "@/app/types";
 import type { PlayerStatsResult } from "@/app/types";
 
 const INITIAL_CONCURRENCY = 30;
@@ -155,9 +156,34 @@ async function main() {
     }
   }
 
+  // Guard 1: abort if stats look broken (>80% of fetched players have zero goals+assists+minutes)
+  const fetched = players.filter((p) => cache[p.playerId]);
+  const allZero = fetched.filter((p) => p.goals === 0 && p.assists === 0 && p.minutes === 0);
+  if (fetched.length > 50 && allZero.length / fetched.length > 0.8) {
+    throw new Error(
+      `${allZero.length}/${fetched.length} players have zero stats — likely a scraping issue. Aborting to protect existing data.`
+    );
+  }
+
+  // Guard 2: regression check — compare total stats against existing data
   const outDir = join(process.cwd(), "data");
-  await mkdir(outDir, { recursive: true });
   const outPath = join(outDir, "minutes-value.json");
+  try {
+    const existing: MinutesValuePlayer[] = JSON.parse(await readFile(outPath, "utf-8"));
+    const oldTotal = existing.reduce((s, p) => s + p.goals + p.assists, 0);
+    const newTotal = players.reduce((s, p) => s + p.goals + p.assists, 0);
+    if (oldTotal > 100 && newTotal < oldTotal * 0.5) {
+      throw new Error(
+        `Stats regressed: old total G+A=${oldTotal}, new=${newTotal} (${Math.round(newTotal / oldTotal * 100)}%). Aborting to protect existing data.`
+      );
+    }
+    console.log(`[refresh] Stats check: old G+A=${oldTotal}, new=${newTotal} (${newTotal >= oldTotal ? "+" : ""}${newTotal - oldTotal})`);
+  } catch (e) {
+    if (e instanceof Error && e.message.startsWith("Stats regressed")) throw e;
+    console.log("[refresh] No existing data to compare against, skipping regression check");
+  }
+
+  await mkdir(outDir, { recursive: true });
   await writeFile(outPath, JSON.stringify(players));
   await writeFile(join(outDir, "updated-at.txt"), new Date().toISOString());
   console.log(`[refresh] Done: ${Object.keys(cache).length}/${players.length} players → ${outPath}`);

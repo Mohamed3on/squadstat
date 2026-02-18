@@ -3,12 +3,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <>
+      {/* Header */}
       <div className="mb-4 sm:mb-8">
         <Skeleton className="h-8 sm:h-9 w-48" />
         <Skeleton className="h-4 w-80 mt-1 sm:mt-2" />
       </div>
-      <Skeleton className="h-10 w-48 rounded-lg mb-4" />
+
+      {/* Mode toggle */}
+      <Skeleton className="h-10 w-36 rounded-lg mb-4" />
+
+      {/* Search bar */}
       <Skeleton className="h-11 w-full rounded-xl mb-6 sm:mb-8" />
+
+      {/* Tabs */}
+      <Skeleton className="h-10 w-full rounded-xl mb-6" />
+
+      {/* Filters row */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Skeleton className="h-8 w-40 rounded-lg" />
+        <Skeleton className="h-8 w-28 rounded-lg" />
+        <Skeleton className="h-8 w-24 rounded-lg" />
+        <Skeleton className="h-8 w-20 rounded-lg" />
+      </div>
+
+      {/* Cards */}
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <div

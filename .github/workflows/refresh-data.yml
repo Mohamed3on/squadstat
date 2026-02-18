@@ -36,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -54,6 +55,7 @@ jobs:
           restore-keys: player-cache-
 
       - name: Run refresh script
+        id: refresh
         run: bun run scripts/refresh-minutes-value.ts
 
       - name: Save player cache
@@ -73,4 +75,23 @@ jobs:
             git commit -m "chore: refresh minutes-value data"
             git pull --rebase --autostash
             git push
+          fi
+
+      - name: Alert on failure
+        if: failure() && steps.refresh.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXISTING=$(gh issue list --label "scraper-broken" --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "Alert issue #$EXISTING already open, skipping."
+          else
+            gh issue create \
+              --title "Scraper broken: data refresh failed" \
+              --label "scraper-broken" \
+              --body "The data refresh script failed. Transfermarkt may have changed their page structure again.
+
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Check \`lib/fetch-player-minutes.ts\` — the ceapi or HTML selectors likely need updating."
           fi

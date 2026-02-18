@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
+import { findValueCandidates } from "@/lib/value-analysis";
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
 import { ValueAnalysisUI } from "./ValueAnalysisUI";
 import { createPageMetadata } from "@/lib/metadata";
@@ -34,6 +35,12 @@ export default async function ValueAnalysisPage() {
 
   const allPlayerStats = mvPlayers.map(toPlayerStats);
 
+  const MIN_DISCOVERY_MINUTES = 260;
+  const underperformers = findValueCandidates(allPlayerStats, { candidateOutperforms: false, minMinutes: MIN_DISCOVERY_MINUTES, sortAsc: false })
+    .map(({ count, ...p }) => ({ ...p, outperformedByCount: count }));
+  const overperformers = findValueCandidates(allPlayerStats, { candidateOutperforms: true, sortAsc: true })
+    .map(({ count, ...p }) => ({ ...p, outperformsCount: count }));
+
   return (
     <>
       <Suspense>
@@ -41,6 +48,8 @@ export default async function ValueAnalysisPage() {
           initialAllPlayers={allPlayerStats}
           initialData={mvPlayers}
           injuryMap={injuryMap}
+          initialUnderperformers={underperformers}
+          initialOverperformers={overperformers}
         />
       </Suspense>
       <DiscoveryLinkGrid
