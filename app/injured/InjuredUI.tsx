@@ -161,7 +161,7 @@ function PlayerCard({ player, rank, index = 0 }: { player: InjuredPlayer; rank: 
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <span>{player.injury}</span>
-                    {dur && <><span className="opacity-50">·</span><span>since {dur}</span></>}
+                    {dur && <><span className="opacity-50">·</span><span>out {dur}</span></>}
                   </Badge>
                   {returnInfo && (
                     <Badge
@@ -254,7 +254,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)] mt-0.5">
                     <span className="text-[var(--text-secondary)]">{player.injury}</span>
-                    {dur && <><span className="opacity-40">·</span><span>since {dur}</span></>}
+                    {dur && <><span className="opacity-40">·</span><span>out {dur}</span></>}
                     {ri && <><span className="opacity-40">·</span><span className={ri.imminent ? "text-emerald-500 font-medium" : ""}>{ri.label}</span></>}
                   </div>
                 </div>
@@ -283,7 +283,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                 )}
                 <span className="text-sm font-medium text-[var(--text-primary)] w-36 lg:w-44 truncate shrink-0">{player.name}</span>
                 <span className="text-xs text-[var(--text-secondary)] flex-1 truncate">
-                  {player.injury}{dur && <span className="text-[var(--text-muted)]"> · {dur}</span>}
+                  {player.injury}{dur && <span className="text-[var(--text-muted)]"> · out {dur}</span>}
                 </span>
                 {ri && (
                   <span className={cn(
@@ -338,7 +338,7 @@ function InjuryTypeCard({ group, rank, index = 0 }: { group: InjuryTypeGroup; ra
                 <span className="text-[var(--text-primary)]">{player.name}</span>
                 <span className="text-[var(--text-secondary)]">{player.club}</span>
                 <span className="text-[var(--accent-hot)] font-medium font-value">{player.marketValue}</span>
-                {dur && <span className="text-[var(--text-muted)]">since {dur}</span>}
+                {dur && <span className="text-[var(--text-muted)]">out {dur}</span>}
                 {ri && <span className={cn("font-medium", ri.imminent ? "text-emerald-500" : "text-[var(--text-muted)]")}>{ri.label}</span>}
               </a>
             );
@@ -527,7 +527,7 @@ export function InjuredUI({ initialData, failedLeagues = [] }: InjuredUIProps) {
 
         <TabsContent value="teams">
           <SortToggle value={teamSort} onChange={(v) => update({ tSort: v === "value" ? null : v })} />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {teamGroups.map((team, idx) => (
               <TeamInjuryCard key={team.club} team={team} rank={idx + 1} index={idx} />
             ))}
