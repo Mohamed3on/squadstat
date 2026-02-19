@@ -137,6 +137,7 @@ export interface PlayerStats {
   imageUrl: string;
   playerId: string;
   minutes?: number;
+  intlCareerCaps?: number;
   isNewSigning?: boolean;
   isOnLoan?: boolean;
   outperformedByCount?: number;
@@ -165,6 +166,7 @@ export interface MinutesValuePlayer {
   intlMinutes: number;
   intlAppearances: number;
   intlPenaltyGoals: number;
+  intlCareerCaps: number;
   imageUrl: string;
   profileUrl: string;
   playerId: string;
@@ -189,6 +191,7 @@ export interface PlayerStatsResult {
   club: string;
   clubLogoUrl: string;
   league: string;
+  intlCareerCaps: number;
   isNewSigning: boolean;
   isOnLoan: boolean;
 }

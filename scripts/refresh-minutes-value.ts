@@ -148,6 +148,7 @@ async function main() {
       p.intlMinutes = entry.intlMinutes;
       p.intlAppearances = entry.intlAppearances;
       p.intlPenaltyGoals = entry.intlPenaltyGoals;
+      p.intlCareerCaps = entry.intlCareerCaps;
       if (entry.club) p.club = entry.club;
       if (entry.clubLogoUrl) p.clubLogoUrl = entry.clubLogoUrl;
       if (entry.league) p.league = entry.league;

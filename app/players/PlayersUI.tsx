@@ -5,6 +5,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Combobox } from "@/components/Combobox";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { FilterButton } from "@/components/FilterButton";
+import { Input } from "@/components/ui/input";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { filterPlayersByLeagueAndClub, filterTop5 } from "@/lib/filter-players";
 import { formatReturnInfo, formatInjuryDuration, PROFIL_RE } from "@/lib/format";
@@ -40,7 +41,10 @@ function AvatarBadge({ bg, icon, tooltip, position = "bottom-right" }: { bg: str
   );
 }
 
-function PlayerCard({ player, index, injuryMap, includePen = false }: { player: MinutesValuePlayer; index: number; injuryMap?: InjuryMap; includePen?: boolean }) {
+interface CardContext { sortBy: SortKey; showCaps: boolean; includePen: boolean }
+
+function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePlayer; index: number; injuryMap?: InjuryMap; ctx: CardContext }) {
+  const { sortBy, showCaps, includePen } = ctx;
   const penGoals = player.penaltyGoals ?? 0;
   const penMisses = player.penaltyMisses ?? 0;
   const penAttempts = penGoals + penMisses;
@@ -145,17 +149,37 @@ function PlayerCard({ player, index, injuryMap, includePen = false }: { player: 
           </div>
         </div>
 
-        {/* Desktop metrics */}
+        {/* Desktop metrics — context-aware based on active sort/filters */}
         <div className="hidden sm:flex items-center gap-3 shrink-0">
           <div className="text-right">
             <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
           </div>
           <div className="w-px h-7" style={{ background: "var(--border-subtle)" }} />
-          <div className="text-right min-w-[4rem]">
-            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
-              {player.minutes.toLocaleString()}&apos;
+          {(sortBy === "mins" || sortBy === "value" || sortBy === "ga" || sortBy === "games") && (
+            <div className="text-right min-w-[4rem]">
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
+                {player.minutes.toLocaleString()}&apos;
+              </div>
             </div>
-          </div>
+          )}
+          {showCaps && (
+            <div className="text-right">
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.intlCareerCaps ?? 0}</div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>caps</div>
+            </div>
+          )}
+          {(sortBy === "pen" || sortBy === "miss" || includePen) && penAttempts > 0 && (
+            <div className="text-right min-w-[3rem]">
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{penGoals}/{penAttempts}</div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>pens · {Math.round(penGoals / penAttempts * 100)}%</div>
+            </div>
+          )}
+          {sortBy === "miss" && (
+            <div className="text-right">
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{penMisses}</div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>missed</div>
+            </div>
+          )}
           <div className="w-px h-7" style={{ background: "var(--border-subtle)" }} />
           <div className="flex items-center gap-2.5 text-right">
             <div>
@@ -167,23 +191,17 @@ function PlayerCard({ player, index, injuryMap, includePen = false }: { player: 
               <div className="text-xs tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.goals - penAdj}{penAdj > 0 ? "npG" : "G"} {player.assists}A</div>
             </div>
           </div>
-          {penAttempts > 0 && (
-            <>
-              <div className="w-px h-7" style={{ background: "var(--border-subtle)" }} />
-              <div className="text-right min-w-[3rem]">
-                <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{penGoals}/{penAttempts}</div>
-                <div className="text-xs" style={{ color: "var(--text-secondary)" }}>pens · {Math.round(penGoals / penAttempts * 100)}%</div>
-              </div>
-            </>
-          )}
         </div>
 
-        {/* Mobile metrics */}
+        {/* Mobile metrics — context-aware */}
         <div className="sm:hidden text-right shrink-0">
           <div className="text-xs font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
           <div className="text-xs tabular-nums">
             <span style={{ color: "var(--text-primary)" }}>{gaTotal} {pointsLabel}</span>
-            {penAttempts > 0 && (
+            {showCaps && (
+              <span style={{ color: "var(--text-secondary)" }}> · {player.intlCareerCaps ?? 0} caps</span>
+            )}
+            {(sortBy === "pen" || sortBy === "miss" || includePen) && penAttempts > 0 && (
               <span style={{ color: "var(--text-secondary)" }}> · {penGoals}/{penAttempts} pens</span>
             )}
           </div>
@@ -196,7 +214,7 @@ function PlayerCard({ player, index, injuryMap, includePen = false }: { player: 
 const ROW_HEIGHT = 80;
 const GAP = 8;
 
-function VirtualPlayerList({ items, injuryMap, includePen }: { items: MinutesValuePlayer[]; injuryMap?: InjuryMap; includePen?: boolean }) {
+function VirtualPlayerList({ items, injuryMap, ctx }: { items: MinutesValuePlayer[]; injuryMap?: InjuryMap; ctx: CardContext }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
@@ -217,7 +235,7 @@ function VirtualPlayerList({ items, injuryMap, includePen }: { items: MinutesVal
             className="absolute left-0 w-full"
             style={{ top: virtualRow.start - (virtualizer.options.scrollMargin || 0) }}
           >
-            <PlayerCard player={items[virtualRow.index]} index={virtualRow.index} injuryMap={injuryMap} includePen={includePen} />
+            <PlayerCard player={items[virtualRow.index]} index={virtualRow.index} injuryMap={injuryMap} ctx={ctx} />
           </div>
         ))}
       </div>
@@ -247,6 +265,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
   const signingFilter = parseSigningFilter(params.get("signing"));
   const includePen = params.get("pen") === "1";
   const includeIntl = params.get("intl") === "1";
+  const maxCaps = params.get("maxcaps") ? parseInt(params.get("maxcaps")!) : null;
 
   // Apply intl toggle client-side — adds intl stats when active
   const players = useMemo(() => {
@@ -293,6 +312,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     if (nationalityFilter !== "all") list = list.filter((p) => p.nationality === nationalityFilter);
     if (signingFilter === "transfer") list = list.filter((p) => p.isNewSigning);
     if (signingFilter === "loan") list = list.filter((p) => p.isOnLoan);
+    if (maxCaps !== null) list = list.filter((p) => (p.intlCareerCaps ?? 0) <= maxCaps);
     const penAdj = includePen ? 0 : 1;
     return [...list].sort((a, b) => {
       let diff: number;
@@ -306,7 +326,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       }
       return sortAsc ? -diff : diff;
     });
-  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen]);
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, maxCaps]);
 
   return (
     <>
@@ -315,8 +335,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
             Player <span className="text-[var(--accent-blue)]">Explorer</span>
           </h1>
           <p className="text-sm sm:text-base text-[var(--text-muted)]">
-            {players.length.toLocaleString()} players from Europe&apos;s top 5 leagues, sortable by market value, minutes played, appearances, and goal contributions. Data from Transfermarkt, updated daily.
-          </p>
+            The top 500 most valuable players in world football plus top scorers in Europe&apos;s top 5 leagues.          </p>
         </div>
 
         <section>
@@ -364,6 +383,14 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
               <Combobox value={leagueFilter} onChange={(v) => update({ league: v === "all" ? null : v || null })} options={leagueOptions} placeholder="All leagues" searchPlaceholder="Search leagues..." />
               <Combobox value={nationalityFilter} onChange={(v) => update({ nat: v === "all" ? null : v || null })} options={nationalityOptions} placeholder="All nationalities" searchPlaceholder="Search nationalities..." />
               <Combobox value={clubFilter} onChange={(v) => update({ club: v === "all" ? null : v || null })} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
+              <Input
+                type="number"
+                min={0}
+                placeholder="Max caps"
+                value={maxCaps ?? ""}
+                onChange={(e) => update({ maxcaps: e.target.value || null })}
+                className="h-8 w-20 text-xs tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
               <FilterButton active={top5Only} onClick={() => update({ top5: top5Only ? null : "1" })}>
                 Top 5
               </FilterButton>
@@ -385,7 +412,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
             </div>
           </div>
 
-          <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} includePen={includePen} />
+          <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: maxCaps !== null, includePen }} />
         </section>
     </>
   );

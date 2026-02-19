@@ -77,6 +77,7 @@ function parseTopScorerRow($: cheerio.CheerioAPI, row: any): MinutesValuePlayer 
     intlMinutes: 0,
     intlAppearances: 0,
     intlPenaltyGoals: 0,
+    intlCareerCaps: 0,
     imageUrl,
     profileUrl,
     playerId,

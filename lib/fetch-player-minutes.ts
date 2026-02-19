@@ -15,6 +15,7 @@ const ZERO_STATS: PlayerStatsResult = {
   intlMinutes: 0,
   intlAppearances: 0,
   intlPenaltyGoals: 0,
+  intlCareerCaps: 0,
   club: "",
   clubLogoUrl: "",
   league: "",
@@ -125,13 +126,22 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const isOnLoan = ribbonText === "on loan";
   const isNewSigning = ribbonText === "new arrival" || isOnLoan;
 
+  // Parse senior international caps from profile header (Caps/Goals: N)
+  // The team label varies: "Current international", "Former International", "National player"
+  // Find the <ul> containing Caps/Goals, then check the team name in the sibling <li>
+  const capsLi = $("li:contains('Caps/Goals')").first();
+  const capsUl = capsLi.closest("ul");
+  const natTeamName = capsUl.find("a[href*='/startseite/verein/']").first().attr("title") || "";
+  const isSeniorTeam = natTeamName && !/U\d/i.test(natTeamName);
+  const intlCareerCaps = isSeniorTeam ? (parseInt(capsLi.find("a").first().text().trim()) || 0) : 0;
+
   // Parse stats + league from ceapi
   if (!ceapiRes.ok) {
-    return { ...ZERO_STATS, club, clubLogoUrl, isNewSigning, isOnLoan };
+    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan };
   }
   const ceapi = await ceapiRes.json();
   const games: CeapiGame[] = ceapi?.data?.performance ?? [];
   const stats = aggregateSeasonStats(games);
 
-  return { ...stats, club, clubLogoUrl, isNewSigning, isOnLoan };
+  return { ...stats, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan };
 }
