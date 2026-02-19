@@ -110,7 +110,7 @@ export function BenchmarkCard({
 export function BigNumber({ value, label, color }: { value: string; label: string; color: string }) {
   return (
     <div className="text-center">
-      <div className="text-2xl font-black tabular-nums" style={{ color }}>{value}</div>
+      <div className="text-2xl font-medium font-value" style={{ color }}>{value}</div>
       <div className="text-xs uppercase tracking-widest mt-0.5" style={{ color: "var(--text-secondary)" }}>{label}</div>
     </div>
   );

@@ -188,7 +188,7 @@ function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
           }}
         >
           <span
-            className="text-xl sm:text-2xl font-black font-value"
+            className="text-xl sm:text-2xl font-display"
             style={{ color: accentColor }}
           >
             {team.deltaPts > 0 ? `+${team.deltaPts}` : team.deltaPts}

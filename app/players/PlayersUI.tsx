@@ -152,7 +152,7 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
         {/* Desktop metrics — context-aware based on active sort/filters */}
         <div className="hidden sm:flex items-center gap-3 shrink-0">
           <div className="text-right">
-            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
+            <div className="text-sm font-medium font-value" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
           </div>
           <div className="w-px h-7" style={{ background: "var(--border-subtle)" }} />
           {(sortBy === "mins" || sortBy === "value" || sortBy === "ga" || sortBy === "games") && (
@@ -195,7 +195,7 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
 
         {/* Mobile metrics — context-aware */}
         <div className="sm:hidden text-right shrink-0">
-          <div className="text-xs font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
+          <div className="text-xs font-medium font-value" style={{ color: "var(--accent-blue)" }}>{player.marketValueDisplay}</div>
           <div className="text-xs tabular-nums">
             <span style={{ color: "var(--text-primary)" }}>{gaTotal} {pointsLabel}</span>
             {showCaps && (

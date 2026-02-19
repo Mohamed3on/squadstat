@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Clock,
   HeartPulse,
-  LayoutGrid,
   Scale,
   TrendingUp,
   type LucideIcon,
@@ -13,6 +12,16 @@ import { createPageMetadata } from "@/lib/metadata";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAnalysis } from "@/lib/form-analysis";
+import { getTeamFormData } from "@/lib/team-form";
+import { applyStatsToggles, getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
+import { findValueCandidates } from "@/lib/value-analysis";
+import { getInjuredPlayers } from "@/lib/injured";
+import { getManagerInfo } from "@/lib/fetch-manager";
+import type { ManagerInfo, MinutesValuePlayer, QualifiedTeam } from "@/app/types";
+
+export const revalidate = 7200; // 2 hours — matches form/team-form cache
 
 export const metadata = createPageMetadata({
   title: "Home",
@@ -50,6 +59,238 @@ const snapshotTiles = [
     detail: "Transfermarkt-backed data with a manual refresh button in the header",
   },
 ] as const;
+
+const MIN_VALUE_ANALYSIS_MINUTES = 260;
+
+interface SnapshotItem {
+  label: string;
+  value: string;
+  detail: string;
+  metrics?: string[];
+  href: string;
+  imageUrl?: string;
+  secondaryImageUrl?: string;
+  imageContain?: boolean;
+  manager?: ManagerInfo;
+}
+
+interface SnapshotGroup {
+  title: string;
+  description: string;
+  href: string;
+  items: SnapshotItem[];
+}
+
+interface InjuryTeamSummary {
+  club: string;
+  league: string;
+  clubLogoUrl: string;
+  totalValue: number;
+  count: number;
+}
+
+function hasManagerRanking(manager: ManagerInfo): manager is ManagerInfo & {
+  ppg: number;
+  ppgRank: number;
+  totalComparableManagers: number;
+} {
+  return (
+    manager.ppg !== null &&
+    manager.ppgRank !== undefined &&
+    manager.totalComparableManagers !== undefined
+  );
+}
+
+function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
+  const gamesText = `${manager.matches} ${manager.matches === 1 ? "game" : "games"}`;
+  const hasRanking = hasManagerRanking(manager);
+  const isOnly = hasRanking && manager.totalComparableManagers === 1;
+  const isBest = hasRanking && manager.ppgRank === 1 && !isOnly;
+  const isWorst = hasRanking && manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
+
+  const ppgClassName = isBest
+    ? "border-emerald-500/35 bg-emerald-500/12 text-emerald-300"
+    : isWorst
+    ? "border-rose-500/35 bg-rose-500/12 text-rose-300"
+    : isOnly
+    ? "border-sky-500/35 bg-sky-500/12 text-sky-300"
+    : "border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)]";
+
+  const ppgText =
+    manager.matches === 0
+      ? "New manager"
+      : manager.ppg === null
+      ? gamesText
+      : hasRanking
+      ? `${manager.ppg.toFixed(2)} PPG (${manager.ppgRank}/${manager.totalComparableManagers}) · ${gamesText}`
+      : `${manager.ppg.toFixed(2)} PPG · ${gamesText}`;
+
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <a
+        href={manager.profileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`inline-flex max-w-full items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold transition-colors hover:text-[var(--text-primary)] ${manager.isCurrentManager ? "border-[rgba(88,166,255,0.35)] bg-[rgba(88,166,255,0.12)] text-[var(--accent-blue)]" : "border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)]"}`}
+      >
+        <span className="truncate">Mgr {manager.name}</span>
+      </a>
+      <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${ppgClassName}`}>
+        {ppgText}
+      </span>
+      {!manager.isCurrentManager && (
+        <span className="inline-flex items-center rounded-md border border-rose-500/35 bg-rose-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-rose-300">
+          Sacked
+        </span>
+      )}
+    </div>
+  );
+}
+
+function SnapshotItemRow({
+  item,
+  variant = "section",
+}: {
+  item: SnapshotItem;
+  variant?: "hero" | "section";
+}) {
+  const isHero = variant === "hero";
+  const Tag = isHero ? "div" : "article";
+  return (
+    <Tag
+      className={`rounded-lg border border-[var(--border-subtle)] px-3 py-2 ${
+        isHero
+          ? "bg-[var(--bg-card)]"
+          : "bg-[var(--bg-elevated)] transition-colors hover:bg-[var(--bg-card-hover)]"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className="relative shrink-0">
+          <Avatar className={`h-10 w-10 border border-[var(--border-subtle)] ${isHero ? "bg-[var(--bg-elevated)]" : "bg-[var(--bg-card)]"}`}>
+            {item.imageUrl ? (
+              <AvatarImage
+                src={item.imageUrl}
+                alt={item.value}
+                className={item.imageContain ? "object-contain bg-white p-1" : undefined}
+              />
+            ) : (
+              <AvatarFallback>{item.value.charAt(0)}</AvatarFallback>
+            )}
+          </Avatar>
+          {item.secondaryImageUrl && (
+            <Avatar className="absolute -bottom-1 -right-1 h-5 w-5 border border-[var(--border-subtle)] bg-white">
+              <AvatarImage src={item.secondaryImageUrl} alt="" className="object-contain p-px" />
+            </Avatar>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)]">{item.label}</p>
+          <p className={`truncate font-semibold leading-tight text-[var(--text-primary)] ${!isHero ? "mt-0.5 text-sm" : ""}`}>
+            {item.value}
+          </p>
+          <p className={`text-xs leading-tight text-[var(--text-secondary)] ${!isHero ? "mt-0.5" : ""}`}>
+            {item.detail}
+          </p>
+          {item.metrics && item.metrics.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {item.metrics.map((metric) => (
+                <span
+                  key={metric}
+                  className={`rounded-md border border-[var(--border-subtle)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-secondary)] ${
+                    isHero ? "bg-[var(--bg-elevated)]" : "bg-[var(--bg-card)]"
+                  }`}
+                >
+                  {metric}
+                </span>
+              ))}
+            </div>
+          )}
+          {item.manager && <ManagerSnapshotBadges manager={item.manager} />}
+          <Link
+            href={item.href}
+            className="group/link mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-blue)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Explore
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
+    </Tag>
+  );
+}
+
+function formatSigned(value: number): string {
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function formatMarketValueNum(value: number): string {
+  if (value >= 1_000_000_000) return `€${(value / 1_000_000_000).toFixed(2)}B`;
+  if (value >= 1_000_000) return `€${(value / 1_000_000).toFixed(0)}M`;
+  if (value >= 1_000) return `€${(value / 1_000).toFixed(0)}K`;
+  return `€${value}`;
+}
+
+function formatMinutes(value?: number): string {
+  if (value === undefined) return "0";
+  return value.toLocaleString();
+}
+
+function getNpga(player: Pick<MinutesValuePlayer, "goals" | "assists" | "penaltyGoals">): number {
+  return player.goals - (player.penaltyGoals ?? 0) + player.assists;
+}
+
+function sortByNpgaDesc(players: MinutesValuePlayer[]): MinutesValuePlayer[] {
+  return [...players].sort((a, b) => {
+    const npgaDiff = getNpga(b) - getNpga(a);
+    if (npgaDiff !== 0) return npgaDiff;
+    return b.marketValue - a.marketValue;
+  });
+}
+
+function pickRecentPeriodHighlights(analysis: Awaited<ReturnType<typeof getAnalysis>> | null): {
+  period: number | null;
+  topTeams: QualifiedTeam[];
+  bottomTeams: QualifiedTeam[];
+} {
+  if (!analysis || analysis.analysis.length === 0) {
+    return { period: null, topTeams: [], bottomTeams: [] };
+  }
+
+  const periodData = analysis.matchedPeriod !== null
+    ? analysis.analysis.find((p) => p.period === analysis.matchedPeriod)
+    : analysis.analysis[0];
+  if (!periodData) return { period: null, topTeams: [], bottomTeams: [] };
+
+  const topTeams = [...periodData.topTeams].sort(
+    (a, b) => b.stats.points - a.stats.points || b.stats.goalDiff - a.stats.goalDiff
+  );
+  const bottomTeams = [...periodData.bottomTeams].sort(
+    (a, b) => a.stats.points - b.stats.points || a.stats.goalDiff - b.stats.goalDiff
+  );
+
+  return { period: periodData.period, topTeams, bottomTeams };
+}
+
+function pickWithTies<T>(
+  items: T[],
+  metric: (item: T) => number,
+  direction: "top" | "bottom",
+  opts?: { sort?: (a: T, b: T) => number; max?: number },
+): T[] {
+  if (items.length === 0) return [];
+  const targetValue = items.reduce(
+    (acc, item) => {
+      const v = metric(item);
+      return direction === "top" ? Math.max(acc, v) : Math.min(acc, v);
+    },
+    direction === "top" ? -Infinity : Infinity,
+  );
+  const tied = items.filter((item) => metric(item) === targetValue);
+  const sorted = opts?.sort ? [...tied].sort(opts.sort) : tied;
+  return opts?.max ? sorted.slice(0, opts.max) : sorted;
+}
+
+const MAX_PLAYER_CATEGORIES = 5;
 
 type FeatureTone = {
   card: string;
@@ -176,60 +417,6 @@ const features: readonly Feature[] = [
       link: "text-[var(--accent-cold)]",
     },
   },
-  {
-    title: "Quick Views",
-    href: "/discover",
-    tag: "Saved Filters",
-    description:
-      "Open ready-made views instantly. A quick view is saved filters + sorting in one shareable URL.",
-    highlights: [
-      "Preset catalog grouped by section",
-      "Shortcuts for signings, injuries, bargains, and league-specific views",
-      "Perfect for recurring fan checks",
-    ],
-    icon: LayoutGrid,
-    tone: {
-      card: "hover:border-violet-500/40",
-      iconWrap: "bg-violet-500/15",
-      icon: "text-violet-300",
-      tag: "border-violet-500/40 text-violet-300",
-      bullet: "bg-violet-300",
-      link: "text-violet-300",
-    },
-  },
-] as const;
-
-const valueAnalysisLinks = [
-  {
-    label: "Most overpriced players",
-    href: "/value-analysis?mode=ga",
-    summary: "Players flagged as expensive relative to output.",
-  },
-  {
-    label: "Best bargain players",
-    href: "/value-analysis?mode=ga&dTab=bargains",
-    summary: "Lower-value players outperforming more expensive peers.",
-  },
-  {
-    label: "Top 5 bargains",
-    href: "/value-analysis?mode=ga&dTab=bargains&dTop5=1",
-    summary: "Bargain view narrowed to top-5 leagues.",
-  },
-  {
-    label: "Top 5 overpriced",
-    href: "/value-analysis?mode=ga&dTop5=1",
-    summary: "Overpriced view narrowed to top-5 leagues.",
-  },
-  {
-    label: "Expensive players with fewest minutes",
-    href: "/value-analysis?mode=mins",
-    summary: "High-value players with low minutes this season.",
-  },
-  {
-    label: "Fewest minutes (excluding injuries)",
-    href: "/value-analysis?mode=mins&noInj=1",
-    summary: "Low-minute high-value players excluding current injuries.",
-  },
 ] as const;
 
 const entryLinks = [
@@ -237,6 +424,7 @@ const entryLinks = [
   { href: "/team-form", label: "Value vs Table" },
   { href: "/players", label: "Player Explorer" },
   { href: "/value-analysis", label: "Value Analysis" },
+  { href: "/injured", label: "Injury Impact" },
 ] as const;
 
 function SectionHeading({
@@ -311,7 +499,420 @@ function FeatureCard({ feature }: { feature: Feature }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const [analysisResult, teamFormResult, playersResult, injuredResult] = await Promise.allSettled([
+    getAnalysis(),
+    getTeamFormData(),
+    getMinutesValueData(),
+    getInjuredPlayers(),
+  ]);
+
+  const analysisData = analysisResult.status === "fulfilled" ? analysisResult.value : null;
+  if (analysisResult.status === "rejected") console.error("[Home] getAnalysis failed:", analysisResult.reason);
+  const teamFormData = teamFormResult.status === "fulfilled" ? teamFormResult.value : null;
+  if (teamFormResult.status === "rejected") console.error("[Home] getTeamFormData failed:", teamFormResult.reason);
+  const players = playersResult.status === "fulfilled" ? playersResult.value : [];
+  if (playersResult.status === "rejected") console.error("[Home] getMinutesValueData failed:", playersResult.reason);
+  const injuredPlayers = injuredResult.status === "fulfilled" ? injuredResult.value.players : [];
+  if (injuredResult.status === "rejected") console.error("[Home] getInjuredPlayers failed:", injuredResult.reason);
+
+  const { period: recentPeriod, topTeams: recentTopTeams, bottomTeams: recentBottomTeams } =
+    pickRecentPeriodHighlights(analysisData);
+  const recentTopTeam = recentTopTeams[0] ?? null;
+
+  const managerByClubId = new Map<string, ManagerInfo | null>();
+  for (const team of [...(teamFormData?.overperformers ?? []), ...(teamFormData?.underperformers ?? [])]) {
+    if (!team.clubId) continue;
+    managerByClubId.set(team.clubId, team.manager ?? null);
+  }
+
+  const recentSnapshotTeams = [...recentTopTeams, ...recentBottomTeams];
+  const missingManagerClubIds = [...new Set(
+    recentSnapshotTeams
+      .map((team) => team.clubId)
+      .filter((clubId) => clubId && !managerByClubId.has(clubId))
+  )];
+  if (missingManagerClubIds.length > 0) {
+    const managerResults = await Promise.allSettled(missingManagerClubIds.map((clubId) => getManagerInfo(clubId)));
+    missingManagerClubIds.forEach((clubId, index) => {
+      const result = managerResults[index];
+      if (result?.status === "fulfilled") {
+        managerByClubId.set(clubId, result.value);
+      } else {
+        console.error(`[Home] getManagerInfo failed for club ${clubId}:`, result?.reason);
+        managerByClubId.set(clubId, null);
+      }
+    });
+  }
+  const getManagerForClub = (clubId?: string): ManagerInfo | undefined =>
+    clubId ? (managerByClubId.get(clubId) ?? undefined) : undefined;
+
+  const mostOverperformingTeams = pickWithTies(
+    teamFormData?.overperformers ?? [],
+    (team) => team.deltaPts,
+    "top",
+    { sort: (a, b) => b.points - a.points || b.marketValueNum - a.marketValueNum },
+  );
+  const mostUnderperformingTeams = pickWithTies(
+    teamFormData?.underperformers ?? [],
+    (team) => team.deltaPts,
+    "bottom",
+    { sort: (a, b) => a.points - b.points || a.marketValueNum - b.marketValueNum },
+  );
+  const mostOverperformingTeam = mostOverperformingTeams[0] ?? null;
+
+  const statsNoPenNoIntl = applyStatsToggles(players.map(toPlayerStats), {
+    includePen: false,
+    includeIntl: false,
+  });
+  const underperformerCandidates = findValueCandidates(statsNoPenNoIntl, {
+    candidateOutperforms: false,
+    minMinutes: MIN_VALUE_ANALYSIS_MINUTES,
+    sortAsc: false,
+  });
+  const overperformerCandidates = findValueCandidates(statsNoPenNoIntl, {
+    candidateOutperforms: true,
+    sortAsc: true,
+  });
+
+  const mostOverpricedPlayers = pickWithTies(
+    underperformerCandidates,
+    (player) => player.count,
+    "top",
+    { sort: (a, b) => b.marketValue - a.marketValue },
+  );
+  const mostBargainPlayers = pickWithTies(
+    overperformerCandidates,
+    (player) => player.count,
+    "top",
+    { sort: (a, b) => b.points - a.points || a.marketValue - b.marketValue },
+  );
+  const mostOverpricedPlayer = mostOverpricedPlayers[0] ?? null;
+
+  const playersByNpga = sortByNpgaDesc(players);
+  const mostNpgaPlayers = pickWithTies(playersByNpga, (player) => getNpga(player), "top", {
+    sort: (a, b) => b.marketValue - a.marketValue,
+  });
+  const mostNpgaPlayer = mostNpgaPlayers[0] ?? null;
+  const mostNpgaSignings = pickWithTies(
+    players.filter((p) => p.isNewSigning),
+    (player) => getNpga(player),
+    "top",
+    { sort: (a, b) => b.marketValue - a.marketValue },
+  );
+  const mostValuableLoans = pickWithTies(
+    players.filter((p) => p.isOnLoan),
+    (player) => player.marketValue,
+    "top",
+    { sort: (a, b) => getNpga(b) - getNpga(a) || b.minutes - a.minutes },
+  );
+
+  const zeroCapsPlayers = players.filter((p) => (p.intlCareerCaps ?? 0) === 0);
+  const mostValuableZeroCapsPlayers = pickWithTies(
+    zeroCapsPlayers,
+    (player) => player.marketValue,
+    "top",
+    { sort: (a, b) => getNpga(b) - getNpga(a) },
+  );
+  const mostNpgaZeroCapsPlayers = pickWithTies(
+    sortByNpgaDesc(zeroCapsPlayers),
+    (player) => getNpga(player),
+    "top",
+    { sort: (a, b) => b.marketValue - a.marketValue },
+  );
+
+  const mostValuableInjuredPlayers = pickWithTies(
+    injuredPlayers,
+    (player) => player.marketValueNum,
+    "top",
+    { sort: (a, b) => a.name.localeCompare(b.name) },
+  );
+
+  const injuryTeamMap = new Map<string, InjuryTeamSummary>();
+  for (const player of injuredPlayers) {
+    const key = `${player.league}::${player.club}`;
+    const existing = injuryTeamMap.get(key);
+    if (existing) {
+      existing.totalValue += player.marketValueNum;
+      existing.count += 1;
+      continue;
+    }
+    injuryTeamMap.set(key, {
+      club: player.club,
+      league: player.league,
+      clubLogoUrl: player.clubLogoUrl,
+      totalValue: player.marketValueNum,
+      count: 1,
+    });
+  }
+  const injuryTeams = [...injuryTeamMap.values()];
+  const mostAffectedInjuryTeams = pickWithTies(
+    injuryTeams,
+    (team) => team.totalValue,
+    "top",
+    { sort: (a, b) => b.count - a.count || a.club.localeCompare(b.club) },
+  );
+
+  // --- Hero snapshots (top-right card) ---
+  const heroSnapshots: SnapshotItem[] = [];
+  if (recentTopTeam && recentPeriod !== null) {
+    heroSnapshots.push({
+      label: `Hottest team (last ${recentPeriod})`,
+      value: recentTopTeam.name,
+      detail: `${recentTopTeam.stats.points} pts · GD ${formatSigned(recentTopTeam.stats.goalDiff)}`,
+      href: "/form",
+      imageUrl: recentTopTeam.logoUrl,
+      imageContain: true,
+      manager: getManagerForClub(recentTopTeam.clubId),
+    });
+  }
+  if (mostOverperformingTeam) {
+    heroSnapshots.push({
+      label: "Biggest overperformer",
+      value: mostOverperformingTeam.name,
+      detail: `${mostOverperformingTeam.league} · ${formatSigned(mostOverperformingTeam.deltaPts)} pts vs expected`,
+      href: "/team-form",
+      imageUrl: mostOverperformingTeam.logoUrl,
+      imageContain: true,
+      manager: getManagerForClub(mostOverperformingTeam.clubId),
+    });
+  }
+  if (mostOverpricedPlayer) {
+    heroSnapshots.push({
+      label: "Most overpriced player",
+      value: mostOverpricedPlayer.name,
+      detail: `${mostOverpricedPlayer.marketValueDisplay} · ${mostOverpricedPlayer.count} cheaper peers outscore`,
+      href: "/value-analysis?mode=ga",
+      imageUrl: mostOverpricedPlayer.imageUrl,
+      secondaryImageUrl: mostOverpricedPlayer.clubLogoUrl,
+    });
+  }
+  if (mostNpgaPlayer) {
+    heroSnapshots.push({
+      label: "Top scorer (npG+A)",
+      value: mostNpgaPlayer.name,
+      detail: `${mostNpgaPlayer.club} · ${getNpga(mostNpgaPlayer)} npG+A`,
+      href: "/players?sort=ga",
+      imageUrl: mostNpgaPlayer.imageUrl,
+      secondaryImageUrl: mostNpgaPlayer.clubLogoUrl,
+    });
+  }
+
+  // --- Section snapshot items (ties always shown; Player Explorer capped by category count) ---
+  const recentFormItems: SnapshotItem[] = [];
+  if (recentPeriod !== null) {
+    recentTopTeams.forEach((team) => {
+      recentFormItems.push({
+        label: "Hottest team",
+        value: team.name,
+        detail: `${team.league} · ${team.stats.points} pts · GD ${formatSigned(team.stats.goalDiff)} in last ${recentPeriod}`,
+        metrics: team.criteria,
+        href: "/form",
+        imageUrl: team.logoUrl,
+        imageContain: true,
+        manager: getManagerForClub(team.clubId),
+      });
+    });
+    recentBottomTeams.forEach((team) => {
+      recentFormItems.push({
+        label: "Coldest team",
+        value: team.name,
+        detail: `${team.league} · ${team.stats.points} pts · GD ${formatSigned(team.stats.goalDiff)} in last ${recentPeriod}`,
+        metrics: team.criteria,
+        href: "/form",
+        imageUrl: team.logoUrl,
+        imageContain: true,
+        manager: getManagerForClub(team.clubId),
+      });
+    });
+  }
+
+  const teamFormItems: SnapshotItem[] = [];
+  mostOverperformingTeams.forEach((team) => {
+    teamFormItems.push({
+      label: "Biggest overperformer",
+      value: team.name,
+      detail: `${team.league} · ${formatSigned(team.deltaPts)} pts vs expected`,
+      href: "/team-form",
+      imageUrl: team.logoUrl,
+      imageContain: true,
+      manager: getManagerForClub(team.clubId),
+    });
+  });
+  mostUnderperformingTeams.forEach((team) => {
+    teamFormItems.push({
+      label: "Biggest underperformer",
+      value: team.name,
+      detail: `${team.league} · ${formatSigned(team.deltaPts)} pts vs expected`,
+      href: "/team-form",
+      imageUrl: team.logoUrl,
+      imageContain: true,
+      manager: getManagerForClub(team.clubId),
+    });
+  });
+
+  const valueAnalysisItems: SnapshotItem[] = [];
+  mostOverpricedPlayers.forEach((player) => {
+    valueAnalysisItems.push({
+      label: "Most overpriced",
+      value: player.name,
+      detail: `${player.club} · ${player.marketValueDisplay}`,
+      metrics: [`npG+A ${player.points}`, `${formatMinutes(player.minutes)} mins`, `${player.count} cheaper peers outscore`],
+      href: "/value-analysis?mode=ga",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  mostBargainPlayers.forEach((player) => {
+    valueAnalysisItems.push({
+      label: "Best bargain",
+      value: player.name,
+      detail: `${player.club} · ${player.marketValueDisplay}`,
+      metrics: [`npG+A ${player.points}`, `${formatMinutes(player.minutes)} mins`, `outscores ${player.count} pricier peers`],
+      href: "/value-analysis?mode=ga&dTab=bargains",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+
+  const playerCategories: SnapshotItem[][] = [];
+  const npgaItems: SnapshotItem[] = [];
+  mostNpgaPlayers.forEach((player) => {
+    npgaItems.push({
+      label: "Top scorer (npG+A)",
+      value: player.name,
+      detail: `${player.club} · ${getNpga(player)} npG+A`,
+      metrics: [`${formatMinutes(player.minutes)} mins`, player.marketValueDisplay],
+      href: "/players?sort=ga",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  if (npgaItems.length) playerCategories.push(npgaItems);
+
+  const signingItems: SnapshotItem[] = [];
+  mostNpgaSignings.forEach((player) => {
+    signingItems.push({
+      label: "Top scoring signing",
+      value: player.name,
+      detail: `${player.club} · ${getNpga(player)} npG+A`,
+      metrics: [`${formatMinutes(player.minutes)} mins`, player.marketValueDisplay],
+      href: "/players?signing=transfer&sort=ga",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  if (signingItems.length) playerCategories.push(signingItems);
+
+  const loanItems: SnapshotItem[] = [];
+  mostValuableLoans.forEach((player) => {
+    loanItems.push({
+      label: "Most valuable loan",
+      value: player.name,
+      detail: `${player.club} · ${player.marketValueDisplay}`,
+      metrics: [`npG+A ${getNpga(player)}`, `${formatMinutes(player.minutes)} mins`],
+      href: "/players?signing=loan&sort=value",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  if (loanItems.length) playerCategories.push(loanItems);
+
+  const uncappedValueItems: SnapshotItem[] = [];
+  mostValuableZeroCapsPlayers.forEach((player) => {
+    uncappedValueItems.push({
+      label: "Most valuable uncapped",
+      value: player.name,
+      detail: `${player.club} · ${player.marketValueDisplay}`,
+      metrics: [`npG+A ${getNpga(player)}`, `${formatMinutes(player.minutes)} mins`],
+      href: "/players?sort=value&maxcaps=0",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  if (uncappedValueItems.length) playerCategories.push(uncappedValueItems);
+
+  const uncappedScorerItems: SnapshotItem[] = [];
+  mostNpgaZeroCapsPlayers.forEach((player) => {
+    uncappedScorerItems.push({
+      label: "Top scoring uncapped",
+      value: player.name,
+      detail: `${player.club} · ${getNpga(player)} npG+A`,
+      metrics: [`${formatMinutes(player.minutes)} mins`, player.marketValueDisplay],
+      href: "/players?sort=ga&maxcaps=0",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  if (uncappedScorerItems.length) playerCategories.push(uncappedScorerItems);
+
+  const playerItems = playerCategories.slice(0, MAX_PLAYER_CATEGORIES).flat();
+
+  const injuryItems: SnapshotItem[] = [];
+  mostValuableInjuredPlayers.forEach((player) => {
+    injuryItems.push({
+      label: "Most valuable injured",
+      value: player.name,
+      detail: `${player.club} · ${player.marketValue}`,
+      metrics: [player.injury],
+      href: "/injured?tab=players",
+      imageUrl: player.imageUrl,
+      secondaryImageUrl: player.clubLogoUrl,
+    });
+  });
+  mostAffectedInjuryTeams.forEach((team) => {
+    injuryItems.push({
+      label: "Hardest hit club",
+      value: team.club,
+      detail: `${team.league} · ${formatMarketValueNum(team.totalValue)} lost · ${team.count} injured`,
+      href: "/injured?tab=teams",
+      imageUrl: team.clubLogoUrl,
+      imageContain: true,
+    });
+  });
+
+  const snapshotGroups: SnapshotGroup[] = [];
+  if (recentFormItems.length) {
+    snapshotGroups.push({
+      title: "Recent Form",
+      description: "Best and worst teams from the current form window.",
+      href: "/form",
+      items: recentFormItems,
+    });
+  }
+  if (teamFormItems.length) {
+    snapshotGroups.push({
+      title: "Value vs Table",
+      description: "Teams most above or below value-based expectation.",
+      href: "/team-form",
+      items: teamFormItems,
+    });
+  }
+  if (valueAnalysisItems.length) {
+    snapshotGroups.push({
+      title: "Value Analysis",
+      description: "Most overpriced players and best bargains by peer comparison.",
+      href: "/value-analysis",
+      items: valueAnalysisItems,
+    });
+  }
+  if (playerItems.length) {
+    snapshotGroups.push({
+      title: "Player Explorer",
+      description: "Top performers, signings, loans, and uncapped players.",
+      href: "/players",
+      items: playerItems,
+    });
+  }
+  if (injuryItems.length) {
+    snapshotGroups.push({
+      title: "Injury Impact",
+      description: "The most valuable sidelined players and hardest-hit clubs.",
+      href: "/injured",
+      items: injuryItems,
+    });
+  }
+
   return (
     <div className="pb-16 sm:pb-20">
       <section className="full-bleed relative overflow-hidden border-b border-[var(--border-subtle)] bg-[radial-gradient(circle_at_14%_10%,rgba(0,255,135,0.16),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(88,166,255,0.15),transparent_40%),linear-gradient(180deg,var(--bg-base),var(--bg-elevated))]">
@@ -332,7 +933,7 @@ export default function Home() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm text-[var(--text-secondary)] sm:text-lg">
-                Track form, compare value to results, hunt bargains, and check injury chaos across Europe&apos;s top leagues in one place.
+                Track form, spot overpriced players, find bargains, and check injury chaos — backed by daily Transfermarkt data.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -351,26 +952,29 @@ export default function Home() {
             <Card className="border-[var(--border-medium)] bg-[rgba(13,17,23,0.86)] backdrop-blur-sm">
               <CardHeader>
                 <Badge variant="outline" className="w-fit border-[var(--accent-blue)]/40 bg-[rgba(88,166,255,0.1)] text-[var(--accent-blue)]">
-                  Value Analysis shortcuts
+                  Live snapshots
                 </Badge>
-                <CardTitle className="text-xl text-[var(--text-primary)]">Jump straight to the view you need</CardTitle>
+                <CardTitle className="text-xl text-[var(--text-primary)]">Today&apos;s highlights</CardTitle>
                 <CardDescription className="text-sm text-[var(--text-secondary)]">
-                  Open Value Analysis with preset filters for bargains, overpriced players, and minutes-based flags.
+                  The standout names across form, value, and output right now.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Try these first</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Right now</p>
                 <div className="mt-3 space-y-2">
-                  {valueAnalysisLinks.slice(0, 4).map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="group/quick flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]"
-                    >
-                      <span>{item.label}</span>
-                      <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-transform group-hover/quick:translate-x-0.5" />
-                    </Link>
-                  ))}
+                  {heroSnapshots.length > 0 ? (
+                    heroSnapshots.map((item) => (
+                      <SnapshotItemRow
+                        key={`${item.label}-${item.value}`}
+                        item={item}
+                        variant="hero"
+                      />
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-sm text-[var(--text-muted)]">
+                      No snapshot data available right now. Open a section below for full details.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -396,7 +1000,7 @@ export default function Home() {
         <SectionHeading
           eyebrow="Explore"
           title="Everything you can explore"
-          description="Every feature is here with plain-language explanations and direct links."
+          description="Every feature with plain-language explanations and direct links."
           action={{ href: "/value-analysis", label: "Open value analysis" }}
         />
 
@@ -409,30 +1013,49 @@ export default function Home() {
 
       <section className="pt-12 sm:pt-16">
         <SectionHeading
-          eyebrow="Value Analysis"
-          title="Popular value analysis links"
-          description="Direct links to the most useful Value Analysis setups."
-          action={{ href: "/value-analysis", label: "Open value analysis page" }}
+          eyebrow="Live data"
+          title="Current leaders"
+          description="Standouts from each section — scan the headlines, then dive deeper."
         />
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {valueAnalysisLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="group rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 transition-colors hover:bg-[var(--bg-card-hover)]"
-            >
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <Badge variant="outline" className="border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[10px] uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                  Value Analysis
-                </Badge>
-                <ArrowRight className="h-4 w-4 text-[var(--text-muted)] transition-transform group-hover:translate-x-1" />
-              </div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">{item.label}</h3>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.summary}</p>
-            </Link>
-          ))}
-        </div>
+        {snapshotGroups.length > 0 ? (
+          <div className="columns-1 gap-4 lg:columns-2">
+            {snapshotGroups.map((group) => (
+              <Card key={group.title} className="mb-4 break-inside-avoid border-[var(--border-subtle)] bg-[var(--bg-card)]">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-lg text-[var(--text-primary)]">{group.title}</CardTitle>
+                      <CardDescription className="mt-1 text-sm text-[var(--text-secondary)]">
+                        {group.description}
+                      </CardDescription>
+                    </div>
+                    <Link
+                      href={group.href}
+                      className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--accent-blue)] transition-colors hover:text-[var(--text-primary)]"
+                    >
+                      Open
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {group.items.map((item) => (
+                    <SnapshotItemRow
+                      key={`${group.title}-${item.label}-${item.value}`}
+                      item={item}
+                      variant="section"
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 text-sm text-[var(--text-muted)]">
+            Snapshot data is temporarily unavailable. Open a section for full live tables.
+          </div>
+        )}
       </section>
 
       <section className="pt-12 sm:pt-16">
@@ -440,7 +1063,7 @@ export default function Home() {
           <h2 className="text-xl font-black text-[var(--text-primary)] sm:text-2xl">Jump to a page</h2>
           <p className="mt-1 text-sm text-[var(--text-muted)]">Pick where you want to start.</p>
 
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {entryLinks.map((item) => (
               <Link
                 key={item.href}
