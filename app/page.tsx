@@ -1,278 +1,459 @@
 import Link from "next/link";
 import {
-  TrendingUp,
-  Scale,
   Activity,
+  ArrowRight,
   Clock,
   HeartPulse,
-  ArrowRight,
+  LayoutGrid,
+  Scale,
+  TrendingUp,
+  type LucideIcon,
 } from "lucide-react";
 import { createPageMetadata } from "@/lib/metadata";
-import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = createPageMetadata({
   title: "Home",
   description:
-    "FormTracker helps you scan recent form, value efficiency, injuries, and minutes trends across Europe's top football leagues.",
+    "FormTracker helps football fans track team form, player output, injuries, and value trends across Europe.",
   path: "/",
   keywords: [
     "football analytics",
-    "soccer form tracker",
-    "player value rankings",
+    "football stats for fans",
+    "team form tracker",
+    "player value analysis",
     "injury impact football",
   ],
 });
 
-const pages = [
+const snapshotTiles = [
+  {
+    value: "5",
+    label: "Top Leagues",
+    detail: "Premier League, La Liga, Bundesliga, Serie A, Ligue 1",
+  },
+  {
+    value: "500+",
+    label: "Players",
+    detail: "Big-name profiles with value, minutes, G+A, penalties, and status tags",
+  },
+  {
+    value: "2",
+    label: "Value Modes",
+    detail: "G+A value mode and minutes mode for overpriced vs bargain signals",
+  },
+  {
+    value: "Daily",
+    label: "Refresh",
+    detail: "Transfermarkt-backed data with a manual refresh button in the header",
+  },
+] as const;
+
+type FeatureTone = {
+  card: string;
+  iconWrap: string;
+  icon: string;
+  tag: string;
+  bullet: string;
+  link: string;
+};
+
+type Feature = {
+  title: string;
+  href: string;
+  tag: string;
+  description: string;
+  highlights: readonly [string, string, string];
+  icon: LucideIcon;
+  tone: FeatureTone;
+};
+
+const features: readonly Feature[] = [
   {
     title: "Recent Form",
     href: "/form",
-    tag: "FORM",
+    tag: "Hot & Cold",
     description:
-      "Who's hot and who's not. Compare form over 5, 10, 15, and 20-match windows across all leagues.",
-    detail: "Spot momentum shifts before the table does.",
+      "See which teams are flying or falling apart across 5, 10, 15, and 20-match windows.",
+    highlights: [
+      "Best and worst teams by points, goal difference, goals scored, and goals conceded",
+      "Window-by-window cards so you can compare momentum quickly",
+      "Manager PPG context attached to standout teams",
+    ],
     icon: Activity,
-    accentVar: "--accent-hot",
-    glowVar: "--accent-hot-glow",
+    tone: {
+      card: "hover:border-[var(--accent-hot-border)]",
+      iconWrap: "bg-[var(--accent-hot-glow)]",
+      icon: "text-[var(--accent-hot)]",
+      tag: "border-[var(--accent-hot-border)] text-[var(--accent-hot)]",
+      bullet: "bg-[var(--accent-hot)]",
+      link: "text-[var(--accent-hot)]",
+    },
   },
   {
     title: "Value vs Table",
     href: "/team-form",
-    tag: "VALUE",
+    tag: "Punching Up?",
     description:
-      "Actual league points vs expected points derived from squad market value rank.",
-    detail: "Who is punching above their weight?",
+      "Compare actual points to value-based expected points and find clubs overachieving or underachieving.",
+    highlights: [
+      "Clear overperformer and underperformer rankings",
+      "League filters plus all-leagues mode",
+      "Manager overlays for extra context",
+    ],
     icon: Scale,
-    accentVar: "--accent-blue",
-    glowVar: "--accent-blue",
+    tone: {
+      card: "hover:border-[rgba(88,166,255,0.35)]",
+      iconWrap: "bg-[rgba(88,166,255,0.16)]",
+      icon: "text-[var(--accent-blue)]",
+      tag: "border-[rgba(88,166,255,0.35)] text-[var(--accent-blue)]",
+      bullet: "bg-[var(--accent-blue)]",
+      link: "text-[var(--accent-blue)]",
+    },
   },
   {
     title: "Player Explorer",
     href: "/players",
-    tag: "PLAYERS",
+    tag: "Player Rabbit Hole",
     description:
-      "Browse and sort 500+ elite players by value, minutes, games, and G+A across Europe's top leagues.",
-    detail: "Filter by league, club, or top 5.",
+      "Dive into player stats with filters for value, minutes, games, G+A, penalties, loans, and new signings.",
+    highlights: [
+      "Loan and new-signing filters plus top-5-only mode",
+      "League, club, nationality, and sorting controls",
+      "Injury overlays and penalty context",
+    ],
     icon: Clock,
-    accentVar: "--accent-hot",
-    glowVar: "--accent-hot-glow",
+    tone: {
+      card: "hover:border-[rgba(255,215,0,0.32)]",
+      iconWrap: "bg-[rgba(255,215,0,0.15)]",
+      icon: "text-[var(--accent-gold)]",
+      tag: "border-[rgba(255,215,0,0.32)] text-[var(--accent-gold)]",
+      bullet: "bg-[var(--accent-gold)]",
+      link: "text-[var(--accent-gold)]",
+    },
   },
   {
     title: "Value Analysis",
     href: "/value-analysis",
-    tag: "OUTPUT",
+    tag: "Overpriced or Steal?",
     description:
-      "Find overpriced players and hidden bargains — two lenses (G+A and minutes) to spot who's overpaid and who punches above their price tag.",
-    detail: "Overpriced vs bargain players.",
+      "Compare players against peers to spot expensive underdeliverers and sneaky bargains.",
+    highlights: [
+      "Two modes: output value (G+A) and low-minutes flags",
+      "Toggle penalties and international output",
+      "Optional injury exclusion for cleaner minutes view",
+    ],
     icon: TrendingUp,
-    accentVar: "--accent-gold",
-    glowVar: "--accent-gold",
+    tone: {
+      card: "hover:border-emerald-500/40",
+      iconWrap: "bg-emerald-500/15",
+      icon: "text-emerald-400",
+      tag: "border-emerald-500/40 text-emerald-400",
+      bullet: "bg-emerald-400",
+      link: "text-emerald-400",
+    },
   },
   {
     title: "Injury Impact",
     href: "/injured",
-    tag: "INJURIES",
+    tag: "Who Is Missing?",
     description:
-      "Where injury absences represent the biggest market-value hit across squads.",
-    detail: "Impact by player, team, and injury type.",
+      "Track injury impact by player, club, and injury type with value-loss rankings.",
+    highlights: [
+      "Tabs for players, teams, and injury categories",
+      "Club-level value loss and injured player counts",
+      "Injury duration and return timeline hints",
+    ],
     icon: HeartPulse,
-    accentVar: "--accent-cold",
-    glowVar: "--accent-cold-glow",
+    tone: {
+      card: "hover:border-[var(--accent-cold-border)]",
+      iconWrap: "bg-[var(--accent-cold-glow)]",
+      icon: "text-[var(--accent-cold)]",
+      tag: "border-[var(--accent-cold-border)] text-[var(--accent-cold)]",
+      bullet: "bg-[var(--accent-cold)]",
+      link: "text-[var(--accent-cold)]",
+    },
+  },
+  {
+    title: "Quick Views",
+    href: "/discover",
+    tag: "Saved Filters",
+    description:
+      "Open ready-made views instantly. A quick view is saved filters + sorting in one shareable URL.",
+    highlights: [
+      "Preset catalog grouped by section",
+      "Shortcuts for signings, injuries, bargains, and league-specific views",
+      "Perfect for recurring fan checks",
+    ],
+    icon: LayoutGrid,
+    tone: {
+      card: "hover:border-violet-500/40",
+      iconWrap: "bg-violet-500/15",
+      icon: "text-violet-300",
+      tag: "border-violet-500/40 text-violet-300",
+      bullet: "bg-violet-300",
+      link: "text-violet-300",
+    },
   },
 ] as const;
 
-function HeroVisual() {
+const valueAnalysisLinks = [
+  {
+    label: "Most overpriced players",
+    href: "/value-analysis?mode=ga",
+    summary: "Players flagged as expensive relative to output.",
+  },
+  {
+    label: "Best bargain players",
+    href: "/value-analysis?mode=ga&dTab=bargains",
+    summary: "Lower-value players outperforming more expensive peers.",
+  },
+  {
+    label: "Top 5 bargains",
+    href: "/value-analysis?mode=ga&dTab=bargains&dTop5=1",
+    summary: "Bargain view narrowed to top-5 leagues.",
+  },
+  {
+    label: "Top 5 overpriced",
+    href: "/value-analysis?mode=ga&dTop5=1",
+    summary: "Overpriced view narrowed to top-5 leagues.",
+  },
+  {
+    label: "Expensive players with fewest minutes",
+    href: "/value-analysis?mode=mins",
+    summary: "High-value players with low minutes this season.",
+  },
+  {
+    label: "Fewest minutes (excluding injuries)",
+    href: "/value-analysis?mode=mins&noInj=1",
+    summary: "Low-minute high-value players excluding current injuries.",
+  },
+] as const;
+
+const entryLinks = [
+  { href: "/form", label: "Recent Form" },
+  { href: "/team-form", label: "Value vs Table" },
+  { href: "/players", label: "Player Explorer" },
+  { href: "/value-analysis", label: "Value Analysis" },
+] as const;
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action?: { href: string; label: string };
+}) {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Large radial glow behind hero */}
-      <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(0,255,135,0.07)_0%,transparent_70%)]" />
-      {/* Diagonal accent line */}
-      <div className="absolute top-20 right-0 h-px w-80 origin-right rotate-[-20deg] bg-gradient-to-l from-[var(--accent-hot)] via-[rgba(0,255,135,0.2)] to-transparent opacity-40" />
-      <div className="absolute top-52 left-0 h-px w-60 origin-left rotate-[15deg] bg-gradient-to-r from-[var(--accent-cold)] via-[rgba(255,71,87,0.2)] to-transparent opacity-30" />
-      {/* Floating data dots */}
-      <div className="absolute top-32 right-[15%] h-1.5 w-1.5 rounded-full bg-[var(--accent-hot)] opacity-60 animate-float" />
-      <div className="absolute top-48 right-[25%] h-1 w-1 rounded-full bg-[var(--accent-blue)] opacity-40 animate-float [animation-delay:1s]" />
-      <div className="absolute top-24 left-[20%] h-1 w-1 rounded-full bg-[var(--accent-gold)] opacity-50 animate-float [animation-delay:0.5s]" />
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{eyebrow}</p>
+        <h2 className="mt-1 text-2xl font-black text-[var(--text-primary)] sm:text-3xl">{title}</h2>
+        <p className="mt-2 max-w-3xl text-sm text-[var(--text-muted)] sm:text-base">{description}</p>
+      </div>
+      {action && (
+        <Button asChild variant="outline" className="border-[var(--border-medium)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]">
+          <Link href={action.href}>{action.label}</Link>
+        </Button>
+      )}
     </div>
   );
 }
 
-function MiniBar({ height, delay, color }: { height: string; delay: string; color: string }) {
+function FeatureCard({ feature }: { feature: Feature }) {
+  const Icon = feature.icon;
+
   return (
-    <div
-      className="w-1 rounded-full animate-slide-up"
-      style={{
-        height,
-        animationDelay: delay,
-        background: color,
-        opacity: 0.7,
-      }}
-    />
+    <Card
+      className={`group h-full border-[var(--border-subtle)] bg-[var(--bg-card)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[var(--bg-card-hover)] ${feature.tone.card}`}
+    >
+      <CardHeader>
+        <div className="mb-3 flex items-center justify-between">
+          <span className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${feature.tone.iconWrap}`}>
+            <Icon className={`h-5 w-5 ${feature.tone.icon}`} />
+          </span>
+          <Badge
+            variant="outline"
+            className={`border text-[10px] uppercase tracking-[0.16em] ${feature.tone.tag}`}
+          >
+            {feature.tag}
+          </Badge>
+        </div>
+        <CardTitle className="text-xl text-[var(--text-primary)]">{feature.title}</CardTitle>
+        <CardDescription className="text-sm leading-relaxed text-[var(--text-secondary)]">
+          {feature.description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {feature.highlights.map((highlight) => (
+            <li key={highlight} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+              <span className={`mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${feature.tone.bullet}`} />
+              <span>{highlight}</span>
+            </li>
+          ))}
+        </ul>
+        <Link
+          href={feature.href}
+          className={`group/link mt-5 inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:text-[var(--text-primary)] ${feature.tone.link}`}
+        >
+          Open {feature.title}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-0.5" />
+        </Link>
+      </CardContent>
+    </Card>
   );
 }
 
 export default function Home() {
   return (
-    <>
-      {/* ── Hero ── */}
-      <section className="full-bleed relative overflow-hidden border-b border-[var(--border-subtle)]">
-        <HeroVisual />
-        <div className="relative page-container pb-14 pt-12 sm:pb-20 sm:pt-16">
-          {/* Live tag */}
-          <div className="mb-5 flex items-center gap-2 animate-fade-in">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent-hot)] opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent-hot)]" />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-hot)]">
-              Live across 5 leagues
-            </span>
-          </div>
+    <div className="pb-16 sm:pb-20">
+      <section className="full-bleed relative overflow-hidden border-b border-[var(--border-subtle)] bg-[radial-gradient(circle_at_14%_10%,rgba(0,255,135,0.16),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(88,166,255,0.15),transparent_40%),linear-gradient(180deg,var(--bg-base),var(--bg-elevated))]">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(88,166,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(88,166,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px]" aria-hidden="true" />
 
-          <h1 className="animate-slide-up text-4xl font-black tracking-tight text-[var(--text-primary)] sm:text-5xl lg:text-6xl">
-            Football Signals,
-            <br />
-            <span className="bg-gradient-to-r from-[var(--accent-hot)] via-[var(--accent-blue)] to-[var(--accent-gold)] bg-clip-text text-transparent">
-              Not Noise.
-            </span>
-          </h1>
+        <div className="page-container relative py-12 sm:py-16 lg:py-20">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+            <div>
+              <Badge className="mb-5 border-[var(--accent-hot-border)] bg-[var(--accent-hot-glow)] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--accent-hot)]">
+                Daily football stats across Europe&apos;s top leagues
+              </Badge>
 
-          <p className="mt-5 max-w-xl animate-slide-up text-base text-[var(--text-secondary)] sm:text-lg [animation-delay:0.08s]">
-            Cut through the noise. Five analytical lenses on Europe&rsquo;s top leagues &mdash;
-            form, team value, player output, minutes, and injury impact &mdash; updated daily from Transfermarkt.
-          </p>
-
-          {/* Mini stat preview */}
-          <div className="mt-8 flex flex-wrap gap-3 animate-slide-up [animation-delay:0.15s]">
-            {(["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"] as const).map(
-              (league) => (
-                <span
-                  key={league}
-                  className="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)]"
-                >
-                  {league}
+              <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-[var(--text-primary)] sm:text-5xl lg:text-6xl">
+                Football stats,
+                <span className="ml-2 bg-gradient-to-r from-[var(--accent-hot)] via-[var(--accent-blue)] to-[var(--accent-gold)] bg-clip-text text-transparent">
+                  in one place.
                 </span>
-              )
-            )}
-          </div>
-        </div>
-      </section>
+              </h1>
 
-      {/* ── Cards Grid ── */}
-      <section className="py-10 sm:py-14">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-[var(--border-subtle)] to-transparent" />
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            Analytical Tools
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-l from-[var(--border-subtle)] to-transparent" />
-        </div>
+              <p className="mt-5 max-w-2xl text-sm text-[var(--text-secondary)] sm:text-lg">
+                Track form, compare value to results, hunt bargains, and check injury chaos across Europe&apos;s top leagues in one place.
+              </p>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {pages.map((page, i) => {
-            const Icon = page.icon;
-            return (
-              <Link
-                key={page.href}
-                href={page.href}
-                className="group relative flex flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] animate-slide-up hover-lift"
-                style={{ animationDelay: `${0.05 * i}s` }}
-              >
-                {/* Top accent line */}
-                <div
-                  className="h-0.5 w-full opacity-60 transition-opacity group-hover:opacity-100"
-                  style={{
-                    background: `linear-gradient(90deg, var(${page.accentVar}), transparent)`,
-                  }}
-                />
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Button asChild size="lg" className="bg-[var(--accent-hot)] text-black hover:bg-[rgb(0,220,116)]">
+                  <Link href="/form">Start With Form</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="border-[var(--border-medium)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]">
+                  <Link href="/value-analysis">
+                    Open Value Analysis
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
 
-                <div className="flex flex-1 flex-col p-5">
-                  {/* Icon + tag row */}
-                  <div className="mb-4 flex items-center justify-between">
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
-                      style={{
-                        background: `color-mix(in srgb, var(${page.accentVar}) 12%, transparent)`,
-                        color: `var(${page.accentVar})`,
-                      }}
+            <Card className="border-[var(--border-medium)] bg-[rgba(13,17,23,0.86)] backdrop-blur-sm">
+              <CardHeader>
+                <Badge variant="outline" className="w-fit border-[var(--accent-blue)]/40 bg-[rgba(88,166,255,0.1)] text-[var(--accent-blue)]">
+                  Value Analysis shortcuts
+                </Badge>
+                <CardTitle className="text-xl text-[var(--text-primary)]">Jump straight to the view you need</CardTitle>
+                <CardDescription className="text-sm text-[var(--text-secondary)]">
+                  Open Value Analysis with preset filters for bargains, overpriced players, and minutes-based flags.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Try these first</p>
+                <div className="mt-3 space-y-2">
+                  {valueAnalysisLinks.slice(0, 4).map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="group/quick flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]"
                     >
-                      <Icon className="h-4.5 w-4.5" strokeWidth={2} />
-                    </div>
-                    <span
-                      className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
-                      style={{
-                        background: `color-mix(in srgb, var(${page.accentVar}) 8%, transparent)`,
-                        color: `var(${page.accentVar})`,
-                        border: `1px solid color-mix(in srgb, var(${page.accentVar}) 20%, transparent)`,
-                      }}
-                    >
-                      {page.tag}
-                    </span>
-                  </div>
-
-                  <h2 className="text-lg font-bold text-[var(--text-primary)]">
-                    {page.title}
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-                    {page.description}
-                  </p>
-                  <p className="mt-1.5 text-xs text-[var(--text-muted)] italic">
-                    {page.detail}
-                  </p>
-
-                  {/* Bottom arrow */}
-                  <div className="mt-auto flex items-center gap-1.5 pt-5 text-xs font-semibold transition-colors" style={{ color: `var(${page.accentVar})` }}>
-                    <span className="uppercase tracking-wider">Explore</span>
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                  </div>
+                      <span>{item.label}</span>
+                      <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-transform group-hover/quick:translate-x-0.5" />
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-            );
-          })}
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* "How it works" card — fills the 6th slot on large screens */}
-          <div className="relative flex flex-col overflow-hidden rounded-xl border border-dashed border-[var(--border-medium)] bg-[var(--bg-elevated)] p-5 animate-slide-up [animation-delay:0.25s]">
-            <div className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              How it works
-            </div>
-            <div className="space-y-3 text-sm text-[var(--text-secondary)]">
-              <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--bg-card)] text-[10px] font-bold text-[var(--accent-hot)]">1</span>
-                <span>Data pulled daily from Transfermarkt</span>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--bg-card)] text-[10px] font-bold text-[var(--accent-blue)]">2</span>
-                <span>Crunched into form signals and value metrics</span>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--bg-card)] text-[10px] font-bold text-[var(--accent-gold)]">3</span>
-                <span>Over &amp; underperformance surfaced instantly</span>
-              </div>
-            </div>
-            {/* Mini decorative bar chart */}
-            <div className="mt-auto flex items-end gap-1 pt-6 opacity-40">
-              <MiniBar height="12px" delay="0s" color="var(--accent-cold)" />
-              <MiniBar height="20px" delay="0.05s" color="var(--accent-cold)" />
-              <MiniBar height="16px" delay="0.1s" color="var(--accent-blue)" />
-              <MiniBar height="28px" delay="0.15s" color="var(--accent-hot)" />
-              <MiniBar height="36px" delay="0.2s" color="var(--accent-hot)" />
-              <MiniBar height="24px" delay="0.25s" color="var(--accent-blue)" />
-              <MiniBar height="32px" delay="0.3s" color="var(--accent-hot)" />
-              <MiniBar height="18px" delay="0.35s" color="var(--accent-gold)" />
-              <MiniBar height="40px" delay="0.4s" color="var(--accent-hot)" />
-              <MiniBar height="14px" delay="0.45s" color="var(--accent-cold)" />
-            </div>
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {snapshotTiles.map((item) => (
+              <Card key={item.label} className="border-[var(--border-subtle)] bg-[rgba(13,17,23,0.85)] backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-xs uppercase tracking-[0.15em] text-[var(--text-muted)]">
+                    {item.label}
+                  </CardDescription>
+                  <CardTitle className="text-2xl font-black text-[var(--text-primary)]">{item.value}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 text-xs text-[var(--text-secondary)]">{item.detail}</CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      <DiscoveryLinkGrid
-        title="Popular Scouting Boards"
-        description="High-intent views with dedicated URLs you can share, bookmark, and revisit."
-        maxItems={9}
-        className="pb-10 sm:pb-14"
-        currentPath="/"
-      />
-    </>
+      <section className="pt-12 sm:pt-16">
+        <SectionHeading
+          eyebrow="Explore"
+          title="Everything you can explore"
+          description="Every feature is here with plain-language explanations and direct links."
+          action={{ href: "/value-analysis", label: "Open value analysis" }}
+        />
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {features.map((feature) => (
+            <FeatureCard key={feature.href} feature={feature} />
+          ))}
+        </div>
+      </section>
+
+      <section className="pt-12 sm:pt-16">
+        <SectionHeading
+          eyebrow="Value Analysis"
+          title="Popular value analysis links"
+          description="Direct links to the most useful Value Analysis setups."
+          action={{ href: "/value-analysis", label: "Open value analysis page" }}
+        />
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {valueAnalysisLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 transition-colors hover:bg-[var(--bg-card-hover)]"
+            >
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <Badge variant="outline" className="border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[10px] uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                  Value Analysis
+                </Badge>
+                <ArrowRight className="h-4 w-4 text-[var(--text-muted)] transition-transform group-hover:translate-x-1" />
+              </div>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">{item.label}</h3>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.summary}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="pt-12 sm:pt-16">
+        <div className="rounded-2xl border border-[var(--border-medium)] bg-[var(--bg-card)] p-5 sm:p-6">
+          <h2 className="text-xl font-black text-[var(--text-primary)] sm:text-2xl">Jump to a page</h2>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Pick where you want to start.</p>
+
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {entryLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]"
+              >
+                <span>{item.label}</span>
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

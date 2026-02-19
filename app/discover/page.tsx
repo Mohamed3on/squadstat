@@ -8,12 +8,12 @@ import {
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata({
-  title: "Scouting Boards",
+  title: "Quick Views",
   description:
-    "Curated shortcuts to the highest-signal views across players, value analysis, injuries, and team performance.",
+    "Curated quick views (saved filters) across players, value analysis, injuries, and team performance.",
   path: "/discover",
   keywords: [
-    "football scouting boards",
+    "football quick views",
     "loan players ranking",
     "new signings performance",
     "injury impact rankings",
@@ -24,9 +24,9 @@ export default function DiscoverPage() {
   return (
     <div className="py-4 sm:py-8">
       <header className="mb-8">
-        <h1 className="text-2xl font-black text-[var(--text-primary)] sm:text-3xl">Scouting Boards</h1>
+        <h1 className="text-2xl font-black text-[var(--text-primary)] sm:text-3xl">Quick Views</h1>
         <p className="mt-2 max-w-3xl text-sm text-[var(--text-muted)]">
-          Direct links to the best preset views. No extra pages, just fast access to the live filters.
+          A quick view is a saved filter setup. Open one link and jump straight to the exact stats lens.
         </p>
       </header>
 
@@ -53,7 +53,7 @@ export default function DiscoverPage() {
                         href={getPresetTargetHref(preset)}
                         className="text-[var(--accent-blue)] hover:underline"
                       >
-                        Open view
+                        Open quick view
                       </Link>
                     </div>
                   </article>

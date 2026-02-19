@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const BOARD_LINKS = [
-  { href: "/discover", label: "All boards" },
+const QUICK_VIEW_LINKS = [
+  { href: "/discover", label: "All quick views" },
   { href: "/players?signing=loan&sort=value", label: "Top valued loans" },
   { href: "/players?signing=transfer&sort=ga", label: "Highest scoring signings" },
   { href: "/value-analysis?dTab=bargains&mode=ga", label: "Best bargains" },
@@ -75,8 +75,8 @@ export function Footer() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--border-subtle)] pt-3 text-xs">
-          <span className="font-medium text-[var(--text-secondary)]">Boards</span>
-          {BOARD_LINKS.map((link) => (
+          <span className="font-medium text-[var(--text-secondary)]">Quick Views</span>
+          {QUICK_VIEW_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}

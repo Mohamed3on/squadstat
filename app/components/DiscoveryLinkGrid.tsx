@@ -53,7 +53,7 @@ export function DiscoveryLinkGrid({
             <p className="mt-1 text-xs text-[var(--text-muted)]">{preset.description}</p>
             <div className="mt-2 flex items-center gap-3 text-xs">
               <Link href={getPresetTargetHref(preset)} className="text-[var(--accent-blue)] hover:underline">
-                Open view
+                Open quick view
               </Link>
             </div>
           </article>
@@ -63,7 +63,7 @@ export function DiscoveryLinkGrid({
       {(section || maxItems) && (
         <div className="mt-3">
           <Link href="/discover" className="text-sm text-[var(--accent-hot)] hover:underline">
-            View all boards
+            View all quick views
           </Link>
         </div>
       )}
