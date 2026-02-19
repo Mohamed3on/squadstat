@@ -19,7 +19,8 @@ import { getTeamFormData } from "@/lib/team-form";
 import { applyStatsToggles, getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
 import { findValueCandidates } from "@/lib/value-analysis";
 import { getInjuredPlayers } from "@/lib/injured";
-import type { MinutesValuePlayer, QualifiedTeam } from "@/app/types";
+import { getManagerInfo } from "@/lib/fetch-manager";
+import type { ManagerInfo, MinutesValuePlayer, QualifiedTeam } from "@/app/types";
 
 export const metadata = createPageMetadata({
   title: "Home",
@@ -71,6 +72,7 @@ interface SnapshotItem {
   imageUrl?: string;
   secondaryImageUrl?: string;
   imageContain?: boolean;
+  manager?: ManagerInfo | null;
 }
 
 interface SnapshotGroup {
@@ -86,6 +88,64 @@ interface InjuryTeamSummary {
   clubLogoUrl: string;
   totalValue: number;
   count: number;
+}
+
+function hasManagerRanking(manager: ManagerInfo): manager is ManagerInfo & {
+  ppg: number;
+  ppgRank: number;
+  totalComparableManagers: number;
+} {
+  return (
+    manager.ppg !== null &&
+    manager.ppgRank !== undefined &&
+    manager.totalComparableManagers !== undefined
+  );
+}
+
+function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
+  const gamesText = `${manager.matches} ${manager.matches === 1 ? "game" : "games"}`;
+  const hasRanking = hasManagerRanking(manager);
+  const isOnly = hasRanking && manager.totalComparableManagers === 1;
+  const isBest = hasRanking && manager.ppgRank === 1 && !isOnly;
+  const isWorst = hasRanking && manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
+
+  const ppgClassName = isBest
+    ? "border-emerald-500/35 bg-emerald-500/12 text-emerald-300"
+    : isWorst
+    ? "border-rose-500/35 bg-rose-500/12 text-rose-300"
+    : isOnly
+    ? "border-sky-500/35 bg-sky-500/12 text-sky-300"
+    : "border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)]";
+
+  const ppgText =
+    manager.matches === 0
+      ? "New manager"
+      : manager.ppg === null
+      ? gamesText
+      : hasRanking
+      ? `${manager.ppg.toFixed(2)} PPG (${manager.ppgRank}/${manager.totalComparableManagers}) · ${gamesText}`
+      : `${manager.ppg.toFixed(2)} PPG · ${gamesText}`;
+
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <a
+        href={manager.profileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`inline-flex max-w-full items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold transition-colors hover:text-[var(--text-primary)] ${manager.isCurrentManager ? "border-[rgba(88,166,255,0.35)] bg-[rgba(88,166,255,0.12)] text-[var(--accent-blue)]" : "border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)]"}`}
+      >
+        <span className="truncate">Mgr {manager.name}</span>
+      </a>
+      <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${ppgClassName}`}>
+        {ppgText}
+      </span>
+      {!manager.isCurrentManager && (
+        <span className="inline-flex items-center rounded-md border border-rose-500/35 bg-rose-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-rose-300">
+          Sacked
+        </span>
+      )}
+    </div>
+  );
 }
 
 function formatSigned(value: number): string {
@@ -408,6 +468,30 @@ export default async function Home() {
     pickRecentPeriodHighlights(analysisData);
   const recentTopTeam = recentTopTeams[0] ?? null;
 
+  const managerByClubId = new Map<string, ManagerInfo | null>();
+  for (const team of [...(teamFormData?.overperformers ?? []), ...(teamFormData?.underperformers ?? [])]) {
+    if (!team.clubId) continue;
+    managerByClubId.set(team.clubId, team.manager ?? null);
+  }
+
+  const recentSnapshotTeams = [...recentTopTeams.slice(0, 2), ...recentBottomTeams.slice(0, 2)];
+  const missingManagerClubIds = [...new Set(
+    recentSnapshotTeams
+      .map((team) => team.clubId)
+      .filter((clubId) => clubId && !managerByClubId.has(clubId))
+  )];
+  if (missingManagerClubIds.length > 0) {
+    const managerResults = await Promise.allSettled(missingManagerClubIds.map((clubId) => getManagerInfo(clubId)));
+    missingManagerClubIds.forEach((clubId, index) => {
+      managerByClubId.set(
+        clubId,
+        managerResults[index]?.status === "fulfilled" ? managerResults[index].value : null
+      );
+    });
+  }
+  const getManagerForClub = (clubId?: string): ManagerInfo | null =>
+    clubId ? (managerByClubId.get(clubId) ?? null) : null;
+
   const mostOverperformingTeams = pickTopWithTies(
     teamFormData?.overperformers ?? [],
     (team) => team.deltaPts,
@@ -514,6 +598,7 @@ export default async function Home() {
       href: "/form",
       imageUrl: recentTopTeam.logoUrl,
       imageContain: true,
+      manager: getManagerForClub(recentTopTeam.clubId),
     });
   }
   if (mostOverperformingTeam) {
@@ -524,6 +609,7 @@ export default async function Home() {
       href: "/team-form",
       imageUrl: mostOverperformingTeam.logoUrl,
       imageContain: true,
+      manager: getManagerForClub(mostOverperformingTeam.clubId),
     });
   }
   if (mostOverpricedPlayer) {
@@ -557,6 +643,7 @@ export default async function Home() {
         href: "/form",
         imageUrl: team.logoUrl,
         imageContain: true,
+        manager: getManagerForClub(team.clubId),
       });
     });
 
@@ -568,6 +655,7 @@ export default async function Home() {
         href: "/form",
         imageUrl: team.logoUrl,
         imageContain: true,
+        manager: getManagerForClub(team.clubId),
       });
     });
   }
@@ -584,6 +672,7 @@ export default async function Home() {
       href: "/team-form",
       imageUrl: team.logoUrl,
       imageContain: true,
+      manager: getManagerForClub(team.clubId),
     });
   });
   mostUnderperformingTeams.forEach((team, i) => {
@@ -597,6 +686,7 @@ export default async function Home() {
       href: "/team-form",
       imageUrl: team.logoUrl,
       imageContain: true,
+      manager: getManagerForClub(team.clubId),
     });
   });
 
@@ -860,6 +950,7 @@ export default async function Home() {
                                 ))}
                               </div>
                             )}
+                            {item.manager && <ManagerSnapshotBadges manager={item.manager} />}
                             <Link
                               href={item.href}
                               className="group/quick mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-blue)] transition-colors hover:text-[var(--text-primary)]"
@@ -990,6 +1081,7 @@ export default async function Home() {
                               ))}
                             </div>
                           )}
+                          {item.manager && <ManagerSnapshotBadges manager={item.manager} />}
                           <Link
                             href={item.href}
                             className="group/item mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-blue)] transition-colors hover:text-[var(--text-primary)]"
