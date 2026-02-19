@@ -33,20 +33,26 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "flex h-8 items-center justify-between gap-1 rounded-lg border border-input bg-popover px-2.5 text-xs transition-colors hover:bg-accent",
+            "flex h-8 items-center justify-between gap-1.5 rounded-lg border border-border/60 bg-card px-2.5 text-xs transition-all",
+            "hover:border-border hover:bg-accent",
+            "data-[state=open]:border-border data-[state=open]:bg-accent",
             isDefault ? "text-muted-foreground" : "text-foreground",
             className,
           )}
         >
-          <span className="truncate">{selected ? selected.label : placeholder}</span>
-          <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-40" />
+          <span className="truncate max-w-[140px]">{selected ? selected.label : placeholder}</span>
+          <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-30" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[220px] p-0" align="start">
+      <PopoverContent
+        className="w-[200px] rounded-xl border-border/60 p-0 shadow-xl shadow-black/50"
+        align="start"
+        sideOffset={6}
+      >
         <Command>
-          <CommandInput placeholder={searchPlaceholder || "Search..."} className="h-8 text-xs" />
-          <CommandList className="max-h-[240px]">
-            <CommandEmpty className="py-3 text-xs">No results.</CommandEmpty>
+          <CommandInput placeholder={searchPlaceholder || "Search..."} />
+          <CommandList className="max-h-[220px]">
+            <CommandEmpty className="py-4 text-center text-xs text-muted-foreground">No results.</CommandEmpty>
             <CommandGroup className="p-1">
               {options.map((option) => (
                 <CommandItem
@@ -56,9 +62,8 @@ export function Combobox({
                     onChange(option.value === value ? "" : option.value);
                     setOpen(false);
                   }}
-                  className="text-xs"
                 >
-                  <Check className={cn("h-3 w-3 shrink-0", value === option.value ? "opacity-100" : "opacity-0")} />
+                  <Check className={cn("shrink-0 transition-opacity", value === option.value ? "opacity-100" : "opacity-0")} />
                   {option.label}
                 </CommandItem>
               ))}
