@@ -389,7 +389,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
                 placeholder="Max caps"
                 value={maxCaps ?? ""}
                 onChange={(e) => update({ maxcaps: e.target.value || null })}
-                className="h-8 w-20 text-xs tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="h-8 w-28 text-xs tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               <FilterButton active={top5Only} onClick={() => update({ top5: top5Only ? null : "1" })}>
                 Top 5

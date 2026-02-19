@@ -76,7 +76,7 @@ function MinutesDisplay({ minutes }: { minutes?: number }) {
       <svg className="w-3.5 h-3.5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <span className="text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
+      <span className="text-sm tabular-nums text-[var(--text-secondary)]">
         {minutes?.toLocaleString() || "—"}&apos;
       </span>
     </div>
@@ -93,8 +93,8 @@ function TargetPlayerCard({ player, minutes }: { player: PlayerStats; minutes?: 
       desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
       desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="Points" color="var(--accent-hot)" /></>}
-      mobileBigNumbers={<><div className="text-lg font-medium font-value" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div><div className="text-lg font-medium font-value" style={{ color: "var(--accent-hot)" }}>{player.points}</div></>}
-      footer={<><span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>Minutes Played</span><span className="text-base sm:text-lg font-medium font-value" style={{ color: "var(--accent-blue)" }}>{minutes?.toLocaleString() || "—"}&apos;</span></>}
+      mobileBigNumbers={<><div className="text-lg font-medium font-value text-[var(--accent-gold)]">{player.marketValueDisplay}</div><div className="text-lg font-medium font-value text-[var(--accent-hot)]">{player.points}</div></>}
+      footer={<><span className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">Minutes Played</span><span className="text-base sm:text-lg font-medium font-value text-[var(--accent-blue)]">{minutes?.toLocaleString() || "—"}&apos;</span></>}
     />
   );
 }
@@ -134,7 +134,7 @@ function PlayerCard({ index = 0, theme, name, imageUrl, profileUrl, nameElement,
           {imageUrl ? (
             <img src={imageUrl} alt={name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover" style={{ background: "var(--bg-elevated)", border: `1px solid ${theme.imageBorder}` }} />
           ) : (
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
               {name.charAt(0)}
             </div>
           )}
@@ -142,11 +142,11 @@ function PlayerCard({ index = 0, theme, name, imageUrl, profileUrl, nameElement,
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             {nameElement}
-            <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 opacity-40 hover:opacity-100 transition-opacity" style={{ color: "var(--text-muted)" }}>
+            <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 opacity-40 hover:opacity-100 transition-opacity text-[var(--text-muted)]">
               <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </a>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs mt-0.5 flex-wrap" style={{ color: "var(--text-secondary)" }}>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs mt-0.5 flex-wrap text-[var(--text-secondary)]">
             {subtitle}
           </div>
         </div>
@@ -158,7 +158,7 @@ function PlayerCard({ index = 0, theme, name, imageUrl, profileUrl, nameElement,
         </div>
       </div>
       {footer && (
-        <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 sm:pt-3 text-xs" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+        <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 sm:pt-3 text-xs border-t border-t-[var(--border-subtle)]">
           {footer}
         </div>
       )}
@@ -194,7 +194,7 @@ function ComparisonCard({ player, targetPlayer, index = 0, variant, top5 }: {
       imageUrl={player.imageUrl}
       profileUrl={leistungsdatenUrl}
       nameElement={
-        <Link href={getPlayerBenchmarkHref(player.playerId, player.name, top5)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors" style={{ color: "var(--text-primary)" }}>
+        <Link href={getPlayerBenchmarkHref(player.playerId, player.name, top5)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors text-[var(--text-primary)]">
           {player.name}
         </Link>
       }
@@ -204,23 +204,23 @@ function ComparisonCard({ player, targetPlayer, index = 0, variant, top5 }: {
           <div className="text-sm font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
           <div className="text-xs font-medium tabular-nums" style={{ color: mutedColor }}>{valueDeltaLabel}</div>
         </div>
-        <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+        <div className="w-px h-8 bg-[var(--border-subtle)]" />
         <div className="text-right min-w-[3rem]">
-          <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
+          <div className="text-sm font-medium font-value text-[var(--text-primary)]">{player.points} pts</div>
           <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor }}>{pointsDeltaLabel}</div>
         </div>
-        <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+        <div className="w-px h-8 bg-[var(--border-subtle)]" />
         <div className="min-w-[4.5rem]"><MinutesDisplay minutes={minutes} /></div>
       </>}
       mobileStats={<>
         <div className="text-xs font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
-        <div className="text-xs tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
+        <div className="text-xs tabular-nums text-[var(--text-primary)]">{player.points} pts</div>
       </>}
       footer={<>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.goals}G</span>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.assists}A</span>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.matches} apps</span>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.age}y</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.goals}G</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.assists}A</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.matches} apps</span>
+        <span className="sm:hidden tabular-nums text-[var(--text-secondary)]">{player.age}y</span>
         <div className="sm:hidden ml-auto"><MinutesDisplay minutes={minutes} /></div>
         <LeagueLabel league={player.league} />
       </>}
@@ -248,7 +248,7 @@ function CardSkeletonList({ count = 5, fadeStep = 0.1 }: { count?: number; fadeS
 function SearchSkeleton() {
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="rounded-2xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
+      <div className="rounded-2xl p-6 bg-[var(--bg-card)] border border-[var(--border-subtle)]">
         <div className="flex items-start gap-5">
           <Skeleton className="w-20 h-20 rounded-xl" />
           <div className="flex-1 space-y-3"><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-32" /><Skeleton className="h-4 w-40" /></div>
@@ -277,7 +277,7 @@ function PlayerSubtitle({ position, club, clubLogoUrl, age }: { position: string
 
 function LeagueLabel({ league }: { league: string }) {
   return (
-    <span className="hidden sm:flex items-center gap-1 ml-auto text-xs uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+    <span className="hidden sm:flex items-center gap-1 ml-auto text-xs uppercase tracking-wide text-[var(--text-secondary)]">
       {getLeagueLogoUrl(league) && <img src={getLeagueLogoUrl(league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
       {league}
     </span>
@@ -301,7 +301,7 @@ function DiscoveryListCard({ player, index = 0, top5, variant, pointsLabel = "G+
       imageUrl={player.imageUrl}
       profileUrl={getLeistungsdatenUrl(player.profileUrl)}
       nameElement={
-        <Link href={getPlayerBenchmarkHref(player.playerId, player.name, top5)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors" style={{ color: "var(--text-primary)" }}>
+        <Link href={getPlayerBenchmarkHref(player.playerId, player.name, top5)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors text-[var(--text-primary)]">
           {player.name}
         </Link>
       }
@@ -311,24 +311,24 @@ function DiscoveryListCard({ player, index = 0, top5, variant, pointsLabel = "G+
           <>
             <div className="text-right min-w-[4rem]">
               <div className="text-sm font-medium font-value" style={{ color: countColor }}>{player.comparisonCount}</div>
-              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{countLabel}</div>
+              <div className="text-xs text-[var(--text-secondary)]">{countLabel}</div>
             </div>
-            <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+            <div className="w-px h-8 bg-[var(--border-subtle)]" />
           </>
         )}
         <div className="text-right">
           <div className="text-sm font-medium font-value" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
-          <div className="text-xs" style={{ color: "var(--text-secondary)" }}>value</div>
+          <div className="text-xs text-[var(--text-secondary)]">value</div>
         </div>
-        <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+        <div className="w-px h-8 bg-[var(--border-subtle)]" />
         <div className="text-right min-w-[3rem]">
-          <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
-          <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{pointsLabel}</div>
+          <div className="text-sm font-medium font-value text-[var(--text-primary)]">{player.points} pts</div>
+          <div className="text-xs text-[var(--text-secondary)]">{pointsLabel}</div>
         </div>
-        <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+        <div className="w-px h-8 bg-[var(--border-subtle)]" />
         <div className="text-right min-w-[4rem]">
-          <div className="text-sm font-medium font-value" style={{ color: "var(--accent-blue)" }}>{player.minutes?.toLocaleString() || "—"}&apos;</div>
-          <div className="text-xs" style={{ color: "var(--text-secondary)" }}>mins</div>
+          <div className="text-sm font-medium font-value text-[var(--accent-blue)]">{player.minutes?.toLocaleString() || "—"}&apos;</div>
+          <div className="text-xs text-[var(--text-secondary)]">mins</div>
         </div>
       </>}
       mobileStats={<>
@@ -336,14 +336,14 @@ function DiscoveryListCard({ player, index = 0, top5, variant, pointsLabel = "G+
           <div className="text-xs font-medium font-value mb-0.5" style={{ color: countColor }}>{player.comparisonCount} {countLabel}</div>
         )}
         <div className="text-xs font-medium font-value" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
-        <div className="text-xs tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
+        <div className="text-xs tabular-nums text-[var(--text-primary)]">{player.points} pts</div>
       </>}
       footer={<>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.goals}G</span>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.assists}A</span>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.matches} apps</span>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.age}y</span>
-        <span className="sm:hidden ml-auto tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.minutes?.toLocaleString() || "—"}&apos;</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.goals}G</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.assists}A</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.matches} apps</span>
+        <span className="sm:hidden tabular-nums text-[var(--text-secondary)]">{player.age}y</span>
+        <span className="sm:hidden ml-auto tabular-nums text-[var(--accent-blue)]">{player.minutes?.toLocaleString() || "—"}&apos;</span>
         <LeagueLabel league={player.league} />
       </>}
     />
@@ -450,9 +450,9 @@ function DiscoverySection({ variant, candidates, allPlayers, sortBy, onSortChang
         </div>
       </div>
       {filteredCandidates.length === 0 && (
-        <div className="rounded-xl p-8 text-center animate-fade-in" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
-          <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{isOverpriced ? "No overpriced players found" : "No bargain players found"}</p>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{isOverpriced ? "Everyone is producing as expected for their price tag" : "No cheap players are outperforming their price tag right now"}</p>
+        <div className="rounded-xl p-8 text-center animate-fade-in bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <p className="font-semibold text-[var(--text-primary)]">{isOverpriced ? "No overpriced players found" : "No bargain players found"}</p>
+          <p className="text-sm mt-1 text-[var(--text-muted)]">{isOverpriced ? "Everyone is producing as expected for their price tag" : "No cheap players are outperforming their price tag right now"}</p>
         </div>
       )}
       {filteredCandidates.length > 0 && (
@@ -478,7 +478,7 @@ function MvBenchmarkCard({ player }: { player: MinutesValuePlayer }) {
       desktopStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals} goals</span><span className="tabular-nums">{player.assists} assists</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals}G {player.assists}A</span><span className="opacity-60">Age {player.age}</span></>}
       desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" /></>}
-      mobileBigNumbers={<div className="text-lg font-medium font-value" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div>}
+      mobileBigNumbers={<div className="text-lg font-medium font-value text-[var(--accent-gold)]">{player.marketValueDisplay}</div>}
     />
   );
 }
@@ -499,7 +499,7 @@ function MvPlayerCard({ player, target, index, variant = "less", onSelect, injur
       imageUrl={player.imageUrl}
       profileUrl={getLeistungsdatenUrl(player.profileUrl)}
       nameElement={
-        <button type="button" onClick={() => onSelect?.(player)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors text-left" style={{ color: "var(--text-primary)" }}>
+        <button type="button" onClick={() => onSelect?.(player)} className="font-semibold text-sm sm:text-base hover:underline truncate transition-colors text-left text-[var(--text-primary)]">
           {player.name}
         </button>
       }
@@ -527,36 +527,36 @@ function MvPlayerCard({ player, target, index, variant = "less", onSelect, injur
           <div className="text-sm font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
           {target && <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor, opacity: 0.7 }}>{valueDiffDisplay}</div>}
         </div>
-        <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+        <div className="w-px h-8 bg-[var(--border-subtle)]" />
         <div className="text-right min-w-[4rem]">
-          <div className="text-sm font-medium font-value" style={{ color: "var(--accent-blue)" }}>{player.minutes.toLocaleString()}&apos;</div>
+          <div className="text-sm font-medium font-value text-[var(--accent-blue)]">{player.minutes.toLocaleString()}&apos;</div>
           {target && <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor }}>{variant === "more" ? "+" : "\u2212"}{Math.abs(minsDiff).toLocaleString()}&apos;</div>}
         </div>
-        <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
+        <div className="w-px h-8 bg-[var(--border-subtle)]" />
         <div className="flex items-center gap-2.5 text-right">
           <div>
-            <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.totalMatches}</div>
-            <div className="text-xs" style={{ color: "var(--text-secondary)" }}>games</div>
+            <div className="text-sm font-medium font-value text-[var(--text-primary)]">{player.totalMatches}</div>
+            <div className="text-xs text-[var(--text-secondary)]">games</div>
           </div>
           <div>
-            <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.goals}</div>
-            <div className="text-xs" style={{ color: "var(--text-secondary)" }}>goals</div>
+            <div className="text-sm font-medium font-value text-[var(--text-primary)]">{player.goals}</div>
+            <div className="text-xs text-[var(--text-secondary)]">goals</div>
           </div>
           <div>
-            <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.assists}</div>
-            <div className="text-xs" style={{ color: "var(--text-secondary)" }}>assists</div>
+            <div className="text-sm font-medium font-value text-[var(--text-primary)]">{player.assists}</div>
+            <div className="text-xs text-[var(--text-secondary)]">assists</div>
           </div>
         </div>
       </>}
       mobileStats={<>
         <div className="text-xs font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
-        <div className="text-xs tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.minutes.toLocaleString()}&apos;</div>
+        <div className="text-xs tabular-nums text-[var(--accent-blue)]">{player.minutes.toLocaleString()}&apos;</div>
       </>}
       footer={<>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.goals}G</span>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.assists}A</span>
-        <span className="tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.totalMatches} games</span>
-        <span className="sm:hidden tabular-nums" style={{ color: "var(--text-secondary)" }}>{player.age}y</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.goals}G</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.assists}A</span>
+        <span className="tabular-nums text-[var(--text-secondary)]">{player.totalMatches} games</span>
+        <span className="sm:hidden tabular-nums text-[var(--text-secondary)]">{player.age}y</span>
         <LeagueLabel league={player.league} />
       </>}
     />
@@ -750,7 +750,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
             <ToggleGroupItem value="ga" className="px-4">G+A</ToggleGroupItem>
             <ToggleGroupItem value="mins" className="px-4">Minutes</ToggleGroupItem>
           </ToggleGroup>
-          <div className="w-px h-6" style={{ background: "var(--border-subtle)" }} />
+          <div className="w-px h-6 bg-[var(--border-subtle)]" />
           <FilterButton active={includePen} onClick={() => push({ pen: includePen ? null : "1" })}>
             Pens in G+A
           </FilterButton>
@@ -775,7 +775,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
-                <div className="text-xs tabular-nums shrink-0" style={{ color: "var(--accent-hot)" }}>{player.points} pts</div>
+                <div className="text-xs tabular-nums shrink-0 text-[var(--accent-hot)]">{player.points} pts</div>
               )}
             />
           ) : (
@@ -792,7 +792,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
-                <div className="text-xs tabular-nums shrink-0" style={{ color: "var(--accent-blue)" }}>{player.minutes.toLocaleString()}&apos;</div>
+                <div className="text-xs tabular-nums shrink-0 text-[var(--accent-blue)]">{player.minutes.toLocaleString()}&apos;</div>
               )}
             />
           )}
@@ -806,15 +806,15 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
 
             {/* Error */}
             {gaError && (
-              <div className="rounded-xl p-5 mb-6 animate-fade-in" style={{ background: "var(--accent-cold-faint)", border: "1px solid var(--accent-cold-glow)" }}>
-                <p className="font-medium" style={{ color: "var(--accent-cold-soft)" }}>Error fetching data. Please try again.</p>
+              <div className="rounded-xl p-5 mb-6 animate-fade-in bg-[var(--accent-cold-faint)] border border-[var(--accent-cold-glow)]">
+                <p className="font-medium text-[var(--accent-cold-soft)]">Error fetching data. Please try again.</p>
               </div>
             )}
             {gaData?.error && (
-              <div className="rounded-xl p-5 mb-6 animate-fade-in" style={{ background: "var(--accent-cold-faint)", border: "1px solid var(--accent-cold-glow)" }}>
-                <p className="font-medium" style={{ color: "var(--accent-cold-soft)" }}>{gaData.error}</p>
+              <div className="rounded-xl p-5 mb-6 animate-fade-in bg-[var(--accent-cold-faint)] border border-[var(--accent-cold-glow)]">
+                <p className="font-medium text-[var(--accent-cold-soft)]">{gaData.error}</p>
                 {gaData.searchedName && (
-                  <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                  <p className="text-sm mt-1 text-[var(--text-secondary)]">
                     Searched for &ldquo;{gaData.searchedName}&rdquo; across {gaData.totalPlayers} players
                   </p>
                 )}
@@ -826,8 +826,8 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               <div className="space-y-6">
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-5 rounded-full" style={{ background: "var(--accent-gold)" }} />
-                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--accent-gold)" }}>Benchmark Player</h2>
+                    <div className="w-1 h-5 rounded-full bg-[var(--accent-gold)]" />
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--accent-gold)]">Benchmark Player</h2>
                   </div>
                   <TargetPlayerCard player={gaData!.targetPlayer} minutes={targetMinutes} />
                 </section>
@@ -839,7 +839,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   Top 5 leagues
                 </FilterButton>
 
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs text-[var(--text-muted)]">
                   Comparing against players at similar or higher positions. &ldquo;Underdelivering&rdquo; = more expensive, same or worse G+A in same or more minutes. &ldquo;Better Value&rdquo; = cheaper, same or better G+A in same or fewer minutes.
                 </p>
 
@@ -847,25 +847,25 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   <TabsList className="w-full">
                     <TabsTrigger value="underdelivering" className="flex-1 gap-2">
                       Underdelivering
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{filteredUnderperformers.length}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-[var(--accent-cold-glow)] text-[var(--accent-cold-soft)]">{filteredUnderperformers.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="better-value" className="flex-1 gap-2">
                       Better Value
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-hot-glow)", color: "var(--accent-hot)" }}>{filteredOutperformers.length}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]">{filteredOutperformers.length}</span>
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="underdelivering">
                     {filteredUnderperformers.length === 0 ? (
-                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in" style={{ background: "var(--accent-cold-faint)", border: "1px solid var(--accent-cold-border)" }}>
+                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in bg-[var(--accent-cold-faint)] border border-[var(--accent-cold-border)]">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--accent-cold-glow)" }}>
-                            <svg className="w-5 h-5" style={{ color: "var(--accent-cold-soft)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[var(--accent-cold-glow)]">
+                            <svg className="w-5 h-5 text-[var(--accent-cold-soft)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                             </svg>
                           </div>
                           <div>
-                            <p className="font-semibold text-base" style={{ color: "var(--accent-cold-soft)" }}>Nobody more expensive is doing worse</p>
-                            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+                            <p className="font-semibold text-base text-[var(--accent-cold-soft)]">Nobody more expensive is doing worse</p>
+                            <p className="text-sm mt-1 text-[var(--text-muted)]">
                               Every player worth {gaData!.targetPlayer.marketValueDisplay} or more has produced more G+A.
                               At {gaData!.targetPlayer.points} points for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} has the lowest output at this price range.
                             </p>
@@ -882,16 +882,16 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   </TabsContent>
                   <TabsContent value="better-value">
                     {filteredOutperformers.length === 0 ? (
-                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in" style={{ background: "var(--accent-hot-faint)", border: "1px solid var(--accent-hot-border)" }}>
+                      <div className="rounded-xl p-6 sm:p-8 animate-fade-in bg-[var(--accent-hot-faint)] border border-[var(--accent-hot-border)]">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--accent-hot-glow)" }}>
-                            <svg className="w-5 h-5" style={{ color: "var(--accent-hot)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[var(--accent-hot-glow)]">
+                            <svg className="w-5 h-5 text-[var(--accent-hot)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
                           <div>
-                            <p className="font-semibold text-base" style={{ color: "var(--accent-hot)" }}>{gaData!.targetPlayer.name} is a top performer for their price</p>
-                            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+                            <p className="font-semibold text-base text-[var(--accent-hot)]">{gaData!.targetPlayer.name} is a top performer for their price</p>
+                            <p className="text-sm mt-1 text-[var(--text-muted)]">
                               No cheaper player has produced more goal contributions in the same or fewer minutes.
                               At {gaData!.targetPlayer.points} points for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} offers excellent value.
                             </p>
@@ -908,7 +908,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   </TabsContent>
                 </Tabs>
 
-                <div className="text-center py-6 text-xs animate-fade-in" style={{ color: "var(--text-muted)", animationDelay: "0.3s" }}>
+                <div className="text-center py-6 text-xs animate-fade-in text-[var(--text-muted)] [animation-delay:0.3s]">
                   Analyzed {gaData!.totalPlayers.toLocaleString()} players across top European leagues
                 </div>
               </div>
@@ -920,13 +920,13 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                 <TabsList className="w-full mb-6">
                   <TabsTrigger value="overpriced" className="flex-1 gap-2">
                     Overpriced
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-[var(--accent-cold-glow)] text-[var(--accent-cold-soft)]">
                       {underTabCount ?? "—"}
                     </span>
                   </TabsTrigger>
                   <TabsTrigger value="bargains" className="flex-1 gap-2">
                     Bargains
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-[var(--accent-green-glow)] text-[var(--accent-green)]">
                       {overTabCount ?? "—"}
                     </span>
                   </TabsTrigger>
@@ -976,8 +976,8 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               <div className="space-y-8">
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-5 rounded-full" style={{ background: "var(--accent-gold)" }} />
-                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--accent-gold)" }}>Benchmark Player</h2>
+                    <div className="w-1 h-5 rounded-full bg-[var(--accent-gold)]" />
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--accent-gold)]">Benchmark Player</h2>
                   </div>
                   <MvBenchmarkCard player={minsSelected} />
                 </section>
@@ -987,18 +987,18 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                     <TabsList className="w-full mb-4">
                       <TabsTrigger value="less" className="flex-1 gap-2">
                         Playing Less
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{playingLess.length}</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-[var(--accent-cold-glow)] text-[var(--accent-cold-soft)]">{playingLess.length}</span>
                       </TabsTrigger>
                       <TabsTrigger value="more" className="flex-1 gap-2">
                         Playing More
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>{playingMore.length}</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-[var(--accent-green-glow)] text-[var(--accent-green)]">{playingMore.length}</span>
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="less">
                       {playingLess.length === 0 ? (
-                        <div className="rounded-xl p-10 text-center animate-fade-in" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
-                          <p className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>No results</p>
-                          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>No higher-valued players have fewer minutes than {minsSelected.name}</p>
+                        <div className="rounded-xl p-10 text-center animate-fade-in bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                          <p className="font-semibold text-lg text-[var(--text-primary)]">No results</p>
+                          <p className="text-sm mt-1 text-[var(--text-muted)]">No higher-valued players have fewer minutes than {minsSelected.name}</p>
                         </div>
                       ) : (
                         <MvVirtualPlayerList items={playingLess} target={minsSelected} variant="less" onSelect={handleMvSelect} injuryMap={injuryMap} />
@@ -1006,9 +1006,9 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                     </TabsContent>
                     <TabsContent value="more">
                       {playingMore.length === 0 ? (
-                        <div className="rounded-xl p-10 text-center animate-fade-in" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
-                          <p className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>No results</p>
-                          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>No higher-valued players have more minutes than {minsSelected.name}</p>
+                        <div className="rounded-xl p-10 text-center animate-fade-in bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                          <p className="font-semibold text-lg text-[var(--text-primary)]">No results</p>
+                          <p className="text-sm mt-1 text-[var(--text-muted)]">No higher-valued players have more minutes than {minsSelected.name}</p>
                         </div>
                       ) : (
                         <MvVirtualPlayerList items={playingMore} target={minsSelected} variant="more" onSelect={handleMvSelect} />
@@ -1017,7 +1017,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   </Tabs>
                 </section>
 
-                <div className="text-center py-6 text-xs animate-fade-in" style={{ color: "var(--text-muted)", animationDelay: "0.3s" }}>
+                <div className="text-center py-6 text-xs animate-fade-in text-[var(--text-muted)] [animation-delay:0.3s]">
                   Analyzed {initialData.length.toLocaleString()} players by market value
                 </div>
               </div>
@@ -1028,11 +1028,11 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               <section>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 rounded-full" style={{ background: "var(--accent-cold)" }} />
-                    <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--accent-cold-soft)" }}>Fewest Minutes</h2>
+                    <div className="w-1 h-5 rounded-full bg-[var(--accent-cold)]" />
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--accent-cold-soft)]">Fewest Minutes</h2>
                   </div>
                   {minsDiscoveryList.length > 0 && (
-                    <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{minsDiscoveryList.length}</span>
+                    <span className="text-sm font-bold px-2.5 py-1 rounded-lg tabular-nums bg-[var(--accent-cold-glow)] text-[var(--accent-cold-soft)]">{minsDiscoveryList.length}</span>
                   )}
                 </div>
 

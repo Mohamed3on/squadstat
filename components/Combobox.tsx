@@ -40,12 +40,12 @@ export function Combobox({
             className,
           )}
         >
-          <span className="truncate max-w-[140px]">{selected ? selected.label : placeholder}</span>
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
           <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-30" />
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[200px] rounded-xl border-border/60 p-0 shadow-xl shadow-black/50"
+        className="w-auto min-w-48 rounded-xl border-border/60 p-0 shadow-xl shadow-black/50"
         align="start"
         sideOffset={6}
       >
