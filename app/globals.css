@@ -90,7 +90,7 @@ html {
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
 
@@ -275,9 +275,16 @@ body::before {
   color: var(--bg-base);
 }
 
-/* Elegant font for market values and financial figures */
-.font-value {
-  font-family: var(--font-value), Georgia, serif;
-  font-feature-settings: 'tnum' on, 'lnum' on;
+/* Serif display font for hero numbers */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
   letter-spacing: -0.01em;
+}
+
+/* Monospace font for all stat numbers */
+.font-value,
+.tabular-nums {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+  letter-spacing: -0.02em;
 }

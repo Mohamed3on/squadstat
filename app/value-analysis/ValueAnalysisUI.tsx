@@ -93,8 +93,8 @@ function TargetPlayerCard({ player, minutes }: { player: PlayerStats; minutes?: 
       desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
       desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="Points" color="var(--accent-hot)" /></>}
-      mobileBigNumbers={<><div className="text-lg font-black tabular-nums" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div><div className="text-lg font-black tabular-nums" style={{ color: "var(--accent-hot)" }}>{player.points}</div></>}
-      footer={<><span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>Minutes Played</span><span className="text-base sm:text-lg font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{minutes?.toLocaleString() || "—"}&apos;</span></>}
+      mobileBigNumbers={<><div className="text-lg font-medium font-value" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div><div className="text-lg font-medium font-value" style={{ color: "var(--accent-hot)" }}>{player.points}</div></>}
+      footer={<><span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>Minutes Played</span><span className="text-base sm:text-lg font-medium font-value" style={{ color: "var(--accent-blue)" }}>{minutes?.toLocaleString() || "—"}&apos;</span></>}
     />
   );
 }
@@ -201,19 +201,19 @@ function ComparisonCard({ player, targetPlayer, index = 0, variant, top5 }: {
       subtitle={<PlayerSubtitle position={player.position} club={player.club} clubLogoUrl={player.clubLogoUrl} age={player.age} />}
       desktopStats={<>
         <div className="text-right">
-          <div className="text-sm font-bold tabular-nums" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
+          <div className="text-sm font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
           <div className="text-xs font-medium tabular-nums" style={{ color: mutedColor }}>{valueDeltaLabel}</div>
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
         <div className="text-right min-w-[3rem]">
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
+          <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
           <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor }}>{pointsDeltaLabel}</div>
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
         <div className="min-w-[4.5rem]"><MinutesDisplay minutes={minutes} /></div>
       </>}
       mobileStats={<>
-        <div className="text-xs font-bold tabular-nums" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
+        <div className="text-xs font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
         <div className="text-xs tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
       </>}
       footer={<>
@@ -310,32 +310,32 @@ function DiscoveryListCard({ player, index = 0, top5, variant, pointsLabel = "G+
         {player.comparisonCount > 0 && (
           <>
             <div className="text-right min-w-[4rem]">
-              <div className="text-sm font-bold tabular-nums" style={{ color: countColor }}>{player.comparisonCount}</div>
+              <div className="text-sm font-medium font-value" style={{ color: countColor }}>{player.comparisonCount}</div>
               <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{countLabel}</div>
             </div>
             <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
           </>
         )}
         <div className="text-right">
-          <div className="text-sm font-bold tabular-nums" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
+          <div className="text-sm font-medium font-value" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
           <div className="text-xs" style={{ color: "var(--text-secondary)" }}>value</div>
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
         <div className="text-right min-w-[3rem]">
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
+          <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
           <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{pointsLabel}</div>
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
         <div className="text-right min-w-[4rem]">
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.minutes?.toLocaleString() || "—"}&apos;</div>
+          <div className="text-sm font-medium font-value" style={{ color: "var(--accent-blue)" }}>{player.minutes?.toLocaleString() || "—"}&apos;</div>
           <div className="text-xs" style={{ color: "var(--text-secondary)" }}>mins</div>
         </div>
       </>}
       mobileStats={<>
         {player.comparisonCount > 0 && (
-          <div className="text-xs font-bold tabular-nums mb-0.5" style={{ color: countColor }}>{player.comparisonCount} {countLabel}</div>
+          <div className="text-xs font-medium font-value mb-0.5" style={{ color: countColor }}>{player.comparisonCount} {countLabel}</div>
         )}
-        <div className="text-xs font-bold tabular-nums" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
+        <div className="text-xs font-medium font-value" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
         <div className="text-xs tabular-nums" style={{ color: "var(--text-primary)" }}>{player.points} pts</div>
       </>}
       footer={<>
@@ -403,8 +403,8 @@ function DiscoverySection({ variant, candidates, allPlayers, sortBy, onSortChang
     <section>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 rounded-full" style={{ background: accentColor }} />
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+          <div className="w-1 h-6 rounded-full" style={{ background: accentColor }} />
+          <h2 className="text-base sm:text-lg font-bold uppercase tracking-wider" style={{ color: accentColor }}>
             {isOverpriced ? "Overpriced" : "Bargains"}
           </h2>
         </div>
@@ -473,7 +473,7 @@ function MvBenchmarkCard({ player }: { player: MinutesValuePlayer }) {
       desktopStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals} goals</span><span className="tabular-nums">{player.assists} assists</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals}G {player.assists}A</span><span className="opacity-60">Age {player.age}</span></>}
       desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" /></>}
-      mobileBigNumbers={<div className="text-lg font-black tabular-nums" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div>}
+      mobileBigNumbers={<div className="text-lg font-medium font-value" style={{ color: "var(--accent-gold)" }}>{player.marketValueDisplay}</div>}
     />
   );
 }
@@ -519,32 +519,32 @@ function MvPlayerCard({ player, target, index, variant = "less", onSelect, injur
       </>}
       desktopStats={<>
         <div className="text-right">
-          <div className="text-sm font-bold tabular-nums" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
+          <div className="text-sm font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
           {target && <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor, opacity: 0.7 }}>{valueDiffDisplay}</div>}
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
         <div className="text-right min-w-[4rem]">
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.minutes.toLocaleString()}&apos;</div>
+          <div className="text-sm font-medium font-value" style={{ color: "var(--accent-blue)" }}>{player.minutes.toLocaleString()}&apos;</div>
           {target && <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor }}>{variant === "more" ? "+" : "\u2212"}{Math.abs(minsDiff).toLocaleString()}&apos;</div>}
         </div>
         <div className="w-px h-8" style={{ background: "var(--border-subtle)" }} />
         <div className="flex items-center gap-2.5 text-right">
           <div>
-            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.totalMatches}</div>
+            <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.totalMatches}</div>
             <div className="text-xs" style={{ color: "var(--text-secondary)" }}>games</div>
           </div>
           <div>
-            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.goals}</div>
+            <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.goals}</div>
             <div className="text-xs" style={{ color: "var(--text-secondary)" }}>goals</div>
           </div>
           <div>
-            <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{player.assists}</div>
+            <div className="text-sm font-medium font-value" style={{ color: "var(--text-primary)" }}>{player.assists}</div>
             <div className="text-xs" style={{ color: "var(--text-secondary)" }}>assists</div>
           </div>
         </div>
       </>}
       mobileStats={<>
-        <div className="text-xs font-bold tabular-nums" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
+        <div className="text-xs font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
         <div className="text-xs tabular-nums" style={{ color: "var(--accent-blue)" }}>{player.minutes.toLocaleString()}&apos;</div>
       </>}
       footer={<>
@@ -842,11 +842,11 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   <TabsList className="w-full">
                     <TabsTrigger value="underdelivering" className="flex-1 gap-2">
                       Underdelivering
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{filteredUnderperformers.length}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{filteredUnderperformers.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="better-value" className="flex-1 gap-2">
                       Better Value
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-hot-glow)", color: "var(--accent-hot)" }}>{filteredOutperformers.length}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-hot-glow)", color: "var(--accent-hot)" }}>{filteredOutperformers.length}</span>
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="underdelivering">
@@ -915,13 +915,13 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                 <TabsList className="w-full mb-6">
                   <TabsTrigger value="overpriced" className="flex-1 gap-2">
                     Overpriced
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>
                       {underTabCount ?? "—"}
                     </span>
                   </TabsTrigger>
                   <TabsTrigger value="bargains" className="flex-1 gap-2">
                     Bargains
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>
                       {overTabCount ?? "—"}
                     </span>
                   </TabsTrigger>
@@ -982,11 +982,11 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                     <TabsList className="w-full mb-4">
                       <TabsTrigger value="less" className="flex-1 gap-2">
                         Playing Less
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{playingLess.length}</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-cold-glow)", color: "var(--accent-cold-soft)" }}>{playingLess.length}</span>
                       </TabsTrigger>
                       <TabsTrigger value="more" className="flex-1 gap-2">
                         Playing More
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>{playingMore.length}</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" style={{ background: "var(--accent-green-glow)", color: "var(--accent-green)" }}>{playingMore.length}</span>
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="less">

@@ -131,7 +131,7 @@ function PlayerCard({ player, rank, index = 0 }: { player: InjuredPlayer; rank: 
                   {player.position}
                 </p>
               </div>
-              <span className="text-sm sm:text-lg font-black shrink-0 text-[var(--accent-hot)] font-value">
+              <span className="text-sm sm:text-lg font-medium shrink-0 text-[var(--accent-hot)] font-value">
                 {formatValue(player.marketValue)}
               </span>
             </div>
@@ -217,7 +217,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                 </Badge>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-sm sm:text-lg font-black text-[var(--accent-hot)] font-value">
+                <div className="text-sm sm:text-lg font-medium text-[var(--accent-hot)] font-value">
                   {formatValueNum(team.totalValue)}
                 </div>
                 <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">
@@ -249,7 +249,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-xs font-semibold text-[var(--text-primary)] truncate">{player.name}</span>
-                    <span className="text-xs font-bold text-[var(--accent-hot)] font-value shrink-0">{player.marketValue}</span>
+                    <span className="text-xs font-medium text-[var(--accent-hot)] font-value shrink-0">{player.marketValue}</span>
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)] mt-0.5">
                     <span className="text-[var(--text-secondary)]">{player.injury}</span>
@@ -292,7 +292,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                     {ri.label}
                   </span>
                 )}
-                <span className="text-sm font-bold text-[var(--accent-hot)] font-value shrink-0 w-16 text-right">{player.marketValue}</span>
+                <span className="text-sm font-medium text-[var(--accent-hot)] font-value shrink-0 w-16 text-right">{player.marketValue}</span>
               </a>
             );
           })}
@@ -311,8 +311,8 @@ function InjuryTypeCard({ group, rank, index = 0 }: { group: InjuryTypeGroup; ra
       <CollapsibleTrigger className="flex items-center gap-2.5 px-3 py-2 sm:px-4 sm:py-2.5 w-full cursor-pointer hover:bg-[var(--bg-card-hover)] transition-colors rounded-xl">
         <RankBadge rank={rank} />
         <h3 className="font-bold text-sm sm:text-base text-[var(--text-primary)] flex-1 text-left">{group.injury}</h3>
-        <span className="text-[10px] sm:text-xs text-[var(--text-muted)] tabular-nums shrink-0">{group.count}</span>
-        <span className="text-xs sm:text-sm font-bold text-[var(--accent-hot)] font-value shrink-0">{formatValueNum(group.totalValue)}</span>
+        <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-value shrink-0">{group.count}</span>
+        <span className="text-xs sm:text-sm font-medium text-[var(--accent-hot)] font-value shrink-0">{formatValueNum(group.totalValue)}</span>
         <svg className="w-4 h-4 text-[var(--text-muted)] shrink-0 transition-transform [[data-state=open]>&]:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>

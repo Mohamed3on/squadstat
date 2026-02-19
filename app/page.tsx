@@ -71,7 +71,7 @@ interface SnapshotItem {
   imageUrl?: string;
   secondaryImageUrl?: string;
   imageContain?: boolean;
-  manager?: ManagerInfo | null;
+  manager?: ManagerInfo;
 }
 
 interface SnapshotGroup {
@@ -231,7 +231,7 @@ function formatMarketValueNum(value: number): string {
 }
 
 function formatMinutes(value?: number): string {
-  if (!value) return "0";
+  if (value === undefined) return "0";
   return value.toLocaleString();
 }
 
@@ -278,7 +278,13 @@ function pickWithTies<T>(
   opts?: { sort?: (a: T, b: T) => number; max?: number },
 ): T[] {
   if (items.length === 0) return [];
-  const targetValue = direction === "top" ? Math.max(...items.map(metric)) : Math.min(...items.map(metric));
+  const targetValue = items.reduce(
+    (acc, item) => {
+      const v = metric(item);
+      return direction === "top" ? Math.max(acc, v) : Math.min(acc, v);
+    },
+    direction === "top" ? -Infinity : Infinity,
+  );
   const tied = items.filter((item) => metric(item) === targetValue);
   const sorted = opts?.sort ? [...tied].sort(opts.sort) : tied;
   return opts?.max ? sorted.slice(0, opts.max) : sorted;
@@ -502,9 +508,13 @@ export default async function Home() {
   ]);
 
   const analysisData = analysisResult.status === "fulfilled" ? analysisResult.value : null;
+  if (analysisResult.status === "rejected") console.error("[Home] getAnalysis failed:", analysisResult.reason);
   const teamFormData = teamFormResult.status === "fulfilled" ? teamFormResult.value : null;
+  if (teamFormResult.status === "rejected") console.error("[Home] getTeamFormData failed:", teamFormResult.reason);
   const players = playersResult.status === "fulfilled" ? playersResult.value : [];
+  if (playersResult.status === "rejected") console.error("[Home] getMinutesValueData failed:", playersResult.reason);
   const injuredPlayers = injuredResult.status === "fulfilled" ? injuredResult.value.players : [];
+  if (injuredResult.status === "rejected") console.error("[Home] getInjuredPlayers failed:", injuredResult.reason);
 
   const { period: recentPeriod, topTeams: recentTopTeams, bottomTeams: recentBottomTeams } =
     pickRecentPeriodHighlights(analysisData);
@@ -525,14 +535,17 @@ export default async function Home() {
   if (missingManagerClubIds.length > 0) {
     const managerResults = await Promise.allSettled(missingManagerClubIds.map((clubId) => getManagerInfo(clubId)));
     missingManagerClubIds.forEach((clubId, index) => {
-      managerByClubId.set(
-        clubId,
-        managerResults[index]?.status === "fulfilled" ? managerResults[index].value : null
-      );
+      const result = managerResults[index];
+      if (result?.status === "fulfilled") {
+        managerByClubId.set(clubId, result.value);
+      } else {
+        console.error(`[Home] getManagerInfo failed for club ${clubId}:`, result?.reason);
+        managerByClubId.set(clubId, null);
+      }
     });
   }
-  const getManagerForClub = (clubId?: string): ManagerInfo | null =>
-    clubId ? (managerByClubId.get(clubId) ?? null) : null;
+  const getManagerForClub = (clubId?: string): ManagerInfo | undefined =>
+    clubId ? (managerByClubId.get(clubId) ?? undefined) : undefined;
 
   const mostOverperformingTeams = pickWithTies(
     teamFormData?.overperformers ?? [],
@@ -959,7 +972,7 @@ export default async function Home() {
                     ))
                   ) : (
                     <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-sm text-[var(--text-muted)]">
-                      Snapshot data is loading. Open a section to view full details.
+                      No snapshot data available right now. Open a section below for full details.
                     </div>
                   )}
                 </div>
