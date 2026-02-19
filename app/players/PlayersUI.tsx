@@ -16,6 +16,13 @@ type SigningFilter = "transfer" | "loan" | null;
 
 const BASE_SORT_LABELS: Record<SortKey, string> = { value: "Value", mins: "Mins", games: "Games", ga: "G+A", pen: "Pen", miss: "Miss" };
 
+const POS_ABBREV: Record<string, string> = {
+  "Centre-Forward": "CF", "Centre-Back": "CB", "Central Midfield": "CM",
+  "Right Winger": "RW", "Left Winger": "LW", "Right-Back": "RB", "Left-Back": "LB",
+  "Attacking Midfield": "AM", "Defensive Midfield": "DM", "Second Striker": "SS",
+  "Left Midfield": "LM", "Right Midfield": "RM", "Goalkeeper": "GK",
+};
+
 function AvatarBadge({ bg, icon, tooltip, position = "bottom-right" }: { bg: string; icon: ReactNode; tooltip: string; position?: "bottom-right" | "top-right" }) {
   const pos = position === "top-right" ? "-top-1 -right-1" : "-bottom-1 -right-1";
   return (
@@ -122,13 +129,18 @@ function PlayerCard({ player, index, injuryMap, includePen = false }: { player: 
           >
             {player.name}
           </a>
-          <div className="flex items-center gap-1.5 text-xs mt-0.5 overflow-hidden sm:flex-wrap" style={{ color: "var(--text-secondary)" }}>
-            <span>{player.position}</span>
+          <div className="flex items-center gap-1.5 text-xs mt-0.5 overflow-hidden" style={{ color: "var(--text-secondary)" }}>
+            <span className="sm:hidden shrink-0">{POS_ABBREV[player.position] || player.position}</span>
+            <span className="hidden sm:inline shrink-0">{player.position}</span>
             <span style={{ opacity: 0.4 }}>·</span>
-            <span className="truncate max-w-[8rem] sm:max-w-none inline-flex items-center gap-1">
+            <span className="truncate inline-flex items-center gap-1">
               {player.clubLogoUrl && <img src={player.clubLogoUrl} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />}
               {player.club}
             </span>
+            {player.nationality && <>
+              <span className="hidden sm:inline" style={{ opacity: 0.4 }}>·</span>
+              <span className="hidden sm:inline shrink-0">{player.nationality}</span>
+            </>}
             <span className="hidden sm:inline" style={{ opacity: 0.4 }}>·</span>
             <span className="hidden sm:inline">{player.age}y</span>
           </div>
@@ -231,6 +243,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
   const sortAsc = params.get("dir") === "asc";
   const leagueFilter = params.get("league") || "all";
   const clubFilter = params.get("club") || "";
+  const nationalityFilter = params.get("nat") || "all";
   const top5Only = params.get("top5") === "1";
   const signingFilter = parseSigningFilter(params.get("signing"));
   const includePen = params.get("pen") === "1";
@@ -253,20 +266,27 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     [players]
   );
 
+  const nationalityOptions = useMemo(
+    () => Array.from(new Set(players.map((p) => p.nationality).filter(Boolean))).sort(),
+    [players]
+  );
+
   const pointsLabel = includePen ? "G+A" : "npG+A";
 
   const signingCounts = useMemo(() => {
     let base = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
     if (top5Only) base = filterTop5(base);
+    if (nationalityFilter !== "all") base = base.filter((p) => p.nationality === nationalityFilter);
     return {
       newSignings: base.filter((p) => p.isNewSigning).length,
       loans: base.filter((p) => p.isOnLoan).length,
     };
-  }, [players, leagueFilter, clubFilter, top5Only]);
+  }, [players, leagueFilter, clubFilter, top5Only, nationalityFilter]);
 
   const sortedPlayers = useMemo(() => {
     let list = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
     if (top5Only) list = filterTop5(list);
+    if (nationalityFilter !== "all") list = list.filter((p) => p.nationality === nationalityFilter);
     if (signingFilter === "transfer") list = list.filter((p) => p.isNewSigning);
     if (signingFilter === "loan") list = list.filter((p) => p.isOnLoan);
     const penAdj = includePen ? 0 : 1;
@@ -282,7 +302,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       }
       return sortAsc ? -diff : diff;
     });
-  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, top5Only, signingFilter, includePen]);
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen]);
 
   return (
     <>
@@ -336,34 +356,39 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
 
           {/* Filters */}
           <div className="flex flex-col gap-3 mb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <DebouncedInput
+              value={clubFilter}
+              onChange={(value) => update({ club: value || null })}
+              placeholder="Search by club..."
+              className="h-10"
+            />
+
+            <div className="flex flex-wrap gap-2">
               <SelectNative
                 value={leagueFilter}
                 onChange={(e) => update({ league: e.target.value === "all" ? null : e.target.value })}
-                className="h-10"
+                className="h-8 text-xs w-auto pr-7"
               >
                 <option value="all">All leagues</option>
                 {leagueOptions.map((league) => (
                   <option key={league} value={league}>{league}</option>
                 ))}
               </SelectNative>
-              <DebouncedInput
-                value={clubFilter}
-                onChange={(value) => update({ club: value || null })}
-                placeholder="Filter by club"
-                className="h-10"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-2">
+              <SelectNative
+                value={nationalityFilter}
+                onChange={(e) => update({ nat: e.target.value === "all" ? null : e.target.value })}
+                className="h-8 text-xs w-auto pr-7"
+              >
+                <option value="all">All nationalities</option>
+                {nationalityOptions.map((nat) => (
+                  <option key={nat} value={nat}>{nat}</option>
+                ))}
+              </SelectNative>
               <FilterButton active={top5Only} onClick={() => update({ top5: top5Only ? null : "1" })}>
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Top 5 leagues
+                Top 5
               </FilterButton>
               <FilterButton active={signingFilter === "transfer"} onClick={() => update({ signing: signingFilter === "transfer" ? null : "transfer", new: null })}>
-                New signings
+                Signings
                 <span className="tabular-nums opacity-60">{signingCounts.newSignings}</span>
               </FilterButton>
               <FilterButton active={signingFilter === "loan"} onClick={() => update({ signing: signingFilter === "loan" ? null : "loan", new: null })}>
