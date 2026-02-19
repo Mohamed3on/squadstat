@@ -7,7 +7,7 @@ export function useQueryParams(basePath: string) {
   const router = useRouter();
   const params = useSearchParams();
 
-  const update = useCallback(
+  const buildUrl = useCallback(
     (updates: Record<string, string | null>) => {
       const next = new URLSearchParams(params.toString());
       for (const [key, value] of Object.entries(updates)) {
@@ -15,10 +15,26 @@ export function useQueryParams(basePath: string) {
         else next.set(key, value);
       }
       const qs = next.toString();
-      router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
+      return qs ? `${basePath}?${qs}` : basePath;
     },
-    [router, params, basePath]
+    [params, basePath]
   );
 
-  return { params, update, push: update };
+  // Shallow URL update — no server re-render
+  const update = useCallback(
+    (updates: Record<string, string | null>) => {
+      window.history.pushState(null, "", buildUrl(updates));
+    },
+    [buildUrl]
+  );
+
+  // Full navigation — triggers server re-render
+  const push = useCallback(
+    (updates: Record<string, string | null>) => {
+      router.push(buildUrl(updates), { scroll: false });
+    },
+    [router, buildUrl]
+  );
+
+  return { params, update, push };
 }

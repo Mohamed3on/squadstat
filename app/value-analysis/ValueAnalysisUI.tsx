@@ -746,10 +746,10 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
             <ToggleGroupItem value="mins" className="px-4">Minutes</ToggleGroupItem>
           </ToggleGroup>
           <div className="w-px h-6" style={{ background: "var(--border-subtle)" }} />
-          <FilterButton active={includePen} onClick={() => update({ pen: includePen ? null : "1" })}>
+          <FilterButton active={includePen} onClick={() => push({ pen: includePen ? null : "1" })}>
             Pens in G+A
           </FilterButton>
-          <FilterButton active={includeIntl} onClick={() => update({ intl: includeIntl ? null : "1" })}>
+          <FilterButton active={includeIntl} onClick={() => push({ intl: includeIntl ? null : "1" })}>
             + Intl stats
           </FilterButton>
         </div>

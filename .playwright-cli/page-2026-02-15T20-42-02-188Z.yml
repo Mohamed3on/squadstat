@@ -1,0 +1,1219 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "FormTracker FormTracker" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "FormTracker" [ref=e5]
+        - heading "FormTracker" [level=1] [ref=e6]
+      - navigation [ref=e7]:
+        - link "Home" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "Recent Form" [ref=e9] [cursor=pointer]:
+          - /url: /form
+        - link "Value vs Table" [ref=e10] [cursor=pointer]:
+          - /url: /team-form
+        - link "Players" [ref=e11] [cursor=pointer]:
+          - /url: /players
+        - link "Value Analysis" [ref=e12] [cursor=pointer]:
+          - /url: /value-analysis
+        - link "Injury Impact" [ref=e13] [cursor=pointer]:
+          - /url: /injured
+      - button "Refresh data" [ref=e15]:
+        - img
+        - generic [ref=e16]: Refresh Data
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - heading "Team Value vs Table" [level=1] [ref=e20]
+        - paragraph [ref=e21]: Each team's expected points are derived from their squad market value rank within the league. The delta shows how many points they're ahead or behind what their spending level predicts.
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: "Filter by league:"
+        - group [ref=e24]:
+          - radio "All Leagues" [checked] [ref=e25] [cursor=pointer]
+          - radio "Premier League" [ref=e26] [cursor=pointer]
+          - radio "La Liga" [ref=e27] [cursor=pointer]
+          - radio "Bundesliga" [ref=e28] [cursor=pointer]
+          - radio "Serie A" [ref=e29] [cursor=pointer]
+          - radio "Ligue 1" [ref=e30] [cursor=pointer]
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - heading "Overperformers" [level=2] [ref=e35]:
+              - img [ref=e36]
+              - text: Overperformers
+            - generic [ref=e38]: "20"
+          - generic [ref=e40]:
+            - heading "Underperformers" [level=2] [ref=e41]:
+              - img [ref=e42]
+              - text: Underperformers
+            - generic [ref=e44]: "20"
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - generic [ref=e52]:
+                  - generic [ref=e53]: "1"
+                  - img "RC Lens" [ref=e55]
+                  - generic [ref=e56]:
+                    - link "RC Lens" [ref=e57] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/rc-lens/startseite/verein/826/saison_id/2025
+                    - generic [ref=e58]: Ligue 1
+                - generic [ref=e59]:
+                  - generic [ref=e60]: 1st · 52pts
+                  - generic [ref=e61]: "|"
+                  - generic [ref=e62]: "Exp: 10th → 30pts"
+                  - generic [ref=e63]: "|"
+                  - generic [ref=e64]: "Avg: €4.28m"
+                - generic [ref=e66]:
+                  - generic [ref=e67]:
+                    - generic [ref=e68]: "Manager:"
+                    - link "Pierre Sage" [ref=e69] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/pierre-sage/profil/trainer/110443
+                  - generic [ref=e70]:
+                    - generic [ref=e71]: (25 games)
+                    - generic [ref=e72]:
+                      - generic [ref=e73]: 🏆
+                      - generic [ref=e74]: 2.44 PPG
+                      - generic [ref=e75]: (1/17)
+              - generic [ref=e76]:
+                - generic [ref=e77]: "+22"
+                - generic [ref=e78]: pts
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - generic [ref=e83]:
+                  - generic [ref=e84]: "1"
+                  - img "Tottenham Hotspur" [ref=e86]
+                  - generic [ref=e87]:
+                    - link "Tottenham Hotspur" [ref=e88] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/tottenham-hotspur/startseite/verein/148/saison_id/2025
+                    - generic [ref=e89]: Premier League
+                - generic [ref=e90]:
+                  - generic [ref=e91]: 16th · 29pts
+                  - generic [ref=e92]: "|"
+                  - generic [ref=e93]: "Exp: 5th → 44pts"
+                  - generic [ref=e94]: "|"
+                  - generic [ref=e95]: "Avg: €31.30m"
+                - generic [ref=e97]:
+                  - generic [ref=e98]:
+                    - generic [ref=e99]: "Manager:"
+                    - link "Igor Tudor" [ref=e100] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/igor-tudor/profil/trainer/28632
+                  - generic [ref=e101]: New manager
+              - generic [ref=e102]:
+                - generic [ref=e103]: "-15"
+                - generic [ref=e104]: pts
+          - generic [ref=e105]:
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e110]:
+                  - generic [ref=e111]: "2"
+                  - img "TSG 1899 Hoffenheim" [ref=e113]
+                  - generic [ref=e114]:
+                    - link "TSG 1899 Hoffenheim" [ref=e115] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/tsg-1899-hoffenheim/startseite/verein/533/saison_id/2025
+                    - generic [ref=e116]: Bundesliga
+                - generic [ref=e117]:
+                  - generic [ref=e118]: 3rd · 45pts
+                  - generic [ref=e119]: "|"
+                  - generic [ref=e120]: "Exp: 9th → 25pts"
+                  - generic [ref=e121]: "|"
+                  - generic [ref=e122]: "Avg: €6.81m"
+                - generic [ref=e124]:
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: "Manager:"
+                    - link "Christian Ilzer" [ref=e127] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/christian-ilzer/profil/trainer/4855
+                  - generic [ref=e128]:
+                    - generic [ref=e129]: (53 games)
+                    - generic [ref=e130]:
+                      - generic [ref=e131]: 1.42 PPG
+                      - generic [ref=e132]: (4/7)
+              - generic [ref=e133]:
+                - generic [ref=e134]: "+20"
+                - generic [ref=e135]: pts
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - generic [ref=e140]:
+                  - generic [ref=e141]: "2"
+                  - img "Wolverhampton Wanderers" [ref=e143]
+                  - generic [ref=e144]:
+                    - link "Wolverhampton Wanderers" [ref=e145] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/wolverhampton-wanderers/startseite/verein/543/saison_id/2025
+                    - generic [ref=e146]: Premier League
+                - generic [ref=e147]:
+                  - generic [ref=e148]: 20th · 9pts
+                  - generic [ref=e149]: "|"
+                  - generic [ref=e150]: "Exp: 18th → 24pts"
+                  - generic [ref=e151]: "|"
+                  - generic [ref=e152]: "Avg: €12.10m"
+                - generic [ref=e154]:
+                  - generic [ref=e155]:
+                    - generic [ref=e156]: "Manager:"
+                    - link "Rob Edwards" [ref=e157] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/rob-edwards/profil/trainer/49800
+                  - generic [ref=e158]:
+                    - generic [ref=e159]: (17 games)
+                    - generic [ref=e160]:
+                      - generic [ref=e161]: ⚠️
+                      - generic [ref=e162]: 0.76 PPG
+                      - generic [ref=e163]: (16/16)
+              - generic [ref=e164]:
+                - generic [ref=e165]: "-15"
+                - generic [ref=e166]: pts
+          - generic [ref=e167]:
+            - generic [ref=e170]:
+              - generic [ref=e171]:
+                - generic [ref=e172]:
+                  - generic [ref=e173]: "3"
+                  - img "Sunderland AFC" [ref=e175]
+                  - generic [ref=e176]:
+                    - link "Sunderland AFC" [ref=e177] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/afc-sunderland/startseite/verein/289/saison_id/2025
+                    - generic [ref=e178]: Premier League
+                - generic [ref=e179]:
+                  - generic [ref=e180]: 11th · 36pts
+                  - generic [ref=e181]: "|"
+                  - generic [ref=e182]: "Exp: 19th → 18pts"
+                  - generic [ref=e183]: "|"
+                  - generic [ref=e184]: "Avg: €11.28m"
+                - generic [ref=e186]:
+                  - generic [ref=e187]:
+                    - generic [ref=e188]: "Manager:"
+                    - link "Régis Le Bris" [ref=e189] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/regis-le-bris/profil/trainer/40910
+                  - generic [ref=e190]:
+                    - generic [ref=e191]: (80 games)
+                    - generic [ref=e192]:
+                      - generic [ref=e193]: 🏆
+                      - generic [ref=e194]: 1.56 PPG
+                      - generic [ref=e195]: (1/5)
+              - generic [ref=e196]:
+                - generic [ref=e197]: "+18"
+                - generic [ref=e198]: pts
+            - generic [ref=e201]:
+              - generic [ref=e202]:
+                - generic [ref=e203]:
+                  - generic [ref=e204]: "3"
+                  - img "Athletic Bilbao" [ref=e206]
+                  - generic [ref=e207]:
+                    - link "Athletic Bilbao" [ref=e208] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/athletic-bilbao/startseite/verein/621/saison_id/2025
+                    - generic [ref=e209]: La Liga
+                - generic [ref=e210]:
+                  - generic [ref=e211]: 9th · 31pts
+                  - generic [ref=e212]: "|"
+                  - generic [ref=e213]: "Exp: 4th → 45pts"
+                  - generic [ref=e214]: "|"
+                  - generic [ref=e215]: "Avg: €10.48m"
+                - generic [ref=e217]:
+                  - generic [ref=e218]:
+                    - generic [ref=e219]: "Manager:"
+                    - link "Ernesto Valverde" [ref=e220] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ernesto-valverde/profil/trainer/1559
+                  - generic [ref=e221]:
+                    - generic [ref=e222]: (183 games)
+                    - generic [ref=e223]:
+                      - generic [ref=e224]: 🏆
+                      - generic [ref=e225]: 1.67 PPG
+                      - generic [ref=e226]: (1/3)
+              - generic [ref=e227]:
+                - generic [ref=e228]: "-14"
+                - generic [ref=e229]: pts
+          - generic [ref=e230]:
+            - generic [ref=e233]:
+              - generic [ref=e234]:
+                - generic [ref=e235]:
+                  - generic [ref=e236]: "4"
+                  - img "Angers SCO" [ref=e238]
+                  - generic [ref=e239]:
+                    - link "Angers SCO" [ref=e240] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/sco-angers/startseite/verein/1420/saison_id/2025
+                    - generic [ref=e241]: Ligue 1
+                - generic [ref=e242]:
+                  - generic [ref=e243]: 11th · 29pts
+                  - generic [ref=e244]: "|"
+                  - generic [ref=e245]: "Exp: 18th → 13pts"
+                  - generic [ref=e246]: "|"
+                  - generic [ref=e247]: "Avg: €1.73m"
+                - generic [ref=e249]:
+                  - generic [ref=e250]:
+                    - generic [ref=e251]: "Manager:"
+                    - link "Alexandre Dujeux" [ref=e252] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/alexandre-dujeux/profil/trainer/24061
+                  - generic [ref=e253]:
+                    - generic [ref=e254]: (115 games)
+                    - generic [ref=e255]:
+                      - generic [ref=e256]: 1.38 PPG
+                      - generic [ref=e257]: (2/3)
+              - generic [ref=e258]:
+                - generic [ref=e259]: "+16"
+                - generic [ref=e260]: pts
+            - generic [ref=e263]:
+              - generic [ref=e264]:
+                - generic [ref=e265]:
+                  - generic [ref=e266]: "4"
+                  - img "ACF Fiorentina" [ref=e268]
+                  - generic [ref=e269]:
+                    - link "ACF Fiorentina" [ref=e270] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ac-florenz/startseite/verein/430/saison_id/2025
+                    - generic [ref=e271]: Serie A
+                - generic [ref=e272]:
+                  - generic [ref=e273]: 17th · 21pts
+                  - generic [ref=e274]: "|"
+                  - generic [ref=e275]: "Exp: 9th → 33pts"
+                  - generic [ref=e276]: "|"
+                  - generic [ref=e277]: "Avg: €9.16m"
+                - generic [ref=e279]:
+                  - generic [ref=e280]:
+                    - generic [ref=e281]: "Manager:"
+                    - link "Paolo Vanoli" [ref=e282] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/paolo-vanoli/profil/trainer/31876
+                  - generic [ref=e283]:
+                    - generic [ref=e284]: (19 games)
+                    - generic [ref=e285]:
+                      - generic [ref=e286]: 1.05 PPG
+                      - generic [ref=e287]: (15/19)
+              - generic [ref=e288]:
+                - generic [ref=e289]: "-12"
+                - generic [ref=e290]: pts
+          - generic [ref=e291]:
+            - generic [ref=e294]:
+              - generic [ref=e295]:
+                - generic [ref=e296]:
+                  - generic [ref=e297]: "5"
+                  - img "Aston Villa" [ref=e299]
+                  - generic [ref=e300]:
+                    - link "Aston Villa" [ref=e301] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/aston-villa/startseite/verein/405/saison_id/2025
+                    - generic [ref=e302]: Premier League
+                - generic [ref=e303]:
+                  - generic [ref=e304]: 3rd · 50pts
+                  - generic [ref=e305]: "|"
+                  - generic [ref=e306]: "Exp: 8th → 37pts"
+                  - generic [ref=e307]: "|"
+                  - generic [ref=e308]: "Avg: €21.26m"
+                - generic [ref=e310]:
+                  - generic [ref=e311]:
+                    - generic [ref=e312]: "Manager:"
+                    - link "Unai Emery" [ref=e313] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/unai-emery/profil/trainer/5075
+                  - generic [ref=e314]:
+                    - generic [ref=e315]: (177 games)
+                    - generic [ref=e316]:
+                      - generic [ref=e317]: 🏆
+                      - generic [ref=e318]: 1.85 PPG
+                      - generic [ref=e319]: (1/3)
+              - generic [ref=e320]:
+                - generic [ref=e321]: "+13"
+                - generic [ref=e322]: pts
+            - generic [ref=e325]:
+              - generic [ref=e326]:
+                - generic [ref=e327]:
+                  - generic [ref=e328]: "5"
+                  - img "FC Nantes" [ref=e330]
+                  - generic [ref=e331]:
+                    - link "FC Nantes" [ref=e332] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-nantes/startseite/verein/995/saison_id/2025
+                    - generic [ref=e333]: Ligue 1
+                - generic [ref=e334]:
+                  - generic [ref=e335]: 17th · 14pts
+                  - generic [ref=e336]: "|"
+                  - generic [ref=e337]: "Exp: 13th → 26pts"
+                  - generic [ref=e338]: "|"
+                  - generic [ref=e339]: "Avg: €3.19m"
+                - generic [ref=e341]:
+                  - generic [ref=e342]:
+                    - generic [ref=e343]: "Manager:"
+                    - link "Ahmed Kantari" [ref=e344] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ahmed-kantari/profil/trainer/66947
+                  - generic [ref=e345]:
+                    - generic [ref=e346]: (9 games)
+                    - generic [ref=e347]:
+                      - generic [ref=e348]: ⚠️
+                      - generic [ref=e349]: 0.67 PPG
+                      - generic [ref=e350]: (24/24)
+              - generic [ref=e351]:
+                - generic [ref=e352]: "-12"
+                - generic [ref=e353]: pts
+          - generic [ref=e354]:
+            - generic [ref=e357]:
+              - generic [ref=e358]:
+                - generic [ref=e359]:
+                  - generic [ref=e360]: "6"
+                  - img "Olympique Lyon" [ref=e362]
+                  - generic [ref=e363]:
+                    - link "Olympique Lyon" [ref=e364] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/olympique-lyon/startseite/verein/1041/saison_id/2025
+                    - generic [ref=e365]: Ligue 1
+                - generic [ref=e366]:
+                  - generic [ref=e367]: 3rd · 42pts
+                  - generic [ref=e368]: "|"
+                  - generic [ref=e369]: "Exp: 7th → 31pts"
+                  - generic [ref=e370]: "|"
+                  - generic [ref=e371]: "Avg: €8.03m"
+                - generic [ref=e373]:
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: "Manager:"
+                    - link "Paulo Fonseca" [ref=e376] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/paulo-fonseca/profil/trainer/19944
+                  - generic [ref=e377]:
+                    - generic [ref=e378]: (51 games)
+                    - generic [ref=e379]:
+                      - generic [ref=e380]: 2.08 PPG
+                      - generic [ref=e381]: (2/14)
+              - generic [ref=e382]:
+                - generic [ref=e383]: "+11"
+                - generic [ref=e384]: pts
+            - generic [ref=e387]:
+              - generic [ref=e388]:
+                - generic [ref=e389]:
+                  - generic [ref=e390]: "6"
+                  - img "VfL Wolfsburg" [ref=e392]
+                  - generic [ref=e393]:
+                    - link "VfL Wolfsburg" [ref=e394] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/vfl-wolfsburg/startseite/verein/82/saison_id/2025
+                    - generic [ref=e395]: Bundesliga
+                - generic [ref=e396]:
+                  - generic [ref=e397]: 15th · 20pts
+                  - generic [ref=e398]: "|"
+                  - generic [ref=e399]: "Exp: 7th → 31pts"
+                  - generic [ref=e400]: "|"
+                  - generic [ref=e401]: "Avg: €7.56m"
+                - generic [ref=e403]:
+                  - generic [ref=e404]:
+                    - generic [ref=e405]: "Manager:"
+                    - link "Daniel Bauer" [ref=e406] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/daniel-bauer/profil/trainer/38340
+                  - generic [ref=e407]:
+                    - generic [ref=e408]: (8 games)
+                    - generic [ref=e409]:
+                      - generic [ref=e410]: ⚠️
+                      - generic [ref=e411]: 0.63 PPG
+                      - generic [ref=e412]: (25/25)
+              - generic [ref=e413]:
+                - generic [ref=e414]: "-11"
+                - generic [ref=e415]: pts
+          - generic [ref=e416]:
+            - generic [ref=e419]:
+              - generic [ref=e420]:
+                - generic [ref=e421]:
+                  - generic [ref=e422]: "7"
+                  - img "Villarreal CF" [ref=e424]
+                  - generic [ref=e425]:
+                    - link "Villarreal CF" [ref=e426] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-villarreal/startseite/verein/1050/saison_id/2025
+                    - generic [ref=e427]: La Liga
+                - generic [ref=e428]:
+                  - generic [ref=e429]: 3rd · 45pts
+                  - generic [ref=e430]: "|"
+                  - generic [ref=e431]: "Exp: 6th → 35pts"
+                  - generic [ref=e432]: "|"
+                  - generic [ref=e433]: "Avg: €9.47m"
+                - generic [ref=e435]:
+                  - generic [ref=e436]:
+                    - generic [ref=e437]: "Manager:"
+                    - link "Marcelino" [ref=e438] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/marcelino/profil/trainer/5095
+                  - generic [ref=e439]:
+                    - generic [ref=e440]: (106 games)
+                    - generic [ref=e441]:
+                      - generic [ref=e442]: ⚠️
+                      - generic [ref=e443]: 1.69 PPG
+                      - generic [ref=e444]: (4/4)
+              - generic [ref=e445]:
+                - generic [ref=e446]: "+10"
+                - generic [ref=e447]: pts
+            - generic [ref=e450]:
+              - generic [ref=e451]:
+                - generic [ref=e452]:
+                  - generic [ref=e453]: "7"
+                  - img "Olympique Marseille" [ref=e455]
+                  - generic [ref=e456]:
+                    - link "Olympique Marseille" [ref=e457] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/olympique-marseille/startseite/verein/244/saison_id/2025
+                    - generic [ref=e458]: Ligue 1
+                - generic [ref=e459]:
+                  - generic [ref=e460]: 4th · 40pts
+                  - generic [ref=e461]: "|"
+                  - generic [ref=e462]: "Exp: 2nd → 51pts"
+                  - generic [ref=e463]: "|"
+                  - generic [ref=e464]: "Avg: €16.67m"
+                - generic [ref=e466]:
+                  - generic [ref=e467]:
+                    - generic [ref=e468]: "Manager:"
+                    - link "Jacques Abardonado" [ref=e469] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/jacques-abardonado/profil/trainer/92449
+                  - generic [ref=e470]:
+                    - generic [ref=e471]: (1 game)
+                    - generic [ref=e472]:
+                      - generic [ref=e473]: 1.00 PPG
+                      - generic [ref=e474]: (30/35)
+              - generic [ref=e475]:
+                - generic [ref=e476]: "-11"
+                - generic [ref=e477]: pts
+          - generic [ref=e478]:
+            - generic [ref=e481]:
+              - generic [ref=e482]:
+                - generic [ref=e483]:
+                  - generic [ref=e484]: "8"
+                  - img "Brentford FC" [ref=e486]
+                  - generic [ref=e487]:
+                    - link "Brentford FC" [ref=e488] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-brentford/startseite/verein/1148/saison_id/2025
+                    - generic [ref=e489]: Premier League
+                - generic [ref=e490]:
+                  - generic [ref=e491]: 7th · 40pts
+                  - generic [ref=e492]: "|"
+                  - generic [ref=e493]: "Exp: 14th → 31pts"
+                  - generic [ref=e494]: "|"
+                  - generic [ref=e495]: "Avg: €16.71m"
+                - generic [ref=e497]:
+                  - generic [ref=e498]:
+                    - generic [ref=e499]: "Manager:"
+                    - link "Keith Andrews" [ref=e500] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/keith-andrews/profil/trainer/68347
+                  - generic [ref=e501]:
+                    - generic [ref=e502]: (31 games)
+                    - generic [ref=e503]:
+                      - generic [ref=e504]: 1.68 PPG
+                      - generic [ref=e505]: (3/11)
+              - generic [ref=e506]:
+                - generic [ref=e507]: "+9"
+                - generic [ref=e508]: pts
+            - generic [ref=e511]:
+              - generic [ref=e512]:
+                - generic [ref=e513]:
+                  - generic [ref=e514]: "8"
+                  - img "AS Monaco" [ref=e516]
+                  - generic [ref=e517]:
+                    - link "AS Monaco" [ref=e518] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/as-monaco/startseite/verein/162/saison_id/2025
+                    - generic [ref=e519]: Ligue 1
+                - generic [ref=e520]:
+                  - generic [ref=e521]: 8th · 31pts
+                  - generic [ref=e522]: "|"
+                  - generic [ref=e523]: "Exp: 3rd → 42pts"
+                  - generic [ref=e524]: "|"
+                  - generic [ref=e525]: "Avg: €12.82m"
+                - generic [ref=e527]:
+                  - generic [ref=e528]:
+                    - generic [ref=e529]: "Manager:"
+                    - link "Sébastien Pocognoli" [ref=e530] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/sebastien-pocognoli/profil/trainer/94759
+                  - generic [ref=e531]:
+                    - generic [ref=e532]: (24 games)
+                    - generic [ref=e533]:
+                      - generic [ref=e534]: 1.38 PPG
+                      - generic [ref=e535]: (14/16)
+              - generic [ref=e536]:
+                - generic [ref=e537]: "-11"
+                - generic [ref=e538]: pts
+          - generic [ref=e539]:
+            - generic [ref=e542]:
+              - generic [ref=e543]:
+                - generic [ref=e544]:
+                  - generic [ref=e545]: "9"
+                  - img "Burnley FC" [ref=e547]
+                  - generic [ref=e548]:
+                    - link "Burnley FC" [ref=e549] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-burnley/startseite/verein/1132/saison_id/2025
+                    - generic [ref=e550]: Premier League
+                - generic [ref=e551]:
+                  - generic [ref=e552]: 19th · 18pts
+                  - generic [ref=e553]: "|"
+                  - generic [ref=e554]: "Exp: 20th → 9pts"
+                  - generic [ref=e555]: "|"
+                  - generic [ref=e556]: "Avg: €8.68m"
+                - generic [ref=e558]:
+                  - generic [ref=e559]:
+                    - generic [ref=e560]: "Manager:"
+                    - link "Scott Parker" [ref=e561] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/scott-parker/profil/trainer/54455
+                  - generic [ref=e562]:
+                    - generic [ref=e563]: (80 games)
+                    - generic [ref=e564]:
+                      - generic [ref=e565]: 🏆
+                      - generic [ref=e566]: 1.63 PPG
+                      - generic [ref=e567]: (1/7)
+              - generic [ref=e568]:
+                - generic [ref=e569]: "+9"
+                - generic [ref=e570]: pts
+            - generic [ref=e573]:
+              - generic [ref=e574]:
+                - generic [ref=e575]:
+                  - generic [ref=e576]: "9"
+                  - img "Nottingham Forest" [ref=e578]
+                  - generic [ref=e579]:
+                    - link "Nottingham Forest" [ref=e580] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/nottingham-forest/startseite/verein/703/saison_id/2025
+                    - generic [ref=e581]: Premier League
+                - generic [ref=e582]:
+                  - generic [ref=e583]: 17th · 27pts
+                  - generic [ref=e584]: "|"
+                  - generic [ref=e585]: "Exp: 9th → 37pts"
+                  - generic [ref=e586]: "|"
+                  - generic [ref=e587]: "Avg: €20.40m"
+                - generic [ref=e589]:
+                  - generic [ref=e590]:
+                    - generic [ref=e591]: "Manager:"
+                    - link "Vítor Pereira" [ref=e592] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/vitor-pereira/profil/trainer/7571
+                  - generic [ref=e593]: New manager
+              - generic [ref=e594]:
+                - generic [ref=e595]: "-10"
+                - generic [ref=e596]: pts
+          - generic [ref=e597]:
+            - generic [ref=e600]:
+              - generic [ref=e601]:
+                - generic [ref=e602]:
+                  - generic [ref=e603]: "10"
+                  - img "US Cremonese" [ref=e605]
+                  - generic [ref=e606]:
+                    - link "US Cremonese" [ref=e607] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/us-cremonese/startseite/verein/2239/saison_id/2025
+                    - generic [ref=e608]: Serie A
+                - generic [ref=e609]:
+                  - generic [ref=e610]: 16th · 24pts
+                  - generic [ref=e611]: "|"
+                  - generic [ref=e612]: "Exp: 20th → 15pts"
+                  - generic [ref=e613]: "|"
+                  - generic [ref=e614]: "Avg: €2.81m"
+                - generic [ref=e616]:
+                  - generic [ref=e617]:
+                    - generic [ref=e618]: "Manager:"
+                    - link "Davide Nicola" [ref=e619] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/davide-nicola/profil/trainer/14892
+                  - generic [ref=e620]:
+                    - generic [ref=e621]: (26 games)
+                    - generic [ref=e622]:
+                      - generic [ref=e623]: 0.92 PPG
+                      - generic [ref=e624]: (19/21)
+              - generic [ref=e625]:
+                - generic [ref=e626]: "+9"
+                - generic [ref=e627]: pts
+            - generic [ref=e630]:
+              - generic [ref=e631]:
+                - generic [ref=e632]:
+                  - generic [ref=e633]: "10"
+                  - img "Eintracht Frankfurt" [ref=e635]
+                  - generic [ref=e636]:
+                    - link "Eintracht Frankfurt" [ref=e637] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/eintracht-frankfurt/startseite/verein/24/saison_id/2025
+                    - generic [ref=e638]: Bundesliga
+                - generic [ref=e639]:
+                  - generic [ref=e640]: 7th · 31pts
+                  - generic [ref=e641]: "|"
+                  - generic [ref=e642]: "Exp: 5th → 40pts"
+                  - generic [ref=e643]: "|"
+                  - generic [ref=e644]: "Avg: €13.01m"
+                - generic [ref=e646]:
+                  - generic [ref=e647]:
+                    - generic [ref=e648]: "Manager:"
+                    - link "Albert Riera" [ref=e649] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/albert-riera/profil/trainer/75217
+                  - generic [ref=e650]:
+                    - generic [ref=e651]: (2 games)
+                    - generic [ref=e652]:
+                      - generic [ref=e653]: 🏆
+                      - generic [ref=e654]: 2.00 PPG
+                      - generic [ref=e655]: (1/24)
+              - generic [ref=e656]:
+                - generic [ref=e657]: "-9"
+                - generic [ref=e658]: pts
+          - generic [ref=e659]:
+            - generic [ref=e662]:
+              - generic [ref=e663]:
+                - generic [ref=e664]:
+                  - generic [ref=e665]: "11"
+                  - img "Le Havre AC" [ref=e667]
+                  - generic [ref=e668]:
+                    - link "Le Havre AC" [ref=e669] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ac-le-havre/startseite/verein/738/saison_id/2025
+                    - generic [ref=e670]: Ligue 1
+                - generic [ref=e671]:
+                  - generic [ref=e672]: 13th · 26pts
+                  - generic [ref=e673]: "|"
+                  - generic [ref=e674]: "Exp: 16th → 17pts"
+                  - generic [ref=e675]: "|"
+                  - generic [ref=e676]: "Avg: €2.01m"
+                - generic [ref=e678]:
+                  - generic [ref=e679]:
+                    - generic [ref=e680]: "Manager:"
+                    - link "Didier Digard" [ref=e681] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/didier-digard/profil/trainer/92937
+                  - generic [ref=e682]:
+                    - generic [ref=e683]: (58 games)
+                    - generic [ref=e684]:
+                      - generic [ref=e685]: ⚠️
+                      - generic [ref=e686]: 1.03 PPG
+                      - generic [ref=e687]: (8/8)
+              - generic [ref=e688]:
+                - generic [ref=e689]: "+9"
+                - generic [ref=e690]: pts
+            - generic [ref=e693]:
+              - generic [ref=e694]:
+                - generic [ref=e695]:
+                  - generic [ref=e696]: "11"
+                  - img "RC Strasbourg Alsace" [ref=e698]
+                  - generic [ref=e699]:
+                    - link "RC Strasbourg Alsace" [ref=e700] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/rc-strassburg-alsace/startseite/verein/667/saison_id/2025
+                    - generic [ref=e701]: Ligue 1
+                - generic [ref=e702]:
+                  - generic [ref=e703]: 7th · 31pts
+                  - generic [ref=e704]: "|"
+                  - generic [ref=e705]: "Exp: 4th → 40pts"
+                  - generic [ref=e706]: "|"
+                  - generic [ref=e707]: "Avg: €11.75m"
+                - generic [ref=e709]:
+                  - generic [ref=e710]:
+                    - generic [ref=e711]: "Manager:"
+                    - link "Gary O'Neil" [ref=e712] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/gary-oneil/profil/trainer/82647
+                  - generic [ref=e713]:
+                    - generic [ref=e714]: (7 games)
+                    - generic [ref=e715]:
+                      - generic [ref=e716]: 1.86 PPG
+                      - generic [ref=e717]: (2/20)
+              - generic [ref=e718]:
+                - generic [ref=e719]: "-9"
+                - generic [ref=e720]: pts
+          - generic [ref=e721]:
+            - generic [ref=e724]:
+              - generic [ref=e725]:
+                - generic [ref=e726]:
+                  - generic [ref=e727]: "12"
+                  - img "Deportivo Alavés" [ref=e729]
+                  - generic [ref=e730]:
+                    - link "Deportivo Alavés" [ref=e731] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/deportivo-alaves/startseite/verein/1108/saison_id/2025
+                    - generic [ref=e732]: La Liga
+                - generic [ref=e733]:
+                  - generic [ref=e734]: 13th · 26pts
+                  - generic [ref=e735]: "|"
+                  - generic [ref=e736]: "Exp: 19th → 18pts"
+                  - generic [ref=e737]: "|"
+                  - generic [ref=e738]: "Avg: €2.71m"
+                - generic [ref=e740]:
+                  - generic [ref=e741]:
+                    - generic [ref=e742]: "Manager:"
+                    - link "Eduardo Coudet" [ref=e743] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/eduardo-coudet/profil/trainer/38808
+                  - generic [ref=e744]:
+                    - generic [ref=e745]: (53 games)
+                    - generic [ref=e746]:
+                      - generic [ref=e747]: ⚠️
+                      - generic [ref=e748]: 1.25 PPG
+                      - generic [ref=e749]: (6/6)
+              - generic [ref=e750]:
+                - generic [ref=e751]: "+8"
+                - generic [ref=e752]: pts
+            - generic [ref=e755]:
+              - generic [ref=e756]:
+                - generic [ref=e757]:
+                  - generic [ref=e758]: "12"
+                  - img "OGC Nice" [ref=e760]
+                  - generic [ref=e761]:
+                    - link "OGC Nice" [ref=e762] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ogc-nizza/startseite/verein/417/saison_id/2025
+                    - generic [ref=e763]: Ligue 1
+                - generic [ref=e764]:
+                  - generic [ref=e765]: 14th · 23pts
+                  - generic [ref=e766]: "|"
+                  - generic [ref=e767]: "Exp: 8th → 31pts"
+                  - generic [ref=e768]: "|"
+                  - generic [ref=e769]: "Avg: €5.44m"
+                - generic [ref=e771]:
+                  - generic [ref=e772]:
+                    - generic [ref=e773]: "Manager:"
+                    - link "Claude Puel" [ref=e774] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/claude-puel/profil/trainer/1240
+                  - generic [ref=e775]:
+                    - generic [ref=e776]: (9 games)
+                    - generic [ref=e777]:
+                      - generic [ref=e778]: 1.67 PPG
+                      - generic [ref=e779]: (5/21)
+              - generic [ref=e780]:
+                - generic [ref=e781]: "-8"
+                - generic [ref=e782]: pts
+          - generic [ref=e783]:
+            - generic [ref=e786]:
+              - generic [ref=e787]:
+                - generic [ref=e788]:
+                  - generic [ref=e789]: "13"
+                  - img "FC Lorient" [ref=e791]
+                  - generic [ref=e792]:
+                    - link "FC Lorient" [ref=e793] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-lorient/startseite/verein/1158/saison_id/2025
+                    - generic [ref=e794]: Ligue 1
+                - generic [ref=e795]:
+                  - generic [ref=e796]: 9th · 31pts
+                  - generic [ref=e797]: "|"
+                  - generic [ref=e798]: "Exp: 14th → 23pts"
+                  - generic [ref=e799]: "|"
+                  - generic [ref=e800]: "Avg: €2.84m"
+                - generic [ref=e802]:
+                  - generic [ref=e803]:
+                    - generic [ref=e804]: "Manager:"
+                    - link "Olivier Pantaloni" [ref=e805] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/olivier-pantaloni/profil/trainer/5769
+                  - generic [ref=e806]:
+                    - generic [ref=e807]: (63 games)
+                    - generic [ref=e808]:
+                      - generic [ref=e809]: 🏆
+                      - generic [ref=e810]: 1.90 PPG
+                      - generic [ref=e811]: (1/7)
+              - generic [ref=e812]:
+                - generic [ref=e813]: "+8"
+                - generic [ref=e814]: pts
+            - generic [ref=e817]:
+              - generic [ref=e818]:
+                - generic [ref=e819]:
+                  - generic [ref=e820]: "13"
+                  - img "Real Sociedad" [ref=e822]
+                  - generic [ref=e823]:
+                    - link "Real Sociedad" [ref=e824] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/real-sociedad-san-sebastian/startseite/verein/681/saison_id/2025
+                    - generic [ref=e825]: La Liga
+                - generic [ref=e826]:
+                  - generic [ref=e827]: 8th · 31pts
+                  - generic [ref=e828]: "|"
+                  - generic [ref=e829]: "Exp: 5th → 38pts"
+                  - generic [ref=e830]: "|"
+                  - generic [ref=e831]: "Avg: €10.01m"
+                - generic [ref=e833]:
+                  - generic [ref=e834]:
+                    - generic [ref=e835]: "Manager:"
+                    - link "Pellegrino Matarazzo" [ref=e836] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/pellegrino-matarazzo/profil/trainer/10906
+                  - generic [ref=e837]:
+                    - generic [ref=e838]: (10 games)
+                    - generic [ref=e839]:
+                      - generic [ref=e840]: 🏆
+                      - generic [ref=e841]: 2.30 PPG
+                      - generic [ref=e842]: (1/21)
+              - generic [ref=e843]:
+                - generic [ref=e844]: "-7"
+                - generic [ref=e845]: pts
+          - generic [ref=e846]:
+            - generic [ref=e849]:
+              - generic [ref=e850]:
+                - generic [ref=e851]:
+                  - generic [ref=e852]: "14"
+                  - img "RCD Espanyol Barcelona" [ref=e854]
+                  - generic [ref=e855]:
+                    - link "RCD Espanyol Barcelona" [ref=e856] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/espanyol-barcelona/startseite/verein/714/saison_id/2025
+                    - generic [ref=e857]: La Liga
+                - generic [ref=e858]:
+                  - generic [ref=e859]: 6th · 35pts
+                  - generic [ref=e860]: "|"
+                  - generic [ref=e861]: "Exp: 11th → 29pts"
+                  - generic [ref=e862]: "|"
+                  - generic [ref=e863]: "Avg: €4.81m"
+                - generic [ref=e865]:
+                  - generic [ref=e866]:
+                    - generic [ref=e867]: "Manager:"
+                    - link "Manolo González" [ref=e868] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/manolo-gonzalez/profil/trainer/6446
+                  - generic [ref=e869]:
+                    - generic [ref=e870]: (82 games)
+                    - generic [ref=e871]:
+                      - generic [ref=e872]: 1.34 PPG
+                      - generic [ref=e873]: (4/6)
+              - generic [ref=e874]:
+                - generic [ref=e875]: "+6"
+                - generic [ref=e876]: pts
+            - generic [ref=e879]:
+              - generic [ref=e880]:
+                - generic [ref=e881]:
+                  - generic [ref=e882]: "14"
+                  - img "Levante UD" [ref=e884]
+                  - generic [ref=e885]:
+                    - link "Levante UD" [ref=e886] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ud-levante/startseite/verein/3368/saison_id/2025
+                    - generic [ref=e887]: La Liga
+                - generic [ref=e888]:
+                  - generic [ref=e889]: 19th · 18pts
+                  - generic [ref=e890]: "|"
+                  - generic [ref=e891]: "Exp: 16th → 25pts"
+                  - generic [ref=e892]: "|"
+                  - generic [ref=e893]: "Avg: €3.33m"
+                - generic [ref=e895]:
+                  - generic [ref=e896]:
+                    - generic [ref=e897]: "Manager:"
+                    - link "Luís Castro" [ref=e898] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/luis-castro/profil/trainer/69945
+                  - generic [ref=e899]:
+                    - generic [ref=e900]: (6 games)
+                    - generic [ref=e901]:
+                      - generic [ref=e902]: 1.33 PPG
+                      - generic [ref=e903]: (11/28)
+              - generic [ref=e904]:
+                - generic [ref=e905]: "-7"
+                - generic [ref=e906]: pts
+          - generic [ref=e907]:
+            - generic [ref=e910]:
+              - generic [ref=e911]:
+                - generic [ref=e912]:
+                  - generic [ref=e913]: "15"
+                  - img "Everton FC" [ref=e915]
+                  - generic [ref=e916]:
+                    - link "Everton FC" [ref=e917] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-everton/startseite/verein/29/saison_id/2025
+                    - generic [ref=e918]: Premier League
+                - generic [ref=e919]:
+                  - generic [ref=e920]: 8th · 37pts
+                  - generic [ref=e921]: "|"
+                  - generic [ref=e922]: "Exp: 13th → 32pts"
+                  - generic [ref=e923]: "|"
+                  - generic [ref=e924]: "Avg: €16.95m"
+                - generic [ref=e926]:
+                  - generic [ref=e927]:
+                    - generic [ref=e928]: "Manager:"
+                    - link "David Moyes" [ref=e929] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/david-moyes/profil/trainer/450
+                  - generic [ref=e930]:
+                    - generic [ref=e931]: (49 games)
+                    - generic [ref=e932]:
+                      - generic [ref=e933]: 1.45 PPG
+                      - generic [ref=e934]: (5/8)
+              - generic [ref=e935]:
+                - generic [ref=e936]: "+5"
+                - generic [ref=e937]: pts
+            - generic [ref=e940]:
+              - generic [ref=e941]:
+                - generic [ref=e942]:
+                  - generic [ref=e943]: "15"
+                  - img "Juventus FC" [ref=e945]
+                  - generic [ref=e946]:
+                    - link "Juventus FC" [ref=e947] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/juventus-turin/startseite/verein/506/saison_id/2025
+                    - generic [ref=e948]: Serie A
+                - generic [ref=e949]:
+                  - generic [ref=e950]: 4th · 46pts
+                  - generic [ref=e951]: "|"
+                  - generic [ref=e952]: "Exp: 2nd → 53pts"
+                  - generic [ref=e953]: "|"
+                  - generic [ref=e954]: "Avg: €22.41m"
+                - generic [ref=e956]:
+                  - generic [ref=e957]:
+                    - generic [ref=e958]: "Manager:"
+                    - link "Luciano Spalletti" [ref=e959] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/luciano-spalletti/profil/trainer/517
+                  - generic [ref=e960]:
+                    - generic [ref=e961]: (23 games)
+                    - generic [ref=e962]:
+                      - generic [ref=e963]: 1.96 PPG
+                      - generic [ref=e964]: (7/15)
+              - generic [ref=e965]:
+                - generic [ref=e966]: "-7"
+                - generic [ref=e967]: pts
+          - generic [ref=e968]:
+            - generic [ref=e971]:
+              - generic [ref=e972]:
+                - generic [ref=e973]:
+                  - generic [ref=e974]: "16"
+                  - img "Getafe CF" [ref=e976]
+                  - generic [ref=e977]:
+                    - link "Getafe CF" [ref=e978] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-getafe/startseite/verein/3709/saison_id/2025
+                    - generic [ref=e979]: La Liga
+                - generic [ref=e980]:
+                  - generic [ref=e981]: 11th · 29pts
+                  - generic [ref=e982]: "|"
+                  - generic [ref=e983]: "Exp: 18th → 24pts"
+                  - generic [ref=e984]: "|"
+                  - generic [ref=e985]: "Avg: €3.24m"
+                - generic [ref=e987]:
+                  - generic [ref=e988]:
+                    - generic [ref=e989]: "Manager:"
+                    - link "José Bordalás" [ref=e990] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/jose-bordalas/profil/trainer/6440
+                  - generic [ref=e991]:
+                    - generic [ref=e992]: (119 games)
+                    - generic [ref=e993]:
+                      - generic [ref=e994]: ⚠️
+                      - generic [ref=e995]: 1.28 PPG
+                      - generic [ref=e996]: (2/2)
+              - generic [ref=e997]:
+                - generic [ref=e998]: "+5"
+                - generic [ref=e999]: pts
+            - generic [ref=e1002]:
+              - generic [ref=e1003]:
+                - generic [ref=e1004]:
+                  - generic [ref=e1005]: "16"
+                  - img "Paris FC" [ref=e1007]
+                  - generic [ref=e1008]:
+                    - link "Paris FC" [ref=e1009] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/paris-fc/startseite/verein/10004/saison_id/2025
+                    - generic [ref=e1010]: Ligue 1
+                - generic [ref=e1011]:
+                  - generic [ref=e1012]: 15th · 22pts
+                  - generic [ref=e1013]: "|"
+                  - generic [ref=e1014]: "Exp: 11th → 29pts"
+                  - generic [ref=e1015]: "|"
+                  - generic [ref=e1016]: "Avg: €3.91m"
+                - generic [ref=e1018]:
+                  - generic [ref=e1019]:
+                    - generic [ref=e1020]: "Manager:"
+                    - link "Stéphane Gilli" [ref=e1021] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/stephane-gilli/profil/trainer/5750
+                  - generic [ref=e1022]:
+                    - generic [ref=e1023]: (103 games)
+                    - generic [ref=e1024]:
+                      - generic [ref=e1025]: 👑
+                      - generic [ref=e1026]: 1.60 PPG
+                      - generic [ref=e1027]: (1/1)
+              - generic [ref=e1028]:
+                - generic [ref=e1029]: "-7"
+                - generic [ref=e1030]: pts
+          - generic [ref=e1031]:
+            - generic [ref=e1034]:
+              - generic [ref=e1035]:
+                - generic [ref=e1036]:
+                  - generic [ref=e1037]: "17"
+                  - img "Fulham FC" [ref=e1039]
+                  - generic [ref=e1040]:
+                    - link "Fulham FC" [ref=e1041] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-fulham/startseite/verein/931/saison_id/2025
+                    - generic [ref=e1042]: Premier League
+                - generic [ref=e1043]:
+                  - generic [ref=e1044]: 12th · 34pts
+                  - generic [ref=e1045]: "|"
+                  - generic [ref=e1046]: "Exp: 15th → 30pts"
+                  - generic [ref=e1047]: "|"
+                  - generic [ref=e1048]: "Avg: €15.54m"
+                - generic [ref=e1050]:
+                  - generic [ref=e1051]:
+                    - generic [ref=e1052]: "Manager:"
+                    - link "Marco Silva" [ref=e1053] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/marco-silva/profil/trainer/19631
+                  - generic [ref=e1054]:
+                    - generic [ref=e1055]: (216 games)
+                    - generic [ref=e1056]:
+                      - generic [ref=e1057]: 👑
+                      - generic [ref=e1058]: 1.56 PPG
+                      - generic [ref=e1059]: (1/1)
+              - generic [ref=e1060]:
+                - generic [ref=e1061]: "+4"
+                - generic [ref=e1062]: pts
+            - generic [ref=e1065]:
+              - generic [ref=e1066]:
+                - generic [ref=e1067]:
+                  - generic [ref=e1068]: "17"
+                  - img "Chelsea FC" [ref=e1070]
+                  - generic [ref=e1071]:
+                    - link "Chelsea FC" [ref=e1072] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/fc-chelsea/startseite/verein/631/saison_id/2025
+                    - generic [ref=e1073]: Premier League
+                - generic [ref=e1074]:
+                  - generic [ref=e1075]: 5th · 44pts
+                  - generic [ref=e1076]: "|"
+                  - generic [ref=e1077]: "Exp: 3rd → 50pts"
+                  - generic [ref=e1078]: "|"
+                  - generic [ref=e1079]: "Avg: €38.57m"
+                - generic [ref=e1081]:
+                  - generic [ref=e1082]:
+                    - generic [ref=e1083]: "Manager:"
+                    - link "Liam Rosenior" [ref=e1084] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/liam-rosenior/profil/trainer/62134
+                  - generic [ref=e1085]:
+                    - generic [ref=e1086]: (11 games)
+                    - generic [ref=e1087]:
+                      - generic [ref=e1088]: 2.27 PPG
+                      - generic [ref=e1089]: (2/23)
+              - generic [ref=e1090]:
+                - generic [ref=e1091]: "-6"
+                - generic [ref=e1092]: pts
+          - generic [ref=e1093]:
+            - generic [ref=e1096]:
+              - generic [ref=e1097]:
+                - generic [ref=e1098]:
+                  - generic [ref=e1099]: "18"
+                  - img "Real Betis Balompié" [ref=e1101]
+                  - generic [ref=e1102]:
+                    - link "Real Betis Balompié" [ref=e1103] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/real-betis-sevilla/startseite/verein/150/saison_id/2025
+                    - generic [ref=e1104]: La Liga
+                - generic [ref=e1105]:
+                  - generic [ref=e1106]: 5th · 38pts
+                  - generic [ref=e1107]: "|"
+                  - generic [ref=e1108]: "Exp: 7th → 34pts"
+                  - generic [ref=e1109]: "|"
+                  - generic [ref=e1110]: "Avg: €8.46m"
+                - generic [ref=e1112]:
+                  - generic [ref=e1113]:
+                    - generic [ref=e1114]: "Manager:"
+                    - link "Manuel Pellegrini" [ref=e1115] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/manuel-pellegrini/profil/trainer/1558
+                  - generic [ref=e1116]:
+                    - generic [ref=e1117]: (292 games)
+                    - generic [ref=e1118]:
+                      - generic [ref=e1119]: 👑
+                      - generic [ref=e1120]: 1.69 PPG
+                      - generic [ref=e1121]: (1/1)
+              - generic [ref=e1122]:
+                - generic [ref=e1123]: "+4"
+                - generic [ref=e1124]: pts
+            - generic [ref=e1127]:
+              - generic [ref=e1128]:
+                - generic [ref=e1129]:
+                  - generic [ref=e1130]: "18"
+                  - img "Bayer 04 Leverkusen" [ref=e1132]
+                  - generic [ref=e1133]:
+                    - link "Bayer 04 Leverkusen" [ref=e1134] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/bayer-04-leverkusen/startseite/verein/15/saison_id/2025
+                    - generic [ref=e1135]: Bundesliga
+                - generic [ref=e1136]:
+                  - generic [ref=e1137]: 6th · 39pts
+                  - generic [ref=e1138]: "|"
+                  - generic [ref=e1139]: "Exp: 3rd → 45pts"
+                  - generic [ref=e1140]: "|"
+                  - generic [ref=e1141]: "Avg: €15.66m"
+                - generic [ref=e1143]:
+                  - generic [ref=e1144]:
+                    - generic [ref=e1145]: "Manager:"
+                    - link "Kasper Hjulmand" [ref=e1146] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/kasper-hjulmand/profil/trainer/5372
+                  - generic [ref=e1147]:
+                    - generic [ref=e1148]: (30 games)
+                    - generic [ref=e1149]:
+                      - generic [ref=e1150]: 1.97 PPG
+                      - generic [ref=e1151]: (2/16)
+              - generic [ref=e1152]:
+                - generic [ref=e1153]: "-6"
+                - generic [ref=e1154]: pts
+          - generic [ref=e1155]:
+            - generic [ref=e1158]:
+              - generic [ref=e1159]:
+                - generic [ref=e1160]:
+                  - generic [ref=e1161]: "19"
+                  - img "Celta de Vigo" [ref=e1163]
+                  - generic [ref=e1164]:
+                    - link "Celta de Vigo" [ref=e1165] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/celta-vigo/startseite/verein/940/saison_id/2025
+                    - generic [ref=e1166]: La Liga
+                - generic [ref=e1167]:
+                  - generic [ref=e1168]: 7th · 34pts
+                  - generic [ref=e1169]: "|"
+                  - generic [ref=e1170]: "Exp: 10th → 30pts"
+                  - generic [ref=e1171]: "|"
+                  - generic [ref=e1172]: "Avg: €5.25m"
+                - generic [ref=e1174]:
+                  - generic [ref=e1175]:
+                    - generic [ref=e1176]: "Manager:"
+                    - link "Claudio Giráldez" [ref=e1177] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/claudio-giraldez/profil/trainer/97955
+                  - generic [ref=e1178]:
+                    - generic [ref=e1179]: (87 games)
+                    - generic [ref=e1180]:
+                      - generic [ref=e1181]: 1.54 PPG
+                      - generic [ref=e1182]: (3/6)
+              - generic [ref=e1183]:
+                - generic [ref=e1184]: "+4"
+                - generic [ref=e1185]: pts
+            - generic [ref=e1188]:
+              - generic [ref=e1189]:
+                - generic [ref=e1190]:
+                  - generic [ref=e1191]: "19"
+                  - img "SV Werder Bremen" [ref=e1193]
+                  - generic [ref=e1194]:
+                    - link "SV Werder Bremen" [ref=e1195] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/sv-werder-bremen/startseite/verein/86/saison_id/2025
+                    - generic [ref=e1196]: Bundesliga
+                - generic [ref=e1197]:
+                  - generic [ref=e1198]: 16th · 19pts
+                  - generic [ref=e1199]: "|"
+                  - generic [ref=e1200]: "Exp: 10th → 25pts"
+                  - generic [ref=e1201]: "|"
+                  - generic [ref=e1202]: "Avg: €6.37m"
+                - generic [ref=e1204]:
+                  - generic [ref=e1205]:
+                    - generic [ref=e1206]: "Manager:"
+                    - link "Daniel Thioune" [ref=e1207] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/daniel-thioune/profil/trainer/15452
+                  - generic [ref=e1208]:
+                    - generic [ref=e1209]: (2 games)
+                    - generic [ref=e1210]:
+                      - generic [ref=e1211]: ⚠️
+                      - generic [ref=e1212]: 0.00 PPG
+                      - generic [ref=e1213]: (14/14)
+              - generic [ref=e1214]:
+                - generic [ref=e1215]: "-6"
+                - generic [ref=e1216]: pts
+          - generic [ref=e1217]:
+            - generic [ref=e1220]:
+              - generic [ref=e1221]:
+                - generic [ref=e1222]:
+                  - generic [ref=e1223]: "20"
+                  - img "CA Osasuna" [ref=e1225]
+                  - generic [ref=e1226]:
+                    - link "CA Osasuna" [ref=e1227] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ca-osasuna/startseite/verein/331/saison_id/2025
+                    - generic [ref=e1228]: La Liga
+                - generic [ref=e1229]:
+                  - generic [ref=e1230]: 10th · 30pts
+                  - generic [ref=e1231]: "|"
+                  - generic [ref=e1232]: "Exp: 13th → 26pts"
+                  - generic [ref=e1233]: "|"
+                  - generic [ref=e1234]: "Avg: €4.09m"
+                - generic [ref=e1236]:
+                  - generic [ref=e1237]:
+                    - generic [ref=e1238]: "Manager:"
+                    - link "Alessio Lisci" [ref=e1239] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/alessio-lisci/profil/trainer/87289
+                  - generic [ref=e1240]:
+                    - generic [ref=e1241]: (28 games)
+                    - generic [ref=e1242]:
+                      - generic [ref=e1243]: 1.39 PPG
+                      - generic [ref=e1244]: (6/12)
+              - generic [ref=e1245]:
+                - generic [ref=e1246]: "+4"
+                - generic [ref=e1247]: pts
+            - generic [ref=e1250]:
+              - generic [ref=e1251]:
+                - generic [ref=e1252]:
+                  - generic [ref=e1253]: "20"
+                  - img "Pisa Sporting Club" [ref=e1255]
+                  - generic [ref=e1256]:
+                    - link "Pisa Sporting Club" [ref=e1257] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/ac-pisa-1909/startseite/verein/4172/saison_id/2025
+                    - generic [ref=e1258]: Serie A
+                - generic [ref=e1259]:
+                  - generic [ref=e1260]: 19th · 15pts
+                  - generic [ref=e1261]: "|"
+                  - generic [ref=e1262]: "Exp: 17th → 21pts"
+                  - generic [ref=e1263]: "|"
+                  - generic [ref=e1264]: "Avg: €3.86m"
+                - generic [ref=e1266]:
+                  - generic [ref=e1267]:
+                    - generic [ref=e1268]: "Manager:"
+                    - link "Oscar Hiljemark" [ref=e1269] [cursor=pointer]:
+                      - /url: https://www.transfermarkt.com/oscar-hiljemark/profil/trainer/93316
+                  - generic [ref=e1270]:
+                    - generic [ref=e1271]: (2 games)
+                    - generic [ref=e1272]:
+                      - generic [ref=e1273]: 0.50 PPG
+                      - generic [ref=e1274]: (37/41)
+              - generic [ref=e1275]:
+                - generic [ref=e1276]: "-6"
+                - generic [ref=e1277]: pts
+  - contentinfo [ref=e1278]:
+    - generic [ref=e1280]:
+      - paragraph [ref=e1281]:
+        - text: Data from
+        - link "Transfermarkt" [ref=e1282] [cursor=pointer]:
+          - /url: https://www.transfermarkt.com
+        - text: · Built by
+        - link "Mohamed Oun" [ref=e1283] [cursor=pointer]:
+          - /url: https://mohamed3on.com
+      - generic [ref=e1284]:
+        - link "GitHub" [ref=e1285] [cursor=pointer]:
+          - /url: https://github.com/mohamed3on
+        - link "Tech Cities Index" [ref=e1286] [cursor=pointer]:
+          - /url: https://techcitiesindex.com
+        - link "X" [ref=e1287] [cursor=pointer]:
+          - /url: https://x.com/mohamed3on
+  - region "Notifications alt+T"
+  - alert [ref=e1288]

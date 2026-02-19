@@ -1,0 +1,68 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "FormTracker FormTracker" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "FormTracker" [ref=e5]
+        - heading "FormTracker" [level=1] [ref=e6]
+      - navigation [ref=e7]:
+        - link "Home" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "Recent Form" [ref=e9] [cursor=pointer]:
+          - /url: /form
+        - link "Value vs Table" [ref=e10] [cursor=pointer]:
+          - /url: /team-form
+        - link "Players" [ref=e11] [cursor=pointer]:
+          - /url: /players
+        - link "Underperformers" [ref=e12] [cursor=pointer]:
+          - /url: /underperformers
+        - link "Injury Impact" [ref=e13] [cursor=pointer]:
+          - /url: /injured
+      - button "Refresh data" [ref=e15]:
+        - img
+        - generic [ref=e16]: Refresh Data
+  - main [ref=e17]:
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Underperformers" [level=2] [ref=e21]
+          - paragraph [ref=e22]: Are expensive players producing enough goals and assists?
+        - group [ref=e23]:
+          - radio "G+A" [checked] [ref=e24] [cursor=pointer]
+          - radio "Minutes" [ref=e25] [cursor=pointer]
+        - textbox "Search player (e.g. Kenan Yildiz)" [ref=e28]
+        - generic [ref=e29]:
+          - heading "Underdelivering" [level=2] [ref=e33]
+          - generic [ref=e34]:
+            - group [ref=e35]:
+              - radio "Value" [ref=e36] [cursor=pointer]:
+                - img [ref=e37]
+                - text: Value
+              - radio "Most underperforming" [checked] [ref=e39] [cursor=pointer]:
+                - img [ref=e40]
+                - text: Most underperforming
+            - generic [ref=e42]:
+              - combobox [ref=e43]:
+                - option "All leagues" [selected]
+              - textbox "Filter by club" [ref=e44]
+            - button "vs Top 5 leagues" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - text: vs Top 5 leagues
+    - generic [ref=e107]:
+      - text: Updated 13 Feb 2026
+      - generic [ref=e108]: (2h ago)
+  - contentinfo [ref=e109]:
+    - generic [ref=e111]:
+      - paragraph [ref=e112]:
+        - text: Built with ❤ by
+        - link "Mohamed Oun" [ref=e113] [cursor=pointer]:
+          - /url: https://mohamed3on.com
+      - generic [ref=e114]:
+        - link "GitHub" [ref=e115] [cursor=pointer]:
+          - /url: https://github.com/mohamed3on
+        - link "Tech Cities Index" [ref=e116] [cursor=pointer]:
+          - /url: https://techcitiesindex.com
+        - link "X" [ref=e117] [cursor=pointer]:
+          - /url: https://x.com/mohamed3on
+  - region "Notifications alt+T"
+  - alert [ref=e118]

@@ -1,0 +1,45 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "FormTracker FormTracker" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "FormTracker" [ref=e5]
+        - heading "FormTracker" [level=1] [ref=e6]
+      - navigation [ref=e7]:
+        - link "Home" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "Recent Form" [ref=e9] [cursor=pointer]:
+          - /url: /form
+        - link "Value vs Table" [ref=e10] [cursor=pointer]:
+          - /url: /team-form
+        - link "Players" [ref=e11] [cursor=pointer]:
+          - /url: /players
+        - link "Value Analysis" [ref=e12] [cursor=pointer]:
+          - /url: /value-analysis
+        - link "Injury Impact" [ref=e13] [cursor=pointer]:
+          - /url: /injured
+      - button "Refresh data" [ref=e15]:
+        - img
+        - generic [ref=e16]: Refresh Data
+  - main [ref=e17]:
+    - generic [ref=e19]:
+      - heading "Recent Form" [level=1] [ref=e20]
+      - paragraph [ref=e21]: "Who's hot and who's not across Europe's top 5 leagues. We compare the last 5, 10, 15, and 20 matches and highlight teams that lead (or trail) in at least 2 of: points, goal difference, goals scored, goals conceded."
+  - contentinfo [ref=e91]:
+    - generic [ref=e93]:
+      - paragraph [ref=e94]:
+        - text: Data from
+        - link "Transfermarkt" [ref=e95] [cursor=pointer]:
+          - /url: https://www.transfermarkt.com
+        - text: · Built by
+        - link "Mohamed Oun" [ref=e96] [cursor=pointer]:
+          - /url: https://mohamed3on.com
+      - generic [ref=e97]:
+        - link "GitHub" [ref=e98] [cursor=pointer]:
+          - /url: https://github.com/mohamed3on
+        - link "Tech Cities Index" [ref=e99] [cursor=pointer]:
+          - /url: https://techcitiesindex.com
+        - link "X" [ref=e100] [cursor=pointer]:
+          - /url: https://x.com/mohamed3on
+  - region "Notifications alt+T"
+  - alert [ref=e101]
