@@ -497,15 +497,6 @@ const features: readonly Feature[] = [
   },
 ] as const;
 
-const entryLinks = [
-  { href: "/form", label: "Recent Form" },
-  { href: "/team-form", label: "Value vs Table" },
-  { href: "/players", label: "Player Explorer" },
-  { href: "/value-analysis", label: "Value Analysis" },
-  { href: "/injured", label: "Injury Impact" },
-  { href: "/biggest-movers", label: "Biggest Movers" },
-] as const;
-
 function SectionHeading({
   eyebrow,
   title,
@@ -1030,14 +1021,14 @@ export default async function Home() {
           <h2 className="text-xl font-black text-text-primary sm:text-2xl">Jump to a page</h2>
           <p className="mt-1 text-sm text-text-muted">Pick where you want to start.</p>
 
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
-            {entryLinks.map((item) => (
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => (
               <Link
-                key={item.href}
-                href={item.href}
+                key={f.href}
+                href={f.href}
                 className="group flex items-center justify-between rounded-lg border border-border-subtle bg-elevated px-3 py-2 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-border-medium hover:bg-card-hover hover:text-text-primary"
               >
-                <span>{item.label}</span>
+                <span>{f.title}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-text-muted transition-transform group-hover:translate-x-0.5" />
               </Link>
             ))}
