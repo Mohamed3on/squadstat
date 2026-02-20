@@ -48,6 +48,7 @@ const navItems = [
   { href: "/players", label: "Players" },
   { href: "/value-analysis", label: "Value Analysis" },
   { href: "/injured", label: "Injury Impact" },
+  { href: "/biggest-movers", label: "Biggest Movers" },
 ] as const;
 
 export function Header() {

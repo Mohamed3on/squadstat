@@ -15,6 +15,12 @@ import type { MinutesValuePlayer, InjuryMap } from "@/app/types";
 type SortKey = "value" | "mins" | "games" | "ga" | "pen" | "miss";
 type SigningFilter = "transfer" | "loan" | null;
 
+function contractExpiryYear(expiry?: string): number | null {
+  if (!expiry) return null;
+  const year = parseInt(expiry.split("/").pop()!);
+  return isNaN(year) ? null : year;
+}
+
 const BASE_SORT_LABELS: Record<SortKey, string> = { value: "Value", mins: "Mins", games: "Games", ga: "G+A", pen: "Pen", miss: "Miss" };
 
 
@@ -36,10 +42,11 @@ function AvatarBadge({ bg, icon, tooltip, position = "bottom-right" }: { bg: str
   );
 }
 
-interface CardContext { sortBy: SortKey; showCaps: boolean; includePen: boolean }
+interface CardContext { sortBy: SortKey; showCaps: boolean; includePen: boolean; showContract: boolean }
 
 function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePlayer; index: number; injuryMap?: InjuryMap; ctx: CardContext }) {
-  const { sortBy, showCaps, includePen } = ctx;
+  const { sortBy, showCaps, includePen, showContract } = ctx;
+  const expiryYear = contractExpiryYear(player.contractExpiry);
   const penGoals = player.penaltyGoals ?? 0;
   const penMisses = player.penaltyMisses ?? 0;
   const penAttempts = penGoals + penMisses;
@@ -153,6 +160,12 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
               <div className="text-xs text-text-secondary">caps</div>
             </div>
           )}
+          {showContract && expiryYear && (
+            <div className="text-right">
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{expiryYear}</div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>contract</div>
+            </div>
+          )}
           {(sortBy === "pen" || sortBy === "miss" || includePen) && penAttempts > 0 && (
             <div className="text-right min-w-[3rem]">
               <div className="text-sm font-bold tabular-nums text-text-primary">{penGoals}/{penAttempts}</div>
@@ -188,6 +201,9 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
             )}
             {showCaps && (player.intlCareerCaps ?? 0) > 0 && (
               <span className="text-text-secondary"> · {player.intlCareerCaps} caps</span>
+            )}
+            {showContract && expiryYear && (
+              <span style={{ color: "var(--text-secondary)" }}> · {expiryYear}</span>
             )}
             {(sortBy === "pen" || sortBy === "miss" || includePen) && penAttempts > 0 && (
               <span className="text-text-secondary"> · {penGoals}/{penAttempts} pens</span>
@@ -257,6 +273,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
   const maxCaps = params.get("maxcaps") ? parseInt(params.get("maxcaps")!) : null;
   const minAge = params.get("minage") ? parseInt(params.get("minage")!) : null;
   const maxAge = params.get("maxage") ? parseInt(params.get("maxage")!) : null;
+  const contractYear = params.get("contract") ? parseInt(params.get("contract")!) : null;
 
   // Apply intl toggle client-side — adds intl stats when active
   const players = useMemo(() => {
@@ -307,6 +324,10 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     if (maxCaps !== null) list = list.filter((p) => (p.intlCareerCaps ?? 0) <= maxCaps);
     if (minAge !== null) list = list.filter((p) => p.age >= minAge);
     if (maxAge !== null) list = list.filter((p) => p.age <= maxAge);
+    if (contractYear !== null) list = list.filter((p) => {
+      const y = contractExpiryYear(p.contractExpiry);
+      return y !== null && y <= contractYear;
+    });
     const penAdj = includePen ? 0 : 1;
     return [...list].sort((a, b) => {
       let diff: number;
@@ -320,7 +341,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       }
       return sortAsc ? -diff : diff;
     });
-  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, minCaps, maxCaps, minAge, maxAge]);
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, minCaps, maxCaps, minAge, maxAge, contractYear]);
 
   return (
     <>
@@ -378,6 +399,18 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
               <Combobox value={clubFilter} onChange={(v) => update({ club: v === "all" ? null : v || null })} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
               <RangeFilter label="Age" min={minAge} max={maxAge} onMinChange={(v) => update({ minage: v })} onMaxChange={(v) => update({ maxage: v })} />
               <RangeFilter label="Caps" min={minCaps} max={maxCaps} onMinChange={(v) => update({ mincaps: v })} onMaxChange={(v) => update({ maxcaps: v })} />
+              <Combobox
+                value={contractYear !== null ? String(contractYear) : "all"}
+                onChange={(v) => update({ contract: v === "all" ? null : v || null })}
+                options={[
+                  { value: "all", label: "Contract expiry" },
+                  { value: "2025", label: "\u2264 2025" },
+                  { value: "2026", label: "\u2264 2026" },
+                  { value: "2027", label: "\u2264 2027" },
+                  { value: "2028", label: "\u2264 2028" },
+                ]}
+                placeholder="Contract expiry"
+              />
               <FilterButton active={top5Only} onClick={() => update({ top5: top5Only ? null : "1" })}>
                 Top 5
               </FilterButton>
@@ -399,7 +432,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
             </div>
           </div>
 
-          <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: minCaps !== null || maxCaps !== null, includePen }} />
+          <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: minCaps !== null || maxCaps !== null, includePen, showContract: contractYear !== null }} />
         </section>
     </>
   );

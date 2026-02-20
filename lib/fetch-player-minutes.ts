@@ -21,6 +21,8 @@ const ZERO_STATS: PlayerStatsResult = {
   league: "",
   isNewSigning: false,
   isOnLoan: false,
+  playedPosition: "",
+  contractExpiry: undefined,
 };
 
 const CEAPI_HEADERS = {
@@ -126,6 +128,17 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const isOnLoan = ribbonText === "on loan";
   const isNewSigning = ribbonText === "new arrival" || isOnLoan;
 
+  // Most-played position this season from the "Positions played" pitch visualization
+  let playedPosition = "";
+  let maxGames = 0;
+  $(".zahl-anzeige.played-position__pos-box").each((_, el) => {
+    const games = parseInt($(el).find(".played-position__text-box").text().trim()) || 0;
+    if (games > maxGames) {
+      maxGames = games;
+      playedPosition = $(el).attr("title")?.trim() || "";
+    }
+  });
+
   // Parse senior international caps from profile header (Caps/Goals: N)
   // The team label varies: "Current international", "Former International", "National player"
   // Find the <ul> containing Caps/Goals, then check the team name in the sibling <li>
@@ -135,13 +148,17 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const isSeniorTeam = natTeamName && !/U\d/i.test(natTeamName);
   const intlCareerCaps = isSeniorTeam ? (parseInt(capsLi.find("a").first().text().trim()) || 0) : 0;
 
+  // Parse contract expiry from club info header
+  const contractLabel = clubInfo.find(".data-header__label:contains('Contract expires:')");
+  const contractExpiry = contractLabel.find(".data-header__content").text().trim() || undefined;
+
   // Parse stats + league from ceapi
   if (!ceapiRes.ok) {
-    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan };
+    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan, playedPosition, contractExpiry };
   }
   const ceapi = await ceapiRes.json();
   const games: CeapiGame[] = ceapi?.data?.performance ?? [];
   const stats = aggregateSeasonStats(games);
 
-  return { ...stats, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan };
+  return { ...stats, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan, playedPosition, contractExpiry };
 }

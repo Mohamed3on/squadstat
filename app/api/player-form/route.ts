@@ -3,6 +3,10 @@ import type { PlayerStats } from "@/app/types";
 import { getPlayerStatsData, applyStatsToggles } from "@/lib/fetch-minutes-value";
 import { canBeOutperformerAgainst, canBeUnderperformerAgainst, strictlyOutperforms } from "@/lib/positions";
 
+function pos(p: PlayerStats): string {
+  return p.playedPosition || p.position;
+}
+
 function normalizeForSearch(str: string): string {
   return str
     .toLowerCase()
@@ -64,10 +68,11 @@ export async function GET(request: Request) {
       }, { status: 404 });
     }
 
+    const tp = pos(targetPlayer);
     const underperformers = findUnderperformers(allPlayers, targetPlayer)
-      .filter((p) => canBeUnderperformerAgainst(p.position, targetPlayer.position));
+      .filter((p) => canBeUnderperformerAgainst(pos(p), tp));
     const outperformers = findOutperformers(allPlayers, targetPlayer)
-      .filter((p) => canBeOutperformerAgainst(p.position, targetPlayer.position))
+      .filter((p) => canBeOutperformerAgainst(pos(p), tp))
       .sort((a, b) => b.points - a.points || a.marketValue - b.marketValue);
 
     return NextResponse.json({

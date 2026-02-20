@@ -11,6 +11,7 @@ export function toPlayerStats(p: MinutesValuePlayer): PlayerStats {
   return {
     name: p.name,
     position: p.position,
+    playedPosition: p.playedPosition && p.playedPosition !== p.position ? p.playedPosition : undefined,
     age: p.age,
     club: p.club,
     clubLogoUrl: p.clubLogoUrl ?? "",

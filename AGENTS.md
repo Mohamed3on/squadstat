@@ -18,6 +18,8 @@ Use [shadcn/ui](https://ui.shadcn.com) for all UI components. Install new compon
 
 **Reusable components:** Always think in reusable components. Before creating a new component, look for existing components with similar structure and extract a shared base. Actively look for opportunities to consolidate duplicated UI patterns and logic across the codebase.
 
+**Numeric values:** All numbers (money, percentages, stats, counts) must use the `font-value` class for monospace rendering. Never use `font-bold`/`font-black` on numbers — let the mono font speak for itself.
+
 ## Performance
 
 - **Server-side data fetching:** Always fetch data in async server components and pass as `initialData` props to client components. Never use client-side `useQuery`/`fetch` waterfalls. Use Next.js `loading.tsx` for streaming skeletons while server fetches. See `team-form`, `injured`, `minutes-value` pages for the pattern.

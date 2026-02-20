@@ -8,6 +8,11 @@ import {
 
 export type ValueCandidate = PlayerStats & { count: number };
 
+/** Effective position for hierarchy checks — prefers most-played position this season. */
+function pos(p: PlayerStats): string {
+  return p.playedPosition || p.position;
+}
+
 /**
  * Find players who are either overperformers (bargains) or underperformers (overpriced).
  * When `candidateOutperforms` is true, finds cheap players outperforming expensive ones.
@@ -24,7 +29,8 @@ export function findValueCandidates(
   const candidates: ValueCandidate[] = [];
 
   for (const player of players) {
-    if (isDefensivePosition(player.position) || player.position === "Central Midfield") continue;
+    const ep = pos(player);
+    if (isDefensivePosition(ep) || ep === "Central Midfield") continue;
     if (player.minutes === undefined) continue;
     if (minMinutes !== undefined && player.minutes < minMinutes) continue;
 
@@ -33,10 +39,10 @@ export function findValueCandidates(
       (candidateOutperforms
         ? p.marketValue >= player.marketValue &&
           strictlyOutperforms(player, p) &&
-          canBeUnderperformerAgainst(p.position, player.position)
+          canBeUnderperformerAgainst(pos(p), ep)
         : p.marketValue <= player.marketValue &&
           strictlyOutperforms(p, player) &&
-          canBeOutperformerAgainst(p.position, player.position))
+          canBeOutperformerAgainst(pos(p), ep))
     ).length;
 
     if (count >= 2) candidates.push({ ...player, count });
@@ -46,10 +52,10 @@ export function findValueCandidates(
     !candidates.some((other) =>
       other.playerId !== player.playerId &&
       (candidateOutperforms
-        ? canBeUnderperformerAgainst(player.position, other.position) &&
+        ? canBeUnderperformerAgainst(pos(player), pos(other)) &&
           other.marketValue <= player.marketValue &&
           strictlyOutperforms(other, player)
-        : canBeUnderperformerAgainst(other.position, player.position) &&
+        : canBeUnderperformerAgainst(pos(other), pos(player)) &&
           other.marketValue >= player.marketValue &&
           strictlyOutperforms(player, other))
     )

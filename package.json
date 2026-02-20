@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "refresh:minutes-value": "bun run scripts/refresh-minutes-value.ts"
+    "refresh:minutes-value": "bun run scripts/refresh-minutes-value.ts",
+    "refresh:biggest-movers": "bun run scripts/refresh-biggest-movers.ts"
   },
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.1.12",
@@ -37,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9.39.2",
     "eslint-config-next": "^15.5.12",
+    "shadcn": "^3.8.5",
     "tailwindcss": "^4",
     "typescript": "5.9.3"
   }

@@ -138,6 +138,7 @@ export interface PlayerStats {
   playerId: string;
   minutes?: number;
   intlCareerCaps?: number;
+  playedPosition?: string;
   isNewSigning?: boolean;
   isOnLoan?: boolean;
   outperformedByCount?: number;
@@ -170,11 +171,36 @@ export interface MinutesValuePlayer {
   imageUrl: string;
   profileUrl: string;
   playerId: string;
+  playedPosition?: string;
   isNewSigning?: boolean;
   isOnLoan?: boolean;
+  contractExpiry?: string;
 }
 
 export type InjuryMap = Record<string, { injury: string; returnDate: string; injurySince: string }>;
+
+export interface MarketValueMover {
+  name: string;
+  position: string;
+  age: number;
+  club: string;
+  clubLogoUrl: string;
+  nationality: string;
+  currentValue: number;
+  previousValue: number;
+  absoluteChange: number;
+  relativeChange: number;
+  imageUrl: string;
+  profileUrl: string;
+  playerId: string;
+  period: string;
+  reason: string;
+}
+
+export interface MarketValueMoversResult {
+  repeatMovers: MarketValueMover[][];
+  periods: { date: string; movers: MarketValueMover[] }[];
+}
 
 export interface PlayerStatsResult {
   minutes: number;
@@ -194,4 +220,6 @@ export interface PlayerStatsResult {
   intlCareerCaps: number;
   isNewSigning: boolean;
   isOnLoan: boolean;
+  playedPosition: string;
+  contractExpiry?: string;
 }
