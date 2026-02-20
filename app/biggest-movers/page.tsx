@@ -6,7 +6,7 @@ import { createPageMetadata } from "@/lib/metadata";
 export const metadata = createPageMetadata({
   title: "Biggest Movers",
   description:
-    "Which players' careers are skyrocketing and whose are in freefall? Track the biggest market value risers and fallers every transfer window.",
+    "Which players' careers are skyrocketing and whose are in freefall? Track the players whose market value keeps consistently rising or falling.",
   path: "/biggest-movers",
   keywords: [
     "market value change",

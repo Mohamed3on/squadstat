@@ -6,7 +6,7 @@ export default function BiggestMoversLayout({ children }: { children: React.Reac
           Biggest Movers
         </h1>
         <p className="text-sm sm:text-base text-text-muted max-w-xl">
-          Every 6 months, Transfermarkt updates player market values. We track the biggest risers and fallers each window — and flag the players who keep showing up.
+          Track the players whose market value keeps consistently rising or falling over time.
         </p>
       </div>
       {children}

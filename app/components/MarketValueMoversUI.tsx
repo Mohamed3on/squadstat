@@ -16,9 +16,9 @@ const VARIANT_CONFIG = {
     highlightRing: "ring-red-500/20",
     prefix: "-",
     sectionTitle: "In Freefall",
-    sectionSubtitle: "Lost significant value in multiple transfer windows",
-    barLabel: "Value lost since each update",
-    breakdownTitle: "Window by Window",
+    sectionSubtitle: "Lost significant value from multiple starting dates",
+    barLabel: "Value lost since each date",
+    breakdownTitle: "Date by Date",
     sign: "-",
   },
   winners: {
@@ -28,9 +28,9 @@ const VARIANT_CONFIG = {
     highlightRing: "ring-emerald-500/20",
     prefix: "+",
     sectionTitle: "On the Rise",
-    sectionSubtitle: "Gained significant value in multiple transfer windows",
-    barLabel: "Value gained since each update",
-    breakdownTitle: "Window by Window",
+    sectionSubtitle: "Gained significant value from multiple starting dates",
+    barLabel: "Value gained since each date",
+    breakdownTitle: "Date by Date",
     sign: "+",
   },
 } as const;
@@ -273,11 +273,11 @@ export function MarketValueMoversUI({ data, variant }: MarketValueMoversUIProps)
               {cfg.breakdownTitle}
             </h2>
             <span className="text-xs text-text-muted font-value">
-              {periods.length} windows
+              {periods.length} dates
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
-            Top movers from each 6-month transfer window
+            Top movers since each date
           </p>
         </div>
         <div className="space-y-4">

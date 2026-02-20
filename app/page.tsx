@@ -479,11 +479,11 @@ const features: readonly Feature[] = [
     href: "/biggest-movers",
     tag: "Career Trajectories",
     description:
-      "Spot players whose market value keeps rising or crashing across multiple transfer windows.",
+      "Spot players whose market value is consistently rising or falling over time.",
     highlights: [
-      "Flags players who appear as top movers in 2+ windows",
+      "Highlights players on a continuous rise or decline",
       "Tabs for biggest falls (freefall) and biggest rises",
-      "Per-window breakdown with value change bars",
+      "Per-date breakdown with value change bars",
     ],
     icon: ArrowUpDown,
     tone: {
@@ -743,7 +743,7 @@ export default async function Home() {
     ),
     mostOverpricedPlayer && playerItem(
       mostOverpricedPlayer, "Most overpriced player", "/value-analysis?mode=ga",
-      `${mostOverpricedPlayer.marketValueDisplay} · ${mostOverpricedPlayer.count} cheaper peers outscore`,
+      `${mostOverpricedPlayer.marketValueDisplay} · outscored by ${mostOverpricedPlayer.count} cheaper peers`,
       { tone: "red" },
     ),
     mostNpgaPlayer && playerItem(
@@ -784,7 +784,7 @@ export default async function Home() {
     ...mostOverpricedPlayers.map((p) => playerItem(
       p, "Most overpriced", "/value-analysis?mode=ga",
       `${p.club} · ${p.marketValueDisplay}`,
-      { metrics: [`npG+A ${p.points}`, `${formatMinutes(p.minutes)} mins`, `${p.count} cheaper peers outscore`], tone: "red" },
+      { metrics: [`npG+A ${p.points}`, `${formatMinutes(p.minutes)} mins`, `outscored by ${p.count} cheaper peers`], tone: "red" },
     )),
     ...mostBargainPlayers.map((p) => playerItem(
       p, "Best bargain", "/value-analysis?mode=ga&dTab=bargains",
@@ -847,10 +847,12 @@ export default async function Home() {
     });
     for (const appearances of sorted) {
       const latest = [...appearances].sort((a, b) => b.period.localeCompare(a.period))[0];
+      const earliest = [...appearances].sort((a, b) => a.period.localeCompare(b.period))[0];
+      const sign = tone === "red" ? "-" : "+";
       biggestMoversItems.push({
         label,
         value: latest.name,
-        detail: `${latest.club} · ${formatMarketValueNum(latest.currentValue)} · ${appearances.length} windows`,
+        detail: `${latest.club} · ${sign}${formatMarketValueNum(earliest.absoluteChange)} in last ${Math.ceil((Date.now() - new Date(earliest.period).getTime()) / (365.25 * 86400000))}y`,
         href: `/biggest-movers?tab=${tab}`,
         imageUrl: latest.imageUrl,
         secondaryImageUrl: latest.clubLogoUrl,
@@ -868,7 +870,7 @@ export default async function Home() {
     valueAnalysisItems.length && { title: "Value Analysis", description: "Most overpriced players and best bargains by peer comparison.", href: "/value-analysis", items: valueAnalysisItems },
     playerItems.length && { title: "Player Explorer", description: "Top performers, signings, loans, and uncapped players.", href: "/players", items: playerItems },
     injuryItems.length && { title: "Injury Impact", description: "The most valuable sidelined players and hardest-hit clubs.", href: "/injured", items: injuryItems },
-    biggestMoversItems.length && { title: "Biggest Movers", description: "Players whose career trajectory tanked or exploded across multiple windows.", href: "/biggest-movers", items: biggestMoversItems },
+    biggestMoversItems.length && { title: "Biggest Movers", description: "Players whose market value keeps rising or falling over time.", href: "/biggest-movers", items: biggestMoversItems },
   ].filter(Boolean) as SnapshotGroup[];
 
   return (
