@@ -149,6 +149,11 @@ async function main() {
       p.intlAppearances = entry.intlAppearances;
       p.intlPenaltyGoals = entry.intlPenaltyGoals;
       p.intlCareerCaps = entry.intlCareerCaps;
+      if (entry.isCurrentIntl) {
+        p.isCurrentIntl = true;
+      } else {
+        delete p.isCurrentIntl;
+      }
       if (entry.contractExpiry) p.contractExpiry = entry.contractExpiry;
       if (entry.playedPosition) p.playedPosition = entry.playedPosition;
       if (entry.club) p.club = entry.club;

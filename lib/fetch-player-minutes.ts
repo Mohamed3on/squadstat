@@ -16,6 +16,7 @@ const ZERO_STATS: PlayerStatsResult = {
   intlAppearances: 0,
   intlPenaltyGoals: 0,
   intlCareerCaps: 0,
+  isCurrentIntl: false,
   club: "",
   clubLogoUrl: "",
   league: "",
@@ -145,8 +146,10 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const capsLi = $("li:contains('Caps/Goals')").first();
   const capsUl = capsLi.closest("ul");
   const natTeamName = capsUl.find("a[href*='/startseite/verein/']").first().attr("title") || "";
-  const isSeniorTeam = natTeamName && !/U\d/i.test(natTeamName);
+  const isSeniorTeam = !!natTeamName && !/U\d/i.test(natTeamName);
   const intlCareerCaps = isSeniorTeam ? (parseInt(capsLi.find("a").first().text().trim()) || 0) : 0;
+  const ntLabel = capsUl.find(".data-header__label").first().text().trim().toLowerCase();
+  const isCurrentIntl = isSeniorTeam && ntLabel.includes("current international");
 
   // Parse contract expiry from club info header
   const contractLabel = clubInfo.find(".data-header__label:contains('Contract expires:')");
@@ -154,11 +157,11 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
 
   // Parse stats + league from ceapi
   if (!ceapiRes.ok) {
-    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan, playedPosition, contractExpiry };
+    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry };
   }
   const ceapi = await ceapiRes.json();
   const games: CeapiGame[] = ceapi?.data?.performance ?? [];
   const stats = aggregateSeasonStats(games);
 
-  return { ...stats, club, clubLogoUrl, intlCareerCaps, isNewSigning, isOnLoan, playedPosition, contractExpiry };
+  return { ...stats, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry };
 }

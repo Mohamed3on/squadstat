@@ -229,6 +229,16 @@ body::before {
   animation: float 3s ease-in-out infinite;
 }
 
+/* Count badge pulse on change */
+@keyframes count-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.animate-count-pop {
+  animation: count-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Stagger animations - use with animation-delay or style={{ animationDelay }} */
 .stagger-1 { animation-delay: 0.03s; }
 .stagger-2 { animation-delay: 0.06s; }

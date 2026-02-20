@@ -168,6 +168,7 @@ export interface MinutesValuePlayer {
   intlAppearances: number;
   intlPenaltyGoals: number;
   intlCareerCaps: number;
+  isCurrentIntl?: boolean;
   imageUrl: string;
   profileUrl: string;
   playerId: string;
@@ -218,6 +219,7 @@ export interface PlayerStatsResult {
   clubLogoUrl: string;
   league: string;
   intlCareerCaps: number;
+  isCurrentIntl: boolean;
   isNewSigning: boolean;
   isOnLoan: boolean;
   playedPosition: string;

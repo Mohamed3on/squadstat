@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useRef, type ReactNode } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Combobox } from "@/components/Combobox";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { RangeFilter } from "@/components/RangeFilter";
 import { FilterButton } from "@/components/FilterButton";
 import { PositionDisplay } from "@/components/PositionDisplay";
@@ -22,6 +23,26 @@ function contractExpiryYear(expiry?: string): number | null {
 }
 
 const BASE_SORT_LABELS: Record<SortKey, string> = { value: "Value", mins: "Mins", games: "Games", ga: "G+A", pen: "Pen", miss: "Miss" };
+
+/** Count badge that pops on value change */
+function AnimatedCount({ value }: { value: number }) {
+  const [popKey, setPopKey] = useState(0);
+  const prevValue = useRef(value);
+  useEffect(() => {
+    if (value !== prevValue.current) {
+      prevValue.current = value;
+      setPopKey((k) => k + 1);
+    }
+  }, [value]);
+  return (
+    <span
+      key={popKey}
+      className="text-xs font-bold px-2 py-0.5 rounded-md tabular-nums text-accent-blue bg-accent-blue/15 animate-count-pop"
+    >
+      {value}
+    </span>
+  );
+}
 
 
 function AvatarBadge({ bgClass, icon, tooltip, position = "bottom-right" }: { bgClass: string; icon: ReactNode; tooltip: string; position?: "bottom-right" | "top-right" }) {
@@ -257,6 +278,9 @@ function parseSigningFilter(v: string | null): SigningFilter {
 
 export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
   const { params, update } = useQueryParams("/players");
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [listOpacity, setListOpacity] = useState(1);
+  const filterChangeRef = useRef(false);
 
   const sortBy = parseSortKey(params.get("sort"));
   const sortAsc = params.get("dir") === "asc";
@@ -267,11 +291,45 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
   const signingFilter = parseSigningFilter(params.get("signing"));
   const includePen = params.get("pen") === "1";
   const includeIntl = params.get("intl") === "1";
+  const excludeCurrentIntl = params.get("xcintl") === "1";
   const minCaps = params.get("mincaps") ? parseInt(params.get("mincaps")!) : null;
   const maxCaps = params.get("maxcaps") ? parseInt(params.get("maxcaps")!) : null;
   const minAge = params.get("minage") ? parseInt(params.get("minage")!) : null;
   const maxAge = params.get("maxage") ? parseInt(params.get("maxage")!) : null;
   const contractYear = params.get("contract") ? parseInt(params.get("contract")!) : null;
+
+  // Auto-open "More filters" when any advanced filter is active
+  const advancedFilterCount = [
+    signingFilter !== null,
+    excludeCurrentIntl,
+    minCaps !== null || maxCaps !== null,
+    minAge !== null || maxAge !== null,
+    contractYear !== null,
+    includePen,
+    includeIntl,
+  ].filter(Boolean).length;
+
+  useEffect(() => {
+    if (advancedFilterCount > 0) setMoreOpen(true);
+  }, [advancedFilterCount]);
+
+  // Smooth crossfade on filter/sort changes
+  const animateFilterChange = useCallback(() => {
+    if (filterChangeRef.current) return;
+    filterChangeRef.current = true;
+    setListOpacity(0.4);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setListOpacity(1);
+        filterChangeRef.current = false;
+      });
+    });
+  }, []);
+
+  const updateWithFade = useCallback((p: Parameters<typeof update>[0]) => {
+    animateFilterChange();
+    update(p);
+  }, [update, animateFilterChange]);
 
   // Apply intl toggle client-side — adds intl stats when active
   const players = useMemo(() => {
@@ -323,6 +381,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     if (nationalityFilter !== "all") list = list.filter((p) => p.nationality === nationalityFilter);
     if (signingFilter === "transfer") list = list.filter((p) => p.isNewSigning);
     if (signingFilter === "loan") list = list.filter((p) => p.isOnLoan);
+    if (excludeCurrentIntl) list = list.filter((p) => !p.isCurrentIntl);
     if (minCaps !== null) list = list.filter((p) => (p.intlCareerCaps ?? 0) >= minCaps);
     if (maxCaps !== null) list = list.filter((p) => (p.intlCareerCaps ?? 0) <= maxCaps);
     if (minAge !== null) list = list.filter((p) => p.age >= minAge);
@@ -345,7 +404,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       }
       return sortAsc ? -diff : diff;
     });
-  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, minCaps, maxCaps, minAge, maxAge, contractYear]);
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, excludeCurrentIntl, minCaps, maxCaps, minAge, maxAge, contractYear]);
 
   return (
     <>
@@ -358,22 +417,21 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
         </div>
 
         <section>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
             <div className="w-1 h-5 rounded-full shrink-0 bg-accent-blue" />
             <h2 className="text-xs font-bold uppercase tracking-widest shrink-0 text-text-secondary">
               All Players
             </h2>
-            <span
-              className="text-xs font-bold px-2 py-0.5 rounded-md tabular-nums text-accent-blue bg-accent-blue/15"
-            >
-              {sortedPlayers.length}
-            </span>
+            <AnimatedCount value={sortedPlayers.length} />
           </div>
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-4">
+
+          {/* Sort */}
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-5">
             <ToggleGroup
               type="single"
               value={sortBy}
               onValueChange={(value) => {
+                animateFilterChange();
                 if (!value) { update({ dir: sortAsc ? null : "asc" }); return; }
                 update({ sort: value === "ga" ? null : value, dir: null });
               }}
@@ -395,41 +453,77 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col gap-3 mb-4">
-            <div className="flex flex-wrap gap-2">
-              <Combobox value={leagueFilter} onChange={(v) => update({ league: v === "all" ? null : v || null })} options={leagueOptions} placeholder="All leagues" searchPlaceholder="Search leagues..." />
-              <Combobox value={nationalityFilter} onChange={(v) => update({ nat: v === "all" ? null : v || null })} options={nationalityOptions} placeholder="All nationalities" searchPlaceholder="Search nationalities..." />
-              <Combobox value={clubFilter} onChange={(v) => update({ club: v === "all" ? null : v || null })} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
-              <RangeFilter label="Age" min={minAge} max={maxAge} onMinChange={(v) => update({ minage: v })} onMaxChange={(v) => update({ maxage: v })} />
-              <RangeFilter label="Caps" min={minCaps} max={maxCaps} onMinChange={(v) => update({ mincaps: v })} onMaxChange={(v) => update({ maxcaps: v })} />
-              <Combobox
-                value={contractYear !== null ? String(contractYear) : "all"}
-                onChange={(v) => update({ contract: v === "all" ? null : v || null })}
-                options={contractYearOptions}
-                placeholder="Contract expiry"
-              />
-              <FilterButton active={top5Only} onClick={() => update({ top5: top5Only ? null : "1" })}>
+          <div className="flex flex-col gap-3 mb-5">
+            {/* Primary filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Combobox value={leagueFilter} onChange={(v) => { animateFilterChange(); update({ league: v === "all" ? null : v || null }); }} options={leagueOptions} placeholder="All leagues" searchPlaceholder="Search leagues..." />
+              <Combobox value={clubFilter} onChange={(v) => { animateFilterChange(); update({ club: v === "all" ? null : v || null }); }} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
+              <Combobox value={nationalityFilter} onChange={(v) => { animateFilterChange(); update({ nat: v === "all" ? null : v || null }); }} options={nationalityOptions} placeholder="All nationalities" searchPlaceholder="Search nationalities..." />
+              <FilterButton active={top5Only} onClick={() => updateWithFade({ top5: top5Only ? null : "1" })}>
                 Top 5
               </FilterButton>
-              <FilterButton active={signingFilter === "transfer"} onClick={() => update({ signing: signingFilter === "transfer" ? null : "transfer", new: null })}>
-                Signings
-                <span className="tabular-nums opacity-60">{signingCounts.newSignings}</span>
-              </FilterButton>
-              <FilterButton active={signingFilter === "loan"} onClick={() => update({ signing: signingFilter === "loan" ? null : "loan", new: null })}>
-                Loans
-                <span className="tabular-nums opacity-60">{signingCounts.loans}</span>
-              </FilterButton>
-              <div className="w-px h-6 self-center bg-border-subtle" />
-              <FilterButton active={includePen} onClick={() => update({ pen: includePen ? null : "1" })}>
-                Pens in G+A
-              </FilterButton>
-              <FilterButton active={includeIntl} onClick={() => update({ intl: includeIntl ? null : "1" })}>
-                + Intl stats
-              </FilterButton>
             </div>
+
+            {/* Advanced filters — collapsible */}
+            <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
+              <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-colors duration-150 text-text-muted hover:text-text-secondary">
+                <svg
+                  className="w-3.5 h-3.5 transition-transform duration-200"
+                  style={{ transform: moreOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                More filters
+                {advancedFilterCount > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums text-accent-blue bg-accent-blue/15">
+                    {advancedFilterCount}
+                  </span>
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="flex flex-wrap items-center gap-y-2 gap-x-3 pt-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <RangeFilter label="Age" min={minAge} max={maxAge} onMinChange={(v) => { animateFilterChange(); update({ minage: v }); }} onMaxChange={(v) => { animateFilterChange(); update({ maxage: v }); }} />
+                    <Combobox
+                      value={contractYear !== null ? String(contractYear) : "all"}
+                      onChange={(v) => { animateFilterChange(); update({ contract: v === "all" ? null : v || null }); }}
+                      options={contractYearOptions}
+                      placeholder="Contract expiry"
+                    />
+                    <FilterButton active={signingFilter === "transfer"} onClick={() => updateWithFade({ signing: signingFilter === "transfer" ? null : "transfer", new: null })}>
+                      Signings
+                      <span className="tabular-nums opacity-60">{signingCounts.newSignings}</span>
+                    </FilterButton>
+                    <FilterButton active={signingFilter === "loan"} onClick={() => updateWithFade({ signing: signingFilter === "loan" ? null : "loan", new: null })}>
+                      Loans
+                      <span className="tabular-nums opacity-60">{signingCounts.loans}</span>
+                    </FilterButton>
+                  </div>
+                  <div className="w-px h-6 self-center bg-border-subtle hidden sm:block" />
+                  <div className="flex items-center gap-2">
+                    <FilterButton active={excludeCurrentIntl} onClick={() => updateWithFade({ xcintl: excludeCurrentIntl ? null : "1" })}>
+                      Excl. Current Intl
+                    </FilterButton>
+                    <RangeFilter label="Caps" min={minCaps} max={maxCaps} onMinChange={(v) => { animateFilterChange(); update({ mincaps: v }); }} onMaxChange={(v) => { animateFilterChange(); update({ maxcaps: v }); }} />
+                  </div>
+                  <div className="w-px h-6 self-center bg-border-subtle hidden sm:block" />
+                  <div className="flex items-center gap-2">
+                    <FilterButton active={includePen} onClick={() => updateWithFade({ pen: includePen ? null : "1" })}>
+                      Pens in G+A
+                    </FilterButton>
+                    <FilterButton active={includeIntl} onClick={() => updateWithFade({ intl: includeIntl ? null : "1" })}>
+                      + Intl stats
+                    </FilterButton>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
 
-          <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: minCaps !== null || maxCaps !== null, includePen, showContract: contractYear !== null }} />
+          <div className="transition-opacity duration-150 ease-out" style={{ opacity: listOpacity }}>
+            <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: minCaps !== null || maxCaps !== null, includePen, showContract: contractYear !== null }} />
+          </div>
         </section>
     </>
   );
