@@ -169,6 +169,7 @@ async function main() {
       } else {
         delete p.isOnLoan;
       }
+      p.gamesMissed = entry.gamesMissed;
     }
   }
 

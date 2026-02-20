@@ -12,7 +12,7 @@ export interface DiscoveryPreset {
 
 export const DISCOVERY_SECTION_LABELS: Record<DiscoverySection, string> = {
   players: "Player Explorer",
-  "value-analysis": "Value Analysis",
+  "value-analysis": "Over/Under",
   injured: "Injury Impact",
   "team-form": "Team Value vs Table",
 };
@@ -144,7 +144,7 @@ export const DISCOVERY_PRESETS: DiscoveryPreset[] = [
     description:
       "High-value players with few minutes, excluding injured players.",
     sourcePath: "/value-analysis",
-    query: { mode: "mins", noInj: "1" },
+    query: { mode: "mins", maxMiss: "25" },
   },
 
   {

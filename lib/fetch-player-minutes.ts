@@ -24,6 +24,7 @@ const ZERO_STATS: PlayerStatsResult = {
   isOnLoan: false,
   playedPosition: "",
   contractExpiry: undefined,
+  gamesMissed: 0,
 };
 
 const CEAPI_HEADERS = {
@@ -151,17 +152,23 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const ntLabel = capsUl.find(".data-header__label").first().text().trim().toLowerCase();
   const isCurrentIntl = isSeniorTeam && ntLabel.includes("current international");
 
+  // Count games missed: all bg_rot_20 rows (injury, national team, suspension, etc.) except "Not in squad"
+  const gamesMissed = $("tr.bg_rot_20").filter((_, el) => {
+    const reason = $(el).find("td[colspan]").text().trim();
+    return reason !== "Not in squad";
+  }).length;
+
   // Parse contract expiry from club info header
   const contractLabel = clubInfo.find(".data-header__label:contains('Contract expires:')");
   const contractExpiry = contractLabel.find(".data-header__content").text().trim() || undefined;
 
   // Parse stats + league from ceapi
   if (!ceapiRes.ok) {
-    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry };
+    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed };
   }
   const ceapi = await ceapiRes.json();
   const games: CeapiGame[] = ceapi?.data?.performance ?? [];
   const stats = aggregateSeasonStats(games);
 
-  return { ...stats, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry };
+  return { ...stats, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed };
 }

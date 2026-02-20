@@ -176,6 +176,7 @@ export interface MinutesValuePlayer {
   isNewSigning?: boolean;
   isOnLoan?: boolean;
   contractExpiry?: string;
+  gamesMissed?: number;
 }
 
 export type InjuryMap = Record<string, { injury: string; returnDate: string; injurySince: string }>;
@@ -224,4 +225,5 @@ export interface PlayerStatsResult {
   isOnLoan: boolean;
   playedPosition: string;
   contractExpiry?: string;
+  gamesMissed: number;
 }

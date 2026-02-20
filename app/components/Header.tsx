@@ -46,7 +46,7 @@ const navItems = [
   { href: "/form", label: "Recent Form" },
   { href: "/team-form", label: "Value vs Table" },
   { href: "/players", label: "Players" },
-  { href: "/value-analysis", label: "Value Analysis" },
+  { href: "/value-analysis", label: "Over/Under" },
   { href: "/injured", label: "Injury Impact" },
   { href: "/biggest-movers", label: "Biggest Movers" },
 ] as const;

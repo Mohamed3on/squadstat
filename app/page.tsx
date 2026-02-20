@@ -19,6 +19,7 @@ import { getTeamFormData } from "@/lib/team-form";
 import { applyStatsToggles, getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
 import { findValueCandidates } from "@/lib/value-analysis";
 import { getInjuredPlayers } from "@/lib/injured";
+import { missedPct } from "@/lib/filter-players";
 import { findRepeatLosers } from "@/lib/biggest-losers";
 import { findRepeatWinners } from "@/lib/biggest-winners";
 import { getManagerInfo } from "@/lib/fetch-manager";
@@ -433,7 +434,7 @@ const features: readonly Feature[] = [
     },
   },
   {
-    title: "Value Analysis",
+    title: "Over/Under",
     href: "/value-analysis",
     tag: "Overpriced or Steal?",
     description:
@@ -793,6 +794,10 @@ export default async function Home() {
     )),
   ];
 
+  const fitButBenched = players
+    .filter((p) => missedPct(p) < 0.5)
+    .sort((a, b) => a.minutes - b.minutes)[0] ?? null;
+
   const valueAnalysisItems: SnapshotItem[] = [
     ...mostOverpricedPlayers.map((p) => playerItem(
       p, "Most overpriced", "/value-analysis?mode=ga",
@@ -804,6 +809,11 @@ export default async function Home() {
       `${p.club} · ${p.marketValueDisplay}`,
       { metrics: [`npG+A ${p.points}`, `${formatMinutes(p.minutes)} mins`, `outscores ${p.count} pricier peers`], tone: "green" },
     )),
+    ...(fitButBenched ? [playerItem(
+      fitButBenched, "Fit but benched", "/value-analysis?mode=mins&maxMiss=50",
+      `${fitButBenched.club} · ${fitButBenched.marketValueDisplay}`,
+      { metrics: [`${formatMinutes(fitButBenched.minutes)} mins`, `${fitButBenched.totalMatches} games`, `<50% missed`], tone: "red" },
+    )] : []),
   ];
 
   const playerItems = [
@@ -880,7 +890,7 @@ export default async function Home() {
   const snapshotGroups = [
     recentFormItems.length && { title: "Recent Form", description: `Best and worst teams from the last ${recentPeriod} games across all competitions.`, href: "/form", items: recentFormItems },
     teamFormItems.length && { title: "Value vs Table", description: "Teams most above or below value-based expectation.", href: "/team-form", items: teamFormItems },
-    valueAnalysisItems.length && { title: "Value Analysis", description: "Most overpriced players and best bargains by peer comparison.", href: "/value-analysis", items: valueAnalysisItems },
+    valueAnalysisItems.length && { title: "Over/Under", description: "Most overpriced players and best bargains by peer comparison.", href: "/value-analysis", items: valueAnalysisItems },
     playerItems.length && { title: "Player Explorer", description: "Top performers, signings, loans, and uncapped players.", href: "/players", items: playerItems },
     injuryItems.length && { title: "Injury Impact", description: "The most valuable sidelined players and hardest-hit clubs.", href: "/injured", items: injuryItems },
     biggestMoversItems.length && { title: "Biggest Movers", description: "Players whose market value keeps rising or falling over time.", href: "/biggest-movers", items: biggestMoversItems },
@@ -915,7 +925,7 @@ export default async function Home() {
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-border-medium bg-card text-text-primary hover:bg-card-hover">
                   <Link href="/value-analysis">
-                    Open Value Analysis
+                    Open Over/Under
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>

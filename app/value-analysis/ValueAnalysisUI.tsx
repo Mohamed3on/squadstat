@@ -13,7 +13,7 @@ import { ExternalLink } from "lucide-react";
 import { getLeagueLogoUrl } from "@/lib/leagues";
 import { FilterButton } from "@/components/FilterButton";
 import { PositionDisplay } from "@/components/PositionDisplay";
-import { filterPlayersByLeagueAndClub, TOP_5_LEAGUES } from "@/lib/filter-players";
+import { filterPlayersByLeagueAndClub, TOP_5_LEAGUES, missedPct } from "@/lib/filter-players";
 import { canBeOutperformerAgainst, canBeUnderperformerAgainst, strictlyOutperforms } from "@/lib/positions";
 import { formatReturnInfo, formatInjuryDuration, PROFIL_RE } from "@/lib/format";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
@@ -93,9 +93,8 @@ function TargetPlayerCard({ player, minutes }: { player: PlayerStats; minutes?: 
       subtitle={<><span className="font-medium"><PositionDisplay position={player.position} playedPosition={player.playedPosition} abbreviated /></span><span className="opacity-40">•</span><span className="truncate opacity-80 inline-flex items-center gap-1">{player.clubLogoUrl && <img src={player.clubLogoUrl} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />}{player.club}</span></>}
       desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
       mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
-      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="Points" color="var(--accent-hot)" /></>}
-      mobileBigNumbers={<><div className="text-lg font-medium font-value text-accent-gold">{player.marketValueDisplay}</div><div className="text-lg font-medium font-value text-accent-hot">{player.points}</div></>}
-      footer={<><span className="text-xs uppercase tracking-wider text-text-secondary">Minutes Played</span><span className="text-base sm:text-lg font-medium font-value text-accent-blue">{minutes?.toLocaleString() || "—"}&apos;</span></>}
+      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="Points" color="var(--accent-hot)" /><BigNumber value={`${minutes?.toLocaleString() || "—"}'`} label="Minutes" color="var(--accent-blue)" /></>}
+      mobileBigNumbers={<><div className="text-lg font-medium font-value text-accent-gold">{player.marketValueDisplay}</div><div className="text-lg font-medium font-value text-accent-hot">{player.points}</div><div className="text-lg font-medium font-value text-accent-blue">{minutes?.toLocaleString() || "—"}&apos;</div></>}
     />
   );
 }
@@ -470,16 +469,18 @@ function DiscoverySection({ variant, candidates, allPlayers, sortBy, onSortChang
 /* ── Minutes Components ── */
 
 function MvBenchmarkCard({ player }: { player: MinutesValuePlayer }) {
+  const ga = player.goals + player.assists;
+  const missedPctVal = Math.round(missedPct(player) * 100);
   return (
     <BenchmarkCard
       name={player.name}
       imageUrl={player.imageUrl}
       href={getLeistungsdatenUrl(player.profileUrl)}
-      subtitle={<><span className="font-medium"><PositionDisplay position={player.position} playedPosition={player.playedPosition} abbreviated /></span>{player.nationality && <><span className="opacity-40">·</span><span>{player.nationality}</span></>}</>}
-      desktopStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals} goals</span><span className="tabular-nums">{player.assists} assists</span><span className="opacity-60">Age {player.age}</span></>}
-      mobileStats={<><span className="tabular-nums">{player.totalMatches} games</span><span className="tabular-nums">{player.goals}G {player.assists}A</span><span className="opacity-60">Age {player.age}</span></>}
-      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" /></>}
-      mobileBigNumbers={<div className="text-lg font-medium font-value text-accent-gold">{player.marketValueDisplay}</div>}
+      subtitle={<><span className="font-medium"><PositionDisplay position={player.position} playedPosition={player.playedPosition} abbreviated /></span><span className="opacity-40">•</span><span className="truncate opacity-80 inline-flex items-center gap-1">{player.clubLogoUrl && <img src={player.clubLogoUrl} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />}{player.club}</span></>}
+      desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.totalMatches} apps</span>{missedPctVal > 0 && <span className="tabular-nums text-accent-cold-soft">{missedPctVal}% missed</span>}<span className="opacity-60">Age {player.age}</span></>}
+      mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.totalMatches} apps</span>{missedPctVal > 0 && <span className="tabular-nums text-accent-cold-soft">{missedPctVal}% missed</span>}<span className="opacity-60">Age {player.age}</span></>}
+      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(ga)} label="G+A" color="var(--accent-hot)" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" />{missedPctVal > 0 && <BigNumber value={`${missedPctVal}%`} label="Missed" color="var(--accent-cold-soft)" />}</>}
+      mobileBigNumbers={<><div className="text-lg font-medium font-value text-accent-gold">{player.marketValueDisplay}</div><div className="text-lg font-medium font-value text-accent-hot">{ga}</div><div className="text-lg font-medium font-value text-accent-blue">{player.minutes.toLocaleString()}&apos;</div>{missedPctVal > 0 && <div className="text-lg font-medium font-value text-accent-cold-soft">{missedPctVal}%</div>}</>}
     />
   );
 }
@@ -529,7 +530,7 @@ function MvPlayerCard({ player, target, index, variant = "less", onSelect, injur
           {target && <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor, opacity: 0.7 }}>{valueDiffDisplay}</div>}
         </div>
         <div className="w-px h-8 bg-border-subtle" />
-        <div className="text-right min-w-[4rem]">
+        <div className="text-right">
           <div className="text-sm font-medium font-value text-accent-blue">{player.minutes.toLocaleString()}&apos;</div>
           {target && <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor }}>{variant === "more" ? "+" : "\u2212"}{Math.abs(minsDiff).toLocaleString()}&apos;</div>}
         </div>
@@ -557,6 +558,7 @@ function MvPlayerCard({ player, target, index, variant = "less", onSelect, injur
         <span className="tabular-nums text-text-secondary">{player.goals}G</span>
         <span className="tabular-nums text-text-secondary">{player.assists}A</span>
         <span className="tabular-nums text-text-secondary">{player.totalMatches} games</span>
+        {missedPct(player) > 0 && <span className="tabular-nums text-accent-cold-soft">{Math.round(missedPct(player) * 100)}% missed</span>}
         <span className="sm:hidden tabular-nums text-text-secondary">{player.age}y</span>
         <LeagueLabel league={player.league} />
       </>}
@@ -646,7 +648,9 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
   const minsTab: CompareTab = params.get("tab") === "more" ? "more" : "less";
   const minsLeagueFilter = params.get("mLeague") || "all";
   const minsClubFilter = params.get("mClub") || "";
-  const minsHideInjured = params.get("noInj") === "1";
+  const maxMissedRaw = params.get("maxMiss") ? parseInt(params.get("maxMiss")!) : NaN;
+  const maxMissedPct = Number.isNaN(maxMissedRaw) ? null : maxMissedRaw;
+  const minsTop5Only = params.get("mTop5") === "1";
 
   // ── G+A queries ──
   const { data: gaData, isLoading: gaLoading, error: gaError } = useQuery({
@@ -694,12 +698,14 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
 
   const playingLess = useMemo(() => {
     if (!minsSelected) return [];
-    return initialData.filter((p) => p.playerId !== minsSelected.playerId && p.marketValue >= minsSelected.marketValue && p.minutes <= minsSelected.minutes);
+    const benchPct = missedPct(minsSelected);
+    return initialData.filter((p) => p.playerId !== minsSelected.playerId && p.marketValue >= minsSelected.marketValue && p.minutes <= minsSelected.minutes && missedPct(p) <= benchPct);
   }, [minsSelected, initialData]);
 
   const playingMore = useMemo(() => {
     if (!minsSelected) return [];
-    return initialData.filter((p) => p.playerId !== minsSelected.playerId && p.marketValue >= minsSelected.marketValue && p.minutes > minsSelected.minutes);
+    const benchPct = missedPct(minsSelected);
+    return initialData.filter((p) => p.playerId !== minsSelected.playerId && p.marketValue >= minsSelected.marketValue && p.minutes > minsSelected.minutes && missedPct(p) <= benchPct);
   }, [minsSelected, initialData]);
 
   // ── Minutes discovery list ──
@@ -715,9 +721,10 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
 
   const minsDiscoveryList = useMemo(() => {
     let list = filterPlayersByLeagueAndClub(initialData, minsLeagueFilter, minsClubFilter);
-    if (minsHideInjured && injuryMap) list = list.filter((p) => !injuryMap[p.playerId]);
+    if (minsTop5Only) list = list.filter((p) => TOP_5_LEAGUES.includes(p.league));
+    if (maxMissedPct !== null) list = list.filter((p) => Math.round(missedPct(p) * 100) <= maxMissedPct);
     return [...list].sort((a, b) => a.minutes - b.minutes);
-  }, [initialData, minsLeagueFilter, minsClubFilter, minsHideInjured, injuryMap]);
+  }, [initialData, minsLeagueFilter, minsClubFilter, minsTop5Only, maxMissedPct]);
 
   const handleMvSelect = useCallback((p: MinutesValuePlayer) => {
     setQuery(p.name);
@@ -729,7 +736,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
       {/* Title */}
       <div className="mb-4 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-black mb-1 sm:mb-2 text-text-primary">
-            Value <span className="text-accent-gold">Analysis</span>
+            Over/<span className="text-accent-gold">Under</span>
           </h1>
           <p className="text-sm sm:text-base text-text-muted">
             {mode === "ga"
@@ -983,6 +990,10 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   <MvBenchmarkCard player={minsSelected} />
                 </section>
 
+                <p className="text-xs text-text-muted">
+                  Comparing against players at the same or higher market value who have missed the same % of games or fewer — so injured or suspended players don&apos;t skew the comparison.
+                </p>
+
                 <section>
                   <Tabs value={minsTab} onValueChange={(v) => push({ tab: v === "less" ? null : v })}>
                     <TabsList className="w-full mb-4">
@@ -1041,9 +1052,14 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                   <span className="hidden sm:inline text-xs font-medium uppercase tracking-wider text-text-muted">Filter</span>
                   <Combobox value={minsLeagueFilter} onChange={(v) => update({ mLeague: v === "all" ? null : v || null })} options={minsLeagueOptions} placeholder="All leagues" searchPlaceholder="Search leagues..." />
                   <Combobox value={minsClubFilter || "all"} onChange={(v) => update({ mClub: v === "all" ? null : v || null })} options={minsClubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
-                  <FilterButton active={minsHideInjured} onClick={() => update({ noInj: minsHideInjured ? null : "1" })}>
-                    Exclude injured
+                  <FilterButton active={minsTop5Only} onClick={() => update({ mTop5: minsTop5Only ? null : "1" })}>
+                    Top 5
                   </FilterButton>
+                  {[25, 50].map((pct) => (
+                    <FilterButton key={pct} active={maxMissedPct === pct} onClick={() => update({ maxMiss: maxMissedPct === pct ? null : String(pct) })}>
+                      ≤{pct}% missed
+                    </FilterButton>
+                  ))}
                 </div>
 
                 <MvVirtualPlayerList items={minsDiscoveryList} variant="less" onSelect={handleMvSelect} injuryMap={injuryMap} />

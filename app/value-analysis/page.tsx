@@ -8,7 +8,7 @@ import { createPageMetadata } from "@/lib/metadata";
 import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 
 export const metadata = createPageMetadata({
-  title: "Value Analysis",
+  title: "Over/Under",
   description:
     "Find overpriced players who underdeliver and bargain players who outperform their price tag. Two lenses - G+A output and minutes played.",
   path: "/value-analysis",
@@ -65,7 +65,7 @@ export default async function ValueAnalysisPage({
       </Suspense>
       <DiscoveryLinkGrid
         section="value-analysis"
-        title="Value Analysis Boards"
+        title="Over/Under Boards"
         description="Jump straight into overpriced, bargain, and low-minutes views."
         currentPath="/value-analysis"
         currentAliases={["/value-analysis?mode=ga"]}
