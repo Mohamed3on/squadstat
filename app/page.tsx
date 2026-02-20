@@ -733,7 +733,7 @@ export default async function Home() {
   const heroSnapshots = [
     recentTopTeam && recentPeriod !== null && teamItem(
       recentTopTeam, `Hottest team (last ${recentPeriod})`, "/form",
-      `${recentTopTeam.stats.points} pts · GD ${formatSigned(recentTopTeam.stats.goalDiff)}`,
+      formDetail(recentTopTeam, recentPeriod),
       { manager: getManagerForClub(recentTopTeam.clubId), tone: "green" },
     ),
     mostOverperformingTeam && teamItem(
@@ -754,16 +754,29 @@ export default async function Home() {
   ].filter(Boolean) as SnapshotItem[];
 
   // --- Section snapshot items (ties always shown; Player Explorer capped by category count) ---
+  function formDetail(team: QualifiedTeam, period: number): string {
+    const stats = team.criteria.map((c) => {
+      switch (c) {
+        case "Most Points": case "Least Points": return `${team.stats.points} pts`;
+        case "Best GD": case "Worst GD": return `GD ${formatSigned(team.stats.goalDiff)}`;
+        case "Most Goals": case "Least Goals": return `${team.stats.goalsScored} scored`;
+        case "Best Defense": case "Worst Defense": return `${team.stats.goalsConceded} conceded`;
+        default: return c;
+      }
+    });
+    return `${team.league} · ${stats.join(" · ")} in last ${period}`;
+  }
+
   const recentFormItems: SnapshotItem[] = recentPeriod !== null ? [
     ...recentTopTeams.map((team) => teamItem(
       team, "Hottest team", "/form",
-      `${team.league} · ${team.stats.points} pts · GD ${formatSigned(team.stats.goalDiff)} in last ${recentPeriod}`,
-      { metrics: team.criteria, manager: getManagerForClub(team.clubId), tone: "green" },
+      formDetail(team, recentPeriod),
+      { manager: getManagerForClub(team.clubId), tone: "green" },
     )),
     ...recentBottomTeams.map((team) => teamItem(
       team, "Coldest team", "/form",
-      `${team.league} · ${team.stats.points} pts · GD ${formatSigned(team.stats.goalDiff)} in last ${recentPeriod}`,
-      { metrics: team.criteria, manager: getManagerForClub(team.clubId), tone: "red" },
+      formDetail(team, recentPeriod),
+      { manager: getManagerForClub(team.clubId), tone: "red" },
     )),
   ] : [];
 
