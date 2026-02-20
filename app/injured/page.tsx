@@ -19,6 +19,7 @@ export const metadata = createPageMetadata({
 
 export default async function InjuredPage() {
   const data = await getInjuredPlayers();
+  if (data.players.length === 0) throw new Error("Empty injured data");
   return (
     <>
       <InjuredUI initialData={data} failedLeagues={data.failedLeagues} />

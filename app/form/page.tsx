@@ -19,6 +19,7 @@ export const metadata = createPageMetadata({
 
 export default async function FormPage() {
   const data = await getAnalysis();
+  if (data.analysis.length === 0) throw new Error("Empty form data");
   return (
     <>
       <AnalyzerUI initialData={data} />

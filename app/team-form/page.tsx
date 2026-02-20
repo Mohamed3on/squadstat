@@ -19,6 +19,7 @@ export const metadata = createPageMetadata({
 
 export default async function TeamFormPage() {
   const data = await getTeamFormData();
+  if (!data.overperformers.length && !data.underperformers.length) throw new Error("Empty team-form data");
   return (
     <>
       <TeamFormUI initialData={data} />
