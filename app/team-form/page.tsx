@@ -3,7 +3,7 @@ import { TeamFormUI } from "./TeamFormUI";
 import { createPageMetadata } from "@/lib/metadata";
 import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 
-export const revalidate = 7200;
+export const dynamic = "force-dynamic";
 
 export const metadata = createPageMetadata({
   title: "Value vs Table Performance",
@@ -17,22 +17,8 @@ export const metadata = createPageMetadata({
   ],
 });
 
-const emptyData = {
-  success: false as const,
-  overperformers: [],
-  underperformers: [],
-  totalTeams: 0,
-  leagues: [],
-};
-
 export default async function TeamFormPage() {
-  let data;
-  try {
-    data = await getTeamFormData();
-    if (!data.overperformers.length && !data.underperformers.length) throw new Error("Empty team-form data");
-  } catch {
-    data = emptyData;
-  }
+  const data = await getTeamFormData();
   return (
     <>
       <TeamFormUI initialData={data} />
