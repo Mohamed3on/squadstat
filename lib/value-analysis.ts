@@ -13,6 +13,27 @@ function pos(p: PlayerStats): string {
   return p.playedPosition || p.position;
 }
 
+export const MIN_COMPARISON_COUNT = 3;
+
+/** Count how many players in `pool` the given player compares against. */
+export function countComparisons(
+  player: PlayerStats,
+  pool: PlayerStats[],
+  candidateOutperforms: boolean
+): number {
+  const ep = pos(player);
+  return pool.filter((p) =>
+    p.playerId !== player.playerId &&
+    (candidateOutperforms
+      ? p.marketValue >= player.marketValue &&
+        strictlyOutperforms(player, p) &&
+        canBeUnderperformerAgainst(pos(p), ep)
+      : p.marketValue <= player.marketValue &&
+        strictlyOutperforms(p, player) &&
+        canBeOutperformerAgainst(pos(p), ep))
+  ).length;
+}
+
 /**
  * Find players who are either overperformers (bargains) or underperformers (overpriced).
  * When `candidateOutperforms` is true, finds cheap players outperforming expensive ones.
@@ -34,18 +55,8 @@ export function findValueCandidates(
     if (player.minutes === undefined) continue;
     if (minMinutes !== undefined && player.minutes < minMinutes) continue;
 
-    const count = players.filter((p) =>
-      p.playerId !== player.playerId &&
-      (candidateOutperforms
-        ? p.marketValue >= player.marketValue &&
-          strictlyOutperforms(player, p) &&
-          canBeUnderperformerAgainst(pos(p), ep)
-        : p.marketValue <= player.marketValue &&
-          strictlyOutperforms(p, player) &&
-          canBeOutperformerAgainst(pos(p), ep))
-    ).length;
-
-    if (count >= 2) candidates.push({ ...player, count });
+    const count = countComparisons(player, players, candidateOutperforms);
+    if (count >= MIN_COMPARISON_COUNT) candidates.push({ ...player, count });
   }
 
   const undominated = candidates.filter((player) =>

@@ -14,7 +14,7 @@ import { getLeagueLogoUrl } from "@/lib/leagues";
 import { FilterButton } from "@/components/FilterButton";
 import { PositionDisplay } from "@/components/PositionDisplay";
 import { filterPlayersByLeagueAndClub, TOP_5_LEAGUES, missedPct } from "@/lib/filter-players";
-import { canBeOutperformerAgainst, canBeUnderperformerAgainst, strictlyOutperforms } from "@/lib/positions";
+import { countComparisons, MIN_COMPARISON_COUNT } from "@/lib/value-analysis";
 import { formatReturnInfo, formatInjuryDuration, PROFIL_RE } from "@/lib/format";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { BenchmarkCard, BigNumber } from "./BenchmarkCard";
@@ -380,12 +380,10 @@ function DiscoverySection({ variant, candidates, allPlayers, sortBy, onSortChang
     let filtered = filterPlayersByLeagueAndClub(candidates, leagueFilter, clubFilter);
     if (top5Only) {
       filtered = filtered.filter((p) => TOP_5_LEAGUES.includes(p.league));
-      filtered = filtered.map((player) => {
-        const count = isOverpriced
-          ? top5Players.filter((p) => p.playerId !== player.playerId && p.marketValue <= player.marketValue && strictlyOutperforms(p, player) && canBeOutperformerAgainst(p.playedPosition || p.position, player.playedPosition || player.position)).length
-          : top5Players.filter((p) => p.playerId !== player.playerId && p.marketValue >= player.marketValue && strictlyOutperforms(player, p) && canBeUnderperformerAgainst(p.playedPosition || p.position, player.playedPosition || player.position)).length;
-        return { ...player, comparisonCount: count };
-      });
+      filtered = filtered.map((player) => ({
+        ...player,
+        comparisonCount: countComparisons(player, top5Players, !isOverpriced),
+      })).filter((p) => p.comparisonCount >= MIN_COMPARISON_COUNT);
     }
     const sorted = [...filtered];
     if (sortBy === "value-asc") return sorted.sort((a, b) => a.marketValue - b.marketValue);
