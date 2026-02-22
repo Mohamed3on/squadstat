@@ -136,14 +136,40 @@ async function fetchLeagueData(league: (typeof LEAGUES)[number]): Promise<TeamFo
     return results;
   } catch (error) {
     console.error(`Failed to fetch ${league.name}:`, error);
-    return [];
+    throw error;
   }
 }
 
 export const getTeamFormData = unstable_cache(
   async () => {
-    const results = await Promise.all(LEAGUES.map(fetchLeagueData));
-    const allTeams = results.flat();
+    const MAX_ATTEMPTS = 3;
+    let allTeams: TeamFormEntry[] = [];
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const results = await Promise.allSettled(LEAGUES.map(fetchLeagueData));
+      const failed = results
+        .map((r, i) => (r.status === "rejected" ? LEAGUES[i].name : null))
+        .filter(Boolean);
+
+      if (failed.length === 0) {
+        allTeams = results
+          .map((r) => (r as PromiseFulfilledResult<TeamFormEntry[]>).value)
+          .flat();
+        break;
+      }
+
+      console.warn(
+        `team-form attempt ${attempt}/${MAX_ATTEMPTS}: missing leagues: ${failed.join(", ")}`
+      );
+
+      if (attempt === MAX_ATTEMPTS) {
+        throw new Error(
+          `Failed to fetch all 5 leagues after ${MAX_ATTEMPTS} attempts. Missing: ${failed.join(", ")}`
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+    }
 
     const overperformers = [...allTeams]
       .filter((t) => t.deltaPts > 0)
