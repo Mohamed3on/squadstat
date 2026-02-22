@@ -64,6 +64,10 @@ async function fetchAllTeams(period: number): Promise<TeamStats[]> {
 }
 
 function getLeaders(teams: TeamStats[]) {
+  if (teams.length === 0) {
+    const empty = { value: 0, teams: [] as string[] };
+    return { top: { points: empty, goalDiff: empty, goalsScored: empty, goalsConceded: empty }, bottom: { points: empty, goalDiff: empty, goalsScored: empty, goalsConceded: empty } };
+  }
   const maxPoints = Math.max(...teams.map((t) => t.points));
   const maxGoalDiff = Math.max(...teams.map((t) => t.goalDiff));
   const maxGoalsScored = Math.max(...teams.map((t) => t.goalsScored));
@@ -115,7 +119,12 @@ function findQualifiedTeams(teams: TeamStats[], type: "top" | "bottom") {
 export const getAnalysis = unstable_cache(
   async (): Promise<AnalysisResult> => {
     // Fetch all periods in parallel
-    const allTeamsPerPeriod = await Promise.all(PERIODS.map(fetchAllTeams));
+    const settled = await Promise.allSettled(PERIODS.map(fetchAllTeams));
+    const allTeamsPerPeriod = settled.map((r, i) => {
+      if (r.status === "fulfilled") return r.value;
+      console.error(`Failed to fetch period ${PERIODS[i]}:`, r.reason);
+      return [];
+    });
 
     const analysis: PeriodAnalysis[] = [];
     let matchedPeriod: number | null = null;
