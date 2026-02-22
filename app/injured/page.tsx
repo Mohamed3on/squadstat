@@ -3,7 +3,7 @@ import { InjuredUI } from "./InjuredUI";
 import { createPageMetadata } from "@/lib/metadata";
 import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export const metadata = createPageMetadata({
   title: "Injury Impact Tracker",
