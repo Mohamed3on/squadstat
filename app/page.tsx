@@ -30,7 +30,7 @@ export const revalidate = 7200; // 2 hours — matches form/team-form cache
 export const metadata = createPageMetadata({
   title: "Home",
   description:
-    "FormTracker helps football fans track team form, player output, injuries, and value trends across Europe.",
+    "SquadStat helps football fans track team form, player output, injuries, and value trends across Europe.",
   path: "/",
   keywords: [
     "football analytics",

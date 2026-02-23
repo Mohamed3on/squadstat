@@ -1,4 +1,4 @@
-# FormTracker Development Guide
+# SquadStat Development Guide
 
 Use `bun` for all commands (not npm/yarn).
 

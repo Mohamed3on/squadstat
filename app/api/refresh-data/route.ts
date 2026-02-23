@@ -7,7 +7,7 @@ export async function POST() {
   }
 
   const res = await fetch(
-    "https://api.github.com/repos/Mohamed3on/formtracker/actions/workflows/refresh-data.yml/dispatches",
+    "https://api.github.com/repos/Mohamed3on/squadstat/actions/workflows/refresh-squadstat-data.yml/dispatches",
     {
       method: "POST",
       headers: {

@@ -1,9 +1,9 @@
-# FormTracker
+# SquadStat
 
 Football scouting dashboards built on Transfermarkt data.
 
-- Live app: https://football-form.vercel.app
-- Public repo: https://github.com/Mohamed3on/formtracker
+- Live app: https://squadstat.com
+- Public repo: https://github.com/Mohamed3on/squadstat
 
 ## What It Covers
 
@@ -75,4 +75,4 @@ bun run refresh:minutes-value
 
 - Transfermarkt-backed fetches use `unstable_cache` tags.
 - `POST /api/revalidate` clears Next.js cache tags for live scraped pages.
-- `POST /api/refresh-data` dispatches `refresh-data.yml` on GitHub for static-data pages (`/players`, `/value-analysis`), so refresh is asynchronous by design.
+- `POST /api/refresh-data` dispatches `refresh-squadstat-data.yml` on GitHub for static-data pages (`/players`, `/value-analysis`), so refresh is asynchronous by design.

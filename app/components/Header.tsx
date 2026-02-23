@@ -76,13 +76,13 @@ export function Header() {
         <Link href="/" className="group flex items-center gap-2">
           <Image
             src="/icon.png"
-            alt="FormTracker"
+            alt="SquadStat"
             width={28}
             height={28}
             className="transition-opacity group-hover:opacity-80"
           />
           <h1 className="text-lg font-black tracking-tight text-text-primary transition-opacity group-hover:opacity-80 sm:text-xl">
-            Form<span className="text-accent-hot">Tracker</span>
+            Squad<span className="text-accent-hot">Stat</span>
           </h1>
         </Link>
 

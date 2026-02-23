@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://football-form.vercel.app";
+const DEFAULT_SITE_URL = "https://squadstat.com";
 
 function normalizeSiteUrl(rawUrl?: string): string {
   if (!rawUrl) return DEFAULT_SITE_URL;
@@ -25,4 +25,4 @@ export function absoluteUrl(path: string): string {
   return new URL(path, `${getSiteOrigin()}/`).toString();
 }
 
-export const SITE_NAME = "FormTracker";
+export const SITE_NAME = "SquadStat";

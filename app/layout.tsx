@@ -26,8 +26,8 @@ const dmSerifDisplay = DM_Serif_Display({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteOrigin()),
   title: {
-    default: "FormTracker - Football Form Analysis",
-    template: "%s | FormTracker",
+    default: "SquadStat - Football Form Analysis",
+    template: "%s | SquadStat",
   },
   description:
     "Track football team form, injuries, and player performance across Europe's top 5 leagues. Analyze Premier League, La Liga, Bundesliga, Serie A, and Ligue 1 with real-time data from Transfermarkt.",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "FormTracker - Football Form Analysis",
+    title: "SquadStat - Football Form Analysis",
     description:
       "Track football team form, injuries, and player performance across Europe's top 5 leagues.",
     type: "website",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "FormTracker - Football Form Analysis",
+    title: "SquadStat - Football Form Analysis",
     description:
       "Track football team form, injuries, and player performance across Europe's top 5 leagues.",
   },

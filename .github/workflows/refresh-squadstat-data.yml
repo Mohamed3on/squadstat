@@ -1,4 +1,4 @@
-name: Refresh Data
+name: Refresh SquadStat Data
 
 on:
   schedule:
