@@ -211,7 +211,7 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                 <h3 className="font-bold text-sm sm:text-base text-text-primary">
                   {team.club}
                 </h3>
-                <Badge className={cn("mt-0.5 text-[10px] sm:text-xs flex items-center gap-1", leagueStyle.bg, leagueStyle.text)}>
+                <Badge className={cn("mt-0.5 text-[10px] sm:text-xs inline-flex items-center gap-1 w-fit", leagueStyle.bg, leagueStyle.text)}>
                   {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
                   {team.league}
                 </Badge>
@@ -371,23 +371,42 @@ function StatsHighlights({
   teamGroups: TeamInjuryGroup[];
   injuryTypeGroups: InjuryTypeGroup[];
 }) {
-  const hardestHitClub = teamGroups[0] ?? null;
-
-  const topInjury = injuryTypeGroups[0] ?? null;
-
+  const mostPlayersClub = teamGroups.length
+    ? teamGroups.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.totalValue > a.totalValue) ? b : a))
+    : null;
+  const mostValueClub = teamGroups.length
+    ? teamGroups.reduce((a, b) => (b.totalValue > a.totalValue || (b.totalValue === a.totalValue && b.count > a.count) ? b : a))
+    : null;
+  const topInjury = injuryTypeGroups.length
+    ? injuryTypeGroups.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.totalValue > a.totalValue) ? b : a))
+    : null;
   return (
     <div className="mb-6 sm:mb-8 animate-scale-in rounded-xl border border-border-subtle bg-elevated overflow-hidden">
-      <div className="grid grid-cols-2 divide-x divide-border-subtle">
-        {/* Hardest Hit Club */}
-        {hardestHitClub && (
-          <div className="p-3 sm:p-4 flex items-start gap-2.5">
-            {hardestHitClub.clubLogoUrl && (
-              <img src={hardestHitClub.clubLogoUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-sm bg-white p-px shrink-0 mt-3" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border-subtle">
+        {/* Most Players Out */}
+        {mostPlayersClub && (
+          <div className="p-3 sm:p-4 flex items-start gap-2">
+            {mostPlayersClub.clubLogoUrl && (
+              <img src={mostPlayersClub.clubLogoUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-sm bg-white p-px shrink-0 mt-3" />
             )}
             <StatCell
-              label="Hardest Hit"
-              value={hardestHitClub.club}
-              sub={`${formatValueNum(hardestHitClub.totalValue)} · ${hardestHitClub.count} out`}
+              label="Most Players Out"
+              value={mostPlayersClub.club}
+              sub={`${mostPlayersClub.count} players · ${formatValueNum(mostPlayersClub.totalValue)}`}
+            />
+          </div>
+        )}
+
+        {/* Most Value Out */}
+        {mostValueClub && (
+          <div className="p-3 sm:p-4 flex items-start gap-2">
+            {mostValueClub.clubLogoUrl && (
+              <img src={mostValueClub.clubLogoUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-sm bg-white p-px shrink-0 mt-3" />
+            )}
+            <StatCell
+              label="Most Value Out"
+              value={mostValueClub.club}
+              sub={`${formatValueNum(mostValueClub.totalValue)} · ${mostValueClub.count} players`}
             />
           </div>
         )}
