@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { normalizeForSearch } from "@/lib/normalize";
 
 interface PlayerOption {
   playerId: string;
@@ -37,8 +38,8 @@ export function PlayerAutocomplete<T extends PlayerOption>({
 
   const suggestions = useMemo(() => {
     if (!value.trim()) return [];
-    const q = value.toLowerCase();
-    return players.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 10);
+    const q = normalizeForSearch(value);
+    return players.filter((p) => normalizeForSearch(p.name).includes(q)).slice(0, 10);
   }, [value, players]);
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export function PlayerAutocomplete<T extends PlayerOption>({
     onSelect(player);
     setShowDropdown(false);
     setHighlightIndex(-1);
+    inputRef.current?.blur();
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

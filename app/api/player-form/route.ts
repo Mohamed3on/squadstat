@@ -2,26 +2,10 @@ import { NextResponse } from "next/server";
 import type { PlayerStats } from "@/app/types";
 import { getPlayerStatsData, applyStatsToggles } from "@/lib/fetch-minutes-value";
 import { canBeOutperformerAgainst, canBeUnderperformerAgainst, strictlyOutperforms } from "@/lib/positions";
+import { normalizeForSearch } from "@/lib/normalize";
 
 function pos(p: PlayerStats): string {
   return p.playedPosition || p.position;
-}
-
-function normalizeForSearch(str: string): string {
-  return str
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[ıİ]/g, "i")
-    .replace(/[şŞ]/g, "s")
-    .replace(/[çÇ]/g, "c")
-    .replace(/[üÜ]/g, "u")
-    .replace(/[öÖ]/g, "o")
-    .replace(/[ğĞ]/g, "g")
-    .replace(/[æ]/g, "ae")
-    .replace(/[ø]/g, "o")
-    .replace(/[ß]/g, "ss")
-    .trim();
 }
 
 function findPlayerByName(players: PlayerStats[], searchName: string): PlayerStats | null {
