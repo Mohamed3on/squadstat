@@ -278,8 +278,7 @@ function parseSigningFilter(v: string | null): SigningFilter {
 export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
   const { params, update } = useQueryParams("/players");
   const [moreOpen, setMoreOpen] = useState(false);
-  const [listOpacity, setListOpacity] = useState(1);
-  const filterChangeRef = useRef(false);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   const sortBy = parseSortKey(params.get("sort"));
   const sortAsc = params.get("dir") === "asc";
@@ -312,23 +311,10 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     if (advancedFilterCount > 0) setMoreOpen(true);
   }, [advancedFilterCount]);
 
-  // Smooth crossfade on filter/sort changes
-  const animateFilterChange = useCallback(() => {
-    if (filterChangeRef.current) return;
-    filterChangeRef.current = true;
-    setListOpacity(0.4);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setListOpacity(1);
-        filterChangeRef.current = false;
-      });
-    });
-  }, []);
-
-  const updateWithFade = useCallback((p: Parameters<typeof update>[0]) => {
-    animateFilterChange();
+  const fadeUpdate = useCallback((p: Parameters<typeof update>[0]) => {
+    setIsFiltering(true);
     update(p);
-  }, [update, animateFilterChange]);
+  }, [update]);
 
   // Apply intl toggle client-side — adds intl stats when active
   const players = useMemo(() => {
@@ -405,6 +391,14 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     });
   }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, excludeCurrentIntl, minCaps, maxCaps, minAge, maxAge, contractYear]);
 
+  // Declarative crossfade: dim list when filtering, restore when data settles
+  useEffect(() => { setIsFiltering(false); }, [sortedPlayers]);
+  useEffect(() => {
+    if (!isFiltering) return;
+    const timer = setTimeout(() => setIsFiltering(false), 300);
+    return () => clearTimeout(timer);
+  }, [isFiltering]);
+
   return (
     <>
       <div className="mb-4 sm:mb-8">
@@ -430,7 +424,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
               type="single"
               value={sortBy}
               onValueChange={(value) => {
-                animateFilterChange();
+                setIsFiltering(true);
                 if (!value) { update({ dir: sortAsc ? null : "asc" }); return; }
                 update({ sort: value === "ga" ? null : value, dir: null });
               }}
@@ -455,12 +449,12 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
           <div className="flex flex-col gap-3 mb-5">
             {/* Primary filters */}
             <div className="flex flex-wrap items-center gap-2">
-              <Combobox value={leagueFilter} onChange={(v) => { animateFilterChange(); update({ league: v === "all" ? null : v || null }); }} options={leagueOptions} placeholder="All leagues" searchPlaceholder="Search leagues..." />
-              <Combobox value={clubFilter} onChange={(v) => { animateFilterChange(); update({ club: v === "all" ? null : v || null }); }} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
-              <Combobox value={nationalityFilter} onChange={(v) => { animateFilterChange(); update({ nat: v === "all" ? null : v || null }); }} options={nationalityOptions} placeholder="All nationalities" searchPlaceholder="Search nationalities..." />
-              <FilterButton active={top5Only} onClick={() => updateWithFade({ top5: top5Only ? null : "1" })}>
+              <Combobox value={leagueFilter} onChange={(v) => { setIsFiltering(true); update({ league: v === "all" ? null : v || null }); }} options={leagueOptions} placeholder="All leagues" searchPlaceholder="Search leagues..." />
+              <FilterButton active={top5Only} onClick={() => fadeUpdate({ top5: top5Only ? null : "1" })}>
                 Top 5
               </FilterButton>
+              <Combobox value={clubFilter} onChange={(v) => { setIsFiltering(true); update({ club: v === "all" ? null : v || null }); }} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
+              <Combobox value={nationalityFilter} onChange={(v) => { setIsFiltering(true); update({ nat: v === "all" ? null : v || null }); }} options={nationalityOptions} placeholder="All nationalities" searchPlaceholder="Search nationalities..." />
             </div>
 
             {/* Advanced filters — collapsible */}
@@ -483,35 +477,35 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
               <CollapsibleContent>
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-3 pt-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <RangeFilter label="Age" min={minAge} max={maxAge} onMinChange={(v) => { animateFilterChange(); update({ minage: v }); }} onMaxChange={(v) => { animateFilterChange(); update({ maxage: v }); }} />
+                    <RangeFilter label="Age" min={minAge} max={maxAge} onMinChange={(v) => { setIsFiltering(true); update({ minage: v }); }} onMaxChange={(v) => { setIsFiltering(true); update({ maxage: v }); }} />
                     <Combobox
                       value={contractYear !== null ? String(contractYear) : "all"}
-                      onChange={(v) => { animateFilterChange(); update({ contract: v === "all" ? null : v || null }); }}
+                      onChange={(v) => { setIsFiltering(true); update({ contract: v === "all" ? null : v || null }); }}
                       options={contractYearOptions}
                       placeholder="Contract expiry"
                     />
-                    <FilterButton active={signingFilter === "transfer"} onClick={() => updateWithFade({ signing: signingFilter === "transfer" ? null : "transfer", new: null })}>
+                    <FilterButton active={signingFilter === "transfer"} onClick={() => fadeUpdate({ signing: signingFilter === "transfer" ? null : "transfer", new: null })}>
                       Signings
                       <span className="tabular-nums opacity-60">{signingCounts.newSignings}</span>
                     </FilterButton>
-                    <FilterButton active={signingFilter === "loan"} onClick={() => updateWithFade({ signing: signingFilter === "loan" ? null : "loan", new: null })}>
+                    <FilterButton active={signingFilter === "loan"} onClick={() => fadeUpdate({ signing: signingFilter === "loan" ? null : "loan", new: null })}>
                       Loans
                       <span className="tabular-nums opacity-60">{signingCounts.loans}</span>
                     </FilterButton>
                   </div>
                   <div className="w-px h-6 self-center bg-border-subtle hidden sm:block" />
                   <div className="flex items-center gap-2">
-                    <FilterButton active={excludeCurrentIntl} onClick={() => updateWithFade({ xcintl: excludeCurrentIntl ? null : "1" })}>
+                    <FilterButton active={excludeCurrentIntl} onClick={() => fadeUpdate({ xcintl: excludeCurrentIntl ? null : "1" })}>
                       Excl. Current Intl
                     </FilterButton>
-                    <RangeFilter label="Caps" min={minCaps} max={maxCaps} onMinChange={(v) => { animateFilterChange(); update({ mincaps: v }); }} onMaxChange={(v) => { animateFilterChange(); update({ maxcaps: v }); }} />
+                    <RangeFilter label="Caps" min={minCaps} max={maxCaps} onMinChange={(v) => { setIsFiltering(true); update({ mincaps: v }); }} onMaxChange={(v) => { setIsFiltering(true); update({ maxcaps: v }); }} />
                   </div>
                   <div className="w-px h-6 self-center bg-border-subtle hidden sm:block" />
                   <div className="flex items-center gap-2">
-                    <FilterButton active={includePen} onClick={() => updateWithFade({ pen: includePen ? null : "1" })}>
+                    <FilterButton active={includePen} onClick={() => fadeUpdate({ pen: includePen ? null : "1" })}>
                       Pens in G+A
                     </FilterButton>
-                    <FilterButton active={includeIntl} onClick={() => updateWithFade({ intl: includeIntl ? null : "1" })}>
+                    <FilterButton active={includeIntl} onClick={() => fadeUpdate({ intl: includeIntl ? null : "1" })}>
                       + Intl stats
                     </FilterButton>
                   </div>
@@ -520,7 +514,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
             </Collapsible>
           </div>
 
-          <div className="transition-opacity duration-150 ease-out" style={{ opacity: listOpacity }}>
+          <div className={`transition-opacity duration-150 ease-out ${isFiltering ? "opacity-40" : "opacity-100"}`}>
             <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: minCaps !== null || maxCaps !== null, includePen, showContract: contractYear !== null }} />
           </div>
         </section>
