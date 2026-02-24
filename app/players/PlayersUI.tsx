@@ -166,13 +166,11 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
             <div className="text-sm font-medium font-value text-accent-blue">{player.marketValueDisplay}</div>
           </div>
           <div className="w-px h-7 bg-border-subtle" />
-          {(sortBy === "mins" || sortBy === "value" || sortBy === "ga" || sortBy === "games") && (
-            <div className="text-right min-w-[4rem]">
-              <div className="text-sm font-bold tabular-nums text-text-primary">
-                {player.minutes.toLocaleString()}&apos;
-              </div>
+          <div className="text-right">
+            <div className="text-sm font-value tabular-nums text-text-primary">
+              {player.minutes.toLocaleString()}&apos;
             </div>
-          )}
+          </div>
           {showCaps && (
             <div className="text-right">
               <div className="text-sm font-bold tabular-nums text-text-primary">{player.intlCareerCaps ?? 0}</div>
@@ -215,6 +213,7 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
           <div className="text-xs font-medium font-value text-accent-blue">{player.marketValueDisplay}</div>
           <div className="text-xs tabular-nums">
             <span className="text-text-primary">{gaTotal} {pointsLabel}</span>
+            <span className="text-text-secondary"> · {player.minutes.toLocaleString()}&apos;</span>
             {showCaps && (player.intlCareerCaps ?? 0) === 0 && player.nationality && (
               <span className="text-text-secondary"> · {player.nationality}</span>
             )}
