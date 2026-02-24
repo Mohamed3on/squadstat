@@ -391,14 +391,6 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     });
   }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, excludeCurrentIntl, minCaps, maxCaps, minAge, maxAge, contractYear]);
 
-  // Declarative crossfade: dim list when filtering, restore when data settles
-  useEffect(() => { setIsFiltering(false); }, [sortedPlayers]);
-  useEffect(() => {
-    if (!isFiltering) return;
-    const timer = setTimeout(() => setIsFiltering(false), 300);
-    return () => clearTimeout(timer);
-  }, [isFiltering]);
-
   return (
     <>
       <div className="mb-4 sm:mb-8">
@@ -514,7 +506,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
             </Collapsible>
           </div>
 
-          <div className={`transition-opacity duration-150 ease-out ${isFiltering ? "opacity-40" : "opacity-100"}`}>
+          <div className={isFiltering ? "animate-filter-dim" : ""} onAnimationEnd={() => setIsFiltering(false)}>
             <VirtualPlayerList items={sortedPlayers} injuryMap={injuryMap} ctx={{ sortBy, showCaps: minCaps !== null || maxCaps !== null, includePen, showContract: contractYear !== null }} />
           </div>
         </section>
