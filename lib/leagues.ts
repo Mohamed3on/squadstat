@@ -19,3 +19,14 @@ for (const l of LEAGUES) {
 export function getLeagueLogoUrl(leagueName: string): string | undefined {
   return leagueLogoMap[leagueName] || leagueLogoMap[leagueName.toLowerCase().replace(/\s/g, "")];
 }
+
+const leagueUrlMap: Record<string, string> = {};
+for (const l of LEAGUES) {
+  const url = `https://www.transfermarkt.com/${l.slug}/startseite/wettbewerb/${l.code}`;
+  leagueUrlMap[l.name] = url;
+  leagueUrlMap[l.name.toLowerCase().replace(/\s/g, "")] = url;
+}
+
+export function getLeagueUrl(leagueName: string): string | undefined {
+  return leagueUrlMap[leagueName] || leagueUrlMap[leagueName.toLowerCase().replace(/\s/g, "")];
+}

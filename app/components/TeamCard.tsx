@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ManagerSection, ManagerSkeleton } from "./ManagerPPGBadge";
-import { getLeagueLogoUrl } from "@/lib/leagues";
+import { getLeagueLogoUrl, getLeagueUrl } from "@/lib/leagues";
 
 interface TeamCardProps {
   team: QualifiedTeam;
@@ -148,8 +148,18 @@ export function TeamCard({ team, type, manager, managerLoading, compact }: TeamC
             )}
           </div>
           <div className="flex items-center gap-1.5 text-xs sm:text-sm truncate text-text-secondary">
-            {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-4 h-4 object-contain shrink-0 rounded-sm bg-white/90 p-px" />}
-            {team.league} • {formatOrdinal(team.leaguePosition)} place
+            {getLeagueUrl(team.league) ? (
+              <a href={getLeagueUrl(team.league)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:underline shrink-0">
+                {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-4 h-4 object-contain shrink-0 rounded-sm bg-white/90 p-px" />}
+                {team.league}
+              </a>
+            ) : (
+              <>
+                {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-4 h-4 object-contain shrink-0 rounded-sm bg-white/90 p-px" />}
+                {team.league}
+              </>
+            )}
+            <span>• {formatOrdinal(team.leaguePosition)} place</span>
           </div>
         </div>
       </div>

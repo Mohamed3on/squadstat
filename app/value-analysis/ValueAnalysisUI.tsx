@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ExternalLink } from "lucide-react";
-import { getLeagueLogoUrl } from "@/lib/leagues";
+import { getLeagueLogoUrl, getLeagueUrl } from "@/lib/leagues";
 import { FilterButton } from "@/components/FilterButton";
 import { PositionDisplay } from "@/components/PositionDisplay";
 import { filterPlayersByLeagueAndClub, TOP_5_LEAGUES, missedPct } from "@/lib/filter-players";
@@ -276,10 +276,20 @@ function PlayerSubtitle({ position, playedPosition, club, clubLogoUrl, age }: { 
 }
 
 function LeagueLabel({ league }: { league: string }) {
-  return (
-    <span className="hidden sm:flex items-center gap-1 ml-auto text-xs uppercase tracking-wide text-text-secondary">
+  const url = getLeagueUrl(league);
+  const content = (
+    <>
       {getLeagueLogoUrl(league) && <img src={getLeagueLogoUrl(league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
       {league}
+    </>
+  );
+  return url ? (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-1 ml-auto text-xs uppercase tracking-wide text-text-secondary hover:underline">
+      {content}
+    </a>
+  ) : (
+    <span className="hidden sm:flex items-center gap-1 ml-auto text-xs uppercase tracking-wide text-text-secondary">
+      {content}
     </span>
   );
 }

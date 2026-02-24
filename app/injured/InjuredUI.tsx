@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import type { InjuredPlayer } from "@/app/types";
-import { getLeagueLogoUrl } from "@/lib/leagues";
+import { getLeagueLogoUrl, getLeagueUrl } from "@/lib/leagues";
 import { formatReturnInfo, formatInjuryDuration } from "@/lib/format";
 import { useProgressiveFetch } from "@/lib/use-progressive-fetch";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
@@ -144,10 +144,12 @@ function PlayerCard({ player, rank, index = 0 }: { player: InjuredPlayer; rank: 
               <span className="text-xs sm:text-sm text-text-secondary">
                 {player.club}
               </span>
-              <Badge className={cn("text-[10px] sm:text-xs flex items-center gap-1", leagueStyle.bg, leagueStyle.text)}>
-                {getLeagueLogoUrl(player.league) && <img src={getLeagueLogoUrl(player.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
-                {player.league}
-              </Badge>
+              <a href={getLeagueUrl(player.league)} target="_blank" rel="noopener noreferrer">
+                <Badge className={cn("text-[10px] sm:text-xs flex items-center gap-1 hover:opacity-80 transition-opacity", leagueStyle.bg, leagueStyle.text)}>
+                  {getLeagueLogoUrl(player.league) && <img src={getLeagueLogoUrl(player.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
+                  {player.league}
+                </Badge>
+              </a>
             </div>
 
             {/* Injury Info */}
@@ -211,10 +213,12 @@ function TeamInjuryCard({ team, rank, index = 0 }: { team: TeamInjuryGroup; rank
                 <h3 className="font-bold text-sm sm:text-base text-text-primary">
                   {team.club}
                 </h3>
-                <Badge className={cn("mt-0.5 text-[10px] sm:text-xs inline-flex items-center gap-1 w-fit", leagueStyle.bg, leagueStyle.text)}>
-                  {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
-                  {team.league}
-                </Badge>
+                <a href={getLeagueUrl(team.league)} target="_blank" rel="noopener noreferrer">
+                  <Badge className={cn("mt-0.5 text-[10px] sm:text-xs inline-flex items-center gap-1 w-fit hover:opacity-80 transition-opacity", leagueStyle.bg, leagueStyle.text)}>
+                    {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
+                    {team.league}
+                  </Badge>
+                </a>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-sm sm:text-lg font-medium text-accent-hot font-value">

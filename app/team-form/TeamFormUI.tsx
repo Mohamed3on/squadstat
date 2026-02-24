@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ManagerSection } from "@/app/components/ManagerPPGBadge";
-import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
+import { LEAGUES, getLeagueLogoUrl, getLeagueUrl } from "@/lib/leagues";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 
 export interface TeamFormResponse {
@@ -133,17 +133,19 @@ function TeamCard({ team, rank, type, index = 0 }: TeamCardProps) {
               >
                 {team.name}
               </a>
-              <Badge
-                className="mt-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs shrink-0 flex items-center gap-1 w-fit"
-                style={{
-                  background: getLeagueColor(team.league),
-                  color: team.league === "Ligue 1" ? "#000" : "#fff",
-                  border: "none",
-                }}
-              >
-                {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
-                {team.league}
-              </Badge>
+              <a href={getLeagueUrl(team.league)} target="_blank" rel="noopener noreferrer">
+                <Badge
+                  className="mt-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs shrink-0 flex items-center gap-1 w-fit hover:opacity-80 transition-opacity"
+                  style={{
+                    background: getLeagueColor(team.league),
+                    color: team.league === "Ligue 1" ? "#000" : "#fff",
+                    border: "none",
+                  }}
+                >
+                  {getLeagueLogoUrl(team.league) && <img src={getLeagueLogoUrl(team.league)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />}
+                  {team.league}
+                </Badge>
+              </a>
             </div>
           </div>
 
