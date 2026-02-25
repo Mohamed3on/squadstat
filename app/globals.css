@@ -239,6 +239,14 @@ body::before {
   animation: count-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@keyframes filter-dim {
+  0%, 25% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+.animate-filter-dim {
+  animation: filter-dim 0.25s ease-out both;
+}
+
 /* Stagger animations - use with animation-delay or style={{ animationDelay }} */
 .stagger-1 { animation-delay: 0.03s; }
 .stagger-2 { animation-delay: 0.06s; }
