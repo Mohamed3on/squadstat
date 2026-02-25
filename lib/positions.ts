@@ -48,6 +48,10 @@ export function isDefensivePosition(position: string): boolean {
   return DEFENSIVE_POSITIONS.has(position);
 }
 
+export function isAttackingPosition(position: string): boolean {
+  return getPositionClassRank(position) >= POSITION_CLASS_RANK["attacking-midfield"];
+}
+
 /** `a` got equal or better output in equal or fewer minutes, with at least one strictly better. Falls back to strict points comparison when either side has no minutes data. */
 export function strictlyOutperforms(
   a: { points: number; minutes?: number },

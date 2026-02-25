@@ -2,7 +2,7 @@ import type { PlayerStats } from "@/app/types";
 import {
   canBeUnderperformerAgainst,
   canBeOutperformerAgainst,
-  isDefensivePosition,
+  isAttackingPosition,
   strictlyOutperforms,
 } from "@/lib/positions";
 
@@ -51,7 +51,7 @@ export function findValueCandidates(
 
   for (const player of players) {
     const ep = pos(player);
-    if (isDefensivePosition(ep) || ep === "Central Midfield" || ep === "Left Midfield" || ep === "Right Midfield") continue;
+    if (!isAttackingPosition(ep)) continue;
     if (player.minutes === undefined) continue;
     if (minMinutes !== undefined && player.minutes < minMinutes) continue;
 
