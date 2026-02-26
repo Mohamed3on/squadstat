@@ -130,6 +130,14 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const isOnLoan = ribbonText === "on loan";
   const isNewSigning = ribbonText === "new arrival" || isOnLoan;
 
+  // Nationality flag URL from profile header
+  const natFlagImg = $("span[itemprop='nationality'] img.flaggenrahmen").first();
+  const nationalityFlagUrl = (natFlagImg.attr("src") || "").replace(/\/(tiny|verysmall)\//, "/medium/") || "";
+
+  // League logo URL from profile header
+  const leagueLinkImg = $(".data-header__league-link img").first();
+  const leagueLogoUrl = (leagueLinkImg.attr("src") || "").replace(/\/(verytiny|tiny)\//, "/header/") || "";
+
   // Most-played position this season from the "Positions played" pitch visualization
   let playedPosition = "";
   let maxGames = 0;
@@ -164,11 +172,11 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
 
   // Parse stats + league from ceapi
   if (!ceapiRes.ok) {
-    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed };
+    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed, nationalityFlagUrl, leagueLogoUrl };
   }
   const ceapi = await ceapiRes.json();
   const games: CeapiGame[] = ceapi?.data?.performance ?? [];
   const stats = aggregateSeasonStats(games);
 
-  return { ...stats, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed };
+  return { ...stats, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed, nationalityFlagUrl, leagueLogoUrl };
 }

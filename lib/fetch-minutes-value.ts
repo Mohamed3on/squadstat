@@ -86,7 +86,9 @@ function parseMarketValueRow($: cheerio.CheerioAPI, row: any): Partial<MinutesVa
 
   // Nationality from flag images
   const natCell = $(cells[3]);
-  const nationality = natCell.find("img").first().attr("title") || "";
+  const natImg = natCell.find("img").first();
+  const nationality = natImg.attr("title") || "";
+  const nationalityFlagUrl = (natImg.attr("src") || "").replace(/\/(tiny|verysmall)\//, "/medium/") || "";
 
   const clubCell = $(cells[4]);
   const clubLink = clubCell.find("a").first();
@@ -97,7 +99,7 @@ function parseMarketValueRow($: cheerio.CheerioAPI, row: any): Partial<MinutesVa
   const marketValue = parseMarketValue(mvDisplay);
 
   if (!name || !playerId) return null;
-  return { name, position, age, club, league, nationality, marketValue, marketValueDisplay: mvDisplay, imageUrl, profileUrl, playerId };
+  return { name, position, age, club, league, nationality, nationalityFlagUrl, marketValue, marketValueDisplay: mvDisplay, imageUrl, profileUrl, playerId };
 }
 
 /** Raw scraper — no caching. Fetches MV pages only (identity + market value). */

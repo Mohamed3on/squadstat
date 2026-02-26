@@ -28,7 +28,9 @@ function parseTopScorerRow($: cheerio.CheerioAPI, row: any): MinutesValuePlayer 
   const age = parseInt($(cells[2]).text().trim()) || 0;
 
   // Cell 3: Nationality
-  const nationality = $(cells[3]).find("img").first().attr("title") || "";
+  const natImg = $(cells[3]).find("img").first();
+  const nationality = natImg.attr("title") || "";
+  const nationalityFlagUrl = (natImg.attr("src") || "").replace(/\/(tiny|verysmall)\//, "/medium/") || "";
 
   // Cell 4: Club / League (inline-table)
   const clubCell = $(cells[4]);
@@ -62,6 +64,7 @@ function parseTopScorerRow($: cheerio.CheerioAPI, row: any): MinutesValuePlayer 
     clubLogoUrl: "",
     league,
     nationality,
+    nationalityFlagUrl,
     marketValue,
     marketValueDisplay,
     minutes: 0,

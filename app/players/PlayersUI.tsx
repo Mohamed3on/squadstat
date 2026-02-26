@@ -7,6 +7,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { RangeFilter } from "@/components/RangeFilter";
 import { FilterButton } from "@/components/FilterButton";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { PositionDisplay } from "@/components/PositionDisplay";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { filterPlayersByLeagueAndClub, filterTop5 } from "@/lib/filter-players";
@@ -74,6 +76,21 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
   const gaTotal = (player.goals - penAdj) + player.assists;
   const pointsLabel = includePen ? "G+A" : "npG+A";
   const injuryInfo = injuryMap?.[player.playerId];
+  const benchmarkHref = `/value-analysis?${new URLSearchParams({ id: player.playerId, name: player.name })}`;
+
+  let nationalityDisplay: ReactNode = null;
+  if (player.nationalityFlagUrl) {
+    nationalityDisplay = <>
+      <span className="opacity-40">·</span>
+      <img src={player.nationalityFlagUrl} alt={player.nationality} title={player.nationality} className="w-4 h-3 object-contain shrink-0" />
+      <span className="hidden md:inline">{player.nationality}</span>
+    </>;
+  } else if (player.nationality) {
+    nationalityDisplay = <>
+      <span className="hidden md:inline opacity-40">·</span>
+      <span className="hidden md:inline shrink-0">{player.nationality}</span>
+    </>;
+  }
 
   // Status badge (loan/signing) at top-right, injury badge at bottom-right — both can coexist
   const statusBadge = player.isOnLoan ? (
@@ -136,14 +153,22 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
         </div>
 
         <div className="flex-1 min-w-0">
-          <a
-            href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-sm hover:underline block truncate transition-colors text-left text-text-primary"
-          >
-            {player.name}
-          </a>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={benchmarkHref}
+              className="font-semibold text-sm hover:underline truncate transition-colors text-left text-text-primary"
+            >
+              {player.name}
+            </Link>
+            <a
+              href={`https://www.transfermarkt.com${player.profileUrl.replace(PROFIL_RE, "/leistungsdaten/")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 opacity-40 hover:opacity-100 transition-opacity text-text-muted"
+            >
+              <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            </a>
+          </div>
           <div className="flex items-center gap-1.5 text-xs mt-0.5 overflow-hidden text-text-secondary">
             <PositionDisplay position={player.position} playedPosition={player.playedPosition} />
             <span className="opacity-40">·</span>
@@ -151,12 +176,14 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
               {player.clubLogoUrl && <img src={player.clubLogoUrl} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />}
               {player.club}
             </span>
-            {player.nationality && <>
-              <span className="hidden sm:inline opacity-40">·</span>
-              <span className="hidden sm:inline shrink-0">{player.nationality}</span>
+            {player.leagueLogoUrl && <>
+              <span className="opacity-40">·</span>
+              <img src={player.leagueLogoUrl} alt={player.league} title={player.league} className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px shrink-0" />
+              <span className="hidden md:inline">{player.league}</span>
             </>}
-            <span className="hidden sm:inline opacity-40">·</span>
-            <span className="hidden sm:inline">{player.age}y</span>
+            {nationalityDisplay}
+            <span className="hidden md:inline opacity-40">·</span>
+            <span className="hidden md:inline">{player.age}y</span>
           </div>
         </div>
 
@@ -208,32 +235,30 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
           </div>
         </div>
 
-        {/* Mobile metrics — context-aware */}
-        <div className="sm:hidden text-right shrink-0">
-          <div className="text-xs font-medium font-value text-accent-blue">{player.marketValueDisplay}</div>
-          <div className="text-xs tabular-nums">
-            <span className="text-text-primary">{gaTotal} {pointsLabel}</span>
-            <span className="text-text-secondary"> · {player.minutes.toLocaleString()}&apos;</span>
-            {showCaps && (player.intlCareerCaps ?? 0) === 0 && player.nationality && (
-              <span className="text-text-secondary"> · {player.nationality}</span>
-            )}
-            {showCaps && (player.intlCareerCaps ?? 0) > 0 && (
-              <span className="text-text-secondary"> · {player.intlCareerCaps} caps</span>
-            )}
-            {showContract && expiryYear && (
-              <span className="text-text-secondary"> · {expiryYear}</span>
-            )}
-            {(sortBy === "pen" || sortBy === "miss" || includePen) && penAttempts > 0 && (
-              <span className="text-text-secondary"> · {penGoals}/{penAttempts} pens</span>
-            )}
-          </div>
-        </div>
+      </div>
+
+      {/* Mobile stat tray */}
+      <div className="sm:hidden mt-2 bg-elevated rounded-lg px-2.5 py-1.5 flex items-baseline gap-2.5 flex-wrap text-xs font-value text-text-secondary">
+        <span className="text-base text-accent-hot">{gaTotal} <span className="text-[10px] text-accent-hot/60">{pointsLabel}</span></span>
+        <span className="text-sm text-accent-blue">{player.marketValueDisplay}</span>
+        <span>{player.age}y</span>
+        <span>{player.totalMatches} games</span>
+        <span>{player.minutes.toLocaleString()}&apos;</span>
+        {showCaps && (player.intlCareerCaps ?? 0) > 0 && (
+          <span>{player.intlCareerCaps} caps</span>
+        )}
+        {showContract && expiryYear && (
+          <span>{expiryYear} contract</span>
+        )}
+        {(sortBy === "pen" || sortBy === "miss" || includePen) && penAttempts > 0 && (
+          <span>{penGoals}/{penAttempts} pen</span>
+        )}
       </div>
     </div>
   );
 }
 
-const ROW_HEIGHT = 80;
+const ROW_HEIGHT = 110;
 const GAP = 8;
 
 function VirtualPlayerList({ items, injuryMap, ctx }: { items: MinutesValuePlayer[]; injuryMap?: InjuryMap; ctx: CardContext }) {

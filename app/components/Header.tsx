@@ -87,7 +87,7 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 sm:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {navItems.map(({ href, label }) => {
             const isActive = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
             return (
@@ -125,17 +125,17 @@ export function Header() {
             aria-label={isRevalidating ? "Refreshing data" : "Refresh data"}
             variant={isRevalidating ? "secondary" : "default"}
             size="sm"
-            className="h-auto p-2 sm:px-4 sm:py-2"
+            className="h-auto p-2 lg:px-4 lg:py-2"
           >
             {isRevalidating ? (
               <>
                 <SpinnerIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Refreshing Data…</span>
+                <span className="hidden lg:inline">Refreshing Data…</span>
               </>
             ) : (
               <>
                 <RefreshIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Refresh Data</span>
+                <span className="hidden lg:inline">Refresh Data</span>
               </>
             )}
           </Button>
@@ -146,7 +146,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0 text-text-primary sm:hidden"
+                className="h-9 w-9 p-0 text-text-primary lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu className="h-5 w-5" />

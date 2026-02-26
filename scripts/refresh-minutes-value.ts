@@ -159,6 +159,8 @@ async function main() {
       if (entry.club) p.club = entry.club;
       if (entry.clubLogoUrl) p.clubLogoUrl = entry.clubLogoUrl;
       if (entry.league) p.league = entry.league;
+      if (entry.nationalityFlagUrl) p.nationalityFlagUrl = entry.nationalityFlagUrl;
+      if (entry.leagueLogoUrl) p.leagueLogoUrl = entry.leagueLogoUrl;
       if (entry.isNewSigning) {
         p.isNewSigning = true;
       } else {
