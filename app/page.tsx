@@ -30,7 +30,7 @@ export const revalidate = 7200; // 2 hours — matches form/team-form cache
 export const metadata = createPageMetadata({
   title: "Home",
   description:
-    "SquadStat helps football fans track team form, player output, injuries, and value trends across Europe.",
+    "Track form swings, value gaps, player output, and injury impact across Europe's top five leagues.",
   path: "/",
   keywords: [
     "football analytics",
@@ -50,17 +50,17 @@ const snapshotTiles = [
   {
     value: "500+",
     label: "Players",
-    detail: "Big-name profiles with value, minutes, G+A, penalties, and status tags",
+    detail: "Player profiles with value, minutes, G+A, penalties, loans, and status context",
   },
   {
     value: "2",
     label: "Value Modes",
-    detail: "G+A value mode and minutes mode for overpriced vs bargain signals",
+    detail: "Output mode and minutes mode for spotting overpriced names and bargains",
   },
   {
-    value: "Daily",
+    value: "All Day",
     label: "Refresh",
-    detail: "Transfermarkt-backed data with a manual refresh button in the header",
+    detail: "Transfermarkt-backed data refreshed multiple times per day, plus a manual refresh button in the header",
   },
 ] as const;
 
@@ -373,13 +373,13 @@ const features: readonly Feature[] = [
   {
     title: "Recent Form",
     href: "/form",
-    tag: "Hot & Cold",
+    tag: "Momentum",
     description:
-      "See which teams are flying or falling apart across 5, 10, 15, and 20-match windows.",
+      "Compare 5, 10, 15, and 20-match windows to spot momentum shifts early.",
     highlights: [
-      "Best and worst teams by points, goal difference, goals scored, and goals conceded",
-      "Window-by-window cards so you can compare momentum quickly",
-      "Manager PPG context attached to standout teams",
+      "Top and bottom teams by points, goal difference, scoring, and defense",
+      "Window cards make trend changes easy to scan",
+      "Manager PPG context on standout clubs",
     ],
     icon: Activity,
     tone: {
@@ -394,13 +394,13 @@ const features: readonly Feature[] = [
   {
     title: "Value vs Table",
     href: "/team-form",
-    tag: "Punching Up?",
+    tag: "Expectation Gap",
     description:
-      "Compare actual points to value-based expected points and find clubs overachieving or underachieving.",
+      "Compare actual points to value-based expectation and spot over- and under-achievers.",
     highlights: [
-      "Clear overperformer and underperformer rankings",
-      "League filters plus all-leagues mode",
-      "Manager overlays for extra context",
+      "Ranked overperformer and underperformer lists",
+      "League filter plus all-leagues view",
+      "Manager overlays for added context",
     ],
     icon: Scale,
     tone: {
@@ -415,13 +415,13 @@ const features: readonly Feature[] = [
   {
     title: "Player Explorer",
     href: "/players",
-    tag: "Player Rabbit Hole",
+    tag: "Scouting Filters",
     description:
-      "Dive into player stats with filters for value, minutes, games, G+A, penalties, loans, and new signings.",
+      "Filter 500+ players by value, output, minutes, loans, new signings, and more.",
     highlights: [
-      "Loan and new-signing filters plus top-5-only mode",
+      "Loan and new-signing filters with top-5 scope",
       "League, club, nationality, and sorting controls",
-      "Injury overlays and penalty context",
+      "Injury overlays with penalty context",
     ],
     icon: Clock,
     tone: {
@@ -436,13 +436,13 @@ const features: readonly Feature[] = [
   {
     title: "Over/Under",
     href: "/value-analysis",
-    tag: "Overpriced or Steal?",
+    tag: "Value Efficiency",
     description:
-      "Compare players against peers to spot expensive underdeliverers and sneaky bargains.",
+      "Benchmark players against peers to flag expensive underdeliverers and undervalued output.",
     highlights: [
-      "Two modes: output value (G+A) and low-minutes flags",
-      "Toggle penalties and international output",
-      "Optional injury exclusion for cleaner minutes view",
+      "Two modes: output efficiency and low-minutes risk",
+      "Penalty and international output toggles",
+      "Optional injury exclusion for cleaner minutes analysis",
     ],
     icon: TrendingUp,
     tone: {
@@ -457,13 +457,13 @@ const features: readonly Feature[] = [
   {
     title: "Injury Impact",
     href: "/injured",
-    tag: "Who Is Missing?",
+    tag: "Availability Risk",
     description:
-      "Track injury impact by player, club, and injury type with value-loss rankings.",
+      "Track where injuries hurt most by player, club, and injury type.",
     highlights: [
       "Tabs for players, teams, and injury categories",
-      "Club-level value loss and injured player counts",
-      "Injury duration and return timeline hints",
+      "Club-level value loss with injury counts",
+      "Injury duration and return-date context",
     ],
     icon: HeartPulse,
     tone: {
@@ -478,13 +478,13 @@ const features: readonly Feature[] = [
   {
     title: "Biggest Movers",
     href: "/biggest-movers",
-    tag: "Career Trajectories",
+    tag: "Trend Strength",
     description:
-      "Spot players whose market value is consistently rising or falling over time.",
+      "Track players whose market value keeps rising or falling across updates.",
     highlights: [
-      "Highlights players on a continuous rise or decline",
-      "Tabs for biggest falls (freefall) and biggest rises",
-      "Per-date breakdown with value change bars",
+      "Continuous rise and decline detection",
+      "Tabs for biggest falls and biggest rises",
+      "Per-date breakdowns with value-change bars",
     ],
     icon: ArrowUpDown,
     tone: {
@@ -888,12 +888,12 @@ export default async function Home() {
   addRepeatMovers(biggestWinners?.repeatMovers, "On the rise", "winners", "green");
 
   const snapshotGroups = [
-    recentFormItems.length && { title: "Recent Form", description: `Best and worst teams from the last ${recentPeriod} games across all competitions.`, href: "/form", items: recentFormItems },
-    teamFormItems.length && { title: "Value vs Table", description: "Teams most above or below value-based expectation.", href: "/team-form", items: teamFormItems },
-    valueAnalysisItems.length && { title: "Over/Under", description: "Most overpriced players and best bargains by peer comparison.", href: "/value-analysis", items: valueAnalysisItems },
-    playerItems.length && { title: "Player Explorer", description: "Top performers, signings, loans, and uncapped players.", href: "/players", items: playerItems },
-    injuryItems.length && { title: "Injury Impact", description: "The most valuable sidelined players and hardest-hit clubs.", href: "/injured", items: injuryItems },
-    biggestMoversItems.length && { title: "Biggest Movers", description: "Players whose market value keeps rising or falling over time.", href: "/biggest-movers", items: biggestMoversItems },
+    recentFormItems.length && { title: "Recent Form", description: `Top and bottom teams in the latest ${recentPeriod}-match window.`, href: "/form", items: recentFormItems },
+    teamFormItems.length && { title: "Value vs Table", description: "Largest gaps between results and squad value expectation.", href: "/team-form", items: teamFormItems },
+    valueAnalysisItems.length && { title: "Over/Under", description: "Most overpriced profiles and strongest bargain cases.", href: "/value-analysis", items: valueAnalysisItems },
+    playerItems.length && { title: "Player Explorer", description: "Output leaders, signings, loans, and uncapped talents.", href: "/players", items: playerItems },
+    injuryItems.length && { title: "Injury Impact", description: "Highest-value absences and hardest-hit clubs.", href: "/injured", items: injuryItems },
+    biggestMoversItems.length && { title: "Biggest Movers", description: "Players on sustained value rises or drops.", href: "/biggest-movers", items: biggestMoversItems },
   ].filter(Boolean) as SnapshotGroup[];
 
   return (
@@ -905,27 +905,27 @@ export default async function Home() {
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
             <div>
               <Badge className="mb-5 border-accent-hot-border bg-accent-hot-glow px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-accent-hot">
-                Daily football stats across Europe&apos;s top leagues
+                Transfermarkt Signals Across Europe&apos;s Top Leagues
               </Badge>
 
               <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
-                Football stats,
+                See what the table misses:
                 <span className="ml-2 bg-gradient-to-r from-accent-hot via-accent-blue to-accent-gold bg-clip-text text-transparent">
-                  in one place.
+                  form, value, and injuries.
                 </span>
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm text-text-secondary sm:text-lg">
-                Track form, spot overpriced players, find bargains, and check injury chaos — backed by daily Transfermarkt data.
+                SquadStat surfaces the biggest swings fast: hot and cold teams, overpriced names, bargain output, and injury cost.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <Button asChild size="lg">
-                  <Link href="/form">Start With Form</Link>
+                  <Link href="/form">Analyze Recent Form</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-border-medium bg-card text-text-primary hover:bg-card-hover">
                   <Link href="/value-analysis">
-                    Open Over/Under
+                    Scan Value Gaps
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -937,13 +937,13 @@ export default async function Home() {
                 <Badge variant="outline" className="w-fit border-accent-blue/40 bg-accent-blue/10 text-accent-blue">
                   Live snapshots
                 </Badge>
-                <CardTitle className="text-xl text-text-primary">Today&apos;s highlights</CardTitle>
+                <CardTitle className="text-xl text-text-primary">Latest Highlights</CardTitle>
                 <CardDescription className="text-sm text-text-secondary">
-                  The standout names across form, value, and output right now.
+                  Key names across form, value, output, and injuries.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Right now</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Latest Feed</p>
                 <div className="mt-3 space-y-2">
                   {heroSnapshots.length > 0 ? (
                     heroSnapshots.map((item) => (
@@ -955,7 +955,7 @@ export default async function Home() {
                     ))
                   ) : (
                     <div className="rounded-lg border border-border-subtle bg-card px-3 py-2 text-sm text-text-muted">
-                      No snapshot data available right now. Open a section below for full details.
+                      Snapshot data is temporarily unavailable. Open a dashboard below for full tables.
                     </div>
                   )}
                 </div>
@@ -982,8 +982,8 @@ export default async function Home() {
       <section className="pt-12 sm:pt-16">
         <SectionHeading
           eyebrow="Live data"
-          title="Current leaders"
-          description="Standouts from each section — scan the headlines, then dive deeper."
+          title="Latest Standouts"
+          description="Scan leaders and laggards from each dashboard, then open the full view."
         />
 
         {snapshotGroups.length > 0 ? (
@@ -1029,9 +1029,9 @@ export default async function Home() {
       <section className="pt-12 sm:pt-16">
         <SectionHeading
           eyebrow="Explore"
-          title="Everything you can explore"
-          description="Every feature with plain-language explanations and direct links."
-          action={{ href: "/value-analysis", label: "Open value analysis" }}
+          title="Core Dashboards"
+          description="Six focused lenses for form, value, player output, injuries, and market trends."
+          action={{ href: "/value-analysis", label: "Open Over/Under" }}
         />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -1043,8 +1043,8 @@ export default async function Home() {
 
       <section className="pt-12 sm:pt-16">
         <div className="rounded-2xl border border-border-medium bg-card p-5 sm:p-6">
-          <h2 className="text-xl font-black text-text-primary sm:text-2xl">Jump to a page</h2>
-          <p className="mt-1 text-sm text-text-muted">Pick where you want to start.</p>
+          <h2 className="text-xl font-black text-text-primary sm:text-2xl">Open a dashboard</h2>
+          <p className="mt-1 text-sm text-text-muted">Start from the question you want to answer.</p>
 
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
