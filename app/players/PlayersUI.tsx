@@ -382,7 +382,10 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       switch (sortBy) {
         case "mins": diff = b.minutes - a.minutes; break;
         case "games": diff = b.totalMatches - a.totalMatches; break;
-        case "ga": diff = ((b.goals - (b.penaltyGoals ?? 0) * penAdj) + b.assists) - ((a.goals - (a.penaltyGoals ?? 0) * penAdj) + a.assists); break;
+        case "ga":
+          diff = ((b.goals - (b.penaltyGoals ?? 0) * penAdj) + b.assists) - ((a.goals - (a.penaltyGoals ?? 0) * penAdj) + a.assists);
+          if (diff === 0) diff = a.minutes - b.minutes;
+          break;
         case "pen": diff = (b.penaltyGoals ?? 0) - (a.penaltyGoals ?? 0); break;
         case "miss": diff = (b.penaltyMisses ?? 0) - (a.penaltyMisses ?? 0); break;
         default: diff = b.marketValue - a.marketValue;
