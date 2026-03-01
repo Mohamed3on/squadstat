@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -54,6 +54,7 @@ const navItems = [
 export function Header() {
   const queryClient = useQueryClient();
   const pathname = usePathname();
+  const router = useRouter();
   const [isRevalidating, setIsRevalidating] = useState(false);
 
   const handleBustCache = async () => {
@@ -62,9 +63,10 @@ export function Header() {
       await revalidateAll();
       toast.success("Data refreshed");
       queryClient.clear();
-      window.location.reload();
+      router.refresh();
     } catch {
       toast.error("Failed to refresh data");
+    } finally {
       setIsRevalidating(false);
     }
   };
