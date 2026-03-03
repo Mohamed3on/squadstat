@@ -94,7 +94,7 @@ function AggregatedTeamCard({
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-base sm:text-lg truncate text-text-primary">
+          <div className="font-pixel text-base sm:text-lg truncate text-text-primary">
             {team.clubUrl ? (
               <a
                 href={`https://www.transfermarkt.com${team.clubUrl}`}
@@ -118,8 +118,8 @@ function AggregatedTeamCard({
               team.league
             )}
             {deltaPts != null && (
-              <a href="/expected-position" className={`font-value text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full hover:opacity-80 transition-opacity ${deltaPts > 0 ? "bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]" : "bg-[var(--accent-cold-glow)] text-[var(--accent-cold)]"}`}>
-                {deltaPts > 0 ? "+" : ""}{deltaPts} vs exp
+              <a href="/expected-position" className={`inline-flex items-center gap-0.5 font-value text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full transition-all duration-150 hover:scale-105 hover:brightness-125 ${deltaPts > 0 ? "bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]" : "bg-[var(--accent-cold-glow)] text-[var(--accent-cold)]"}`}>
+                {deltaPts > 0 ? "+" : ""}{deltaPts} vs exp <span className="text-[8px] opacity-60">→</span>
               </a>
             )}
           </div>
@@ -196,7 +196,7 @@ function AggregatedSection({ teams, type, deltaMap }: { teams: AggregatedTeam[];
   return (
     <div>
       <h3
-        className={`font-bold text-base sm:text-lg mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3 ${isTop ? "text-accent-hot" : "text-accent-cold"}`}
+        className={`font-pixel text-base sm:text-lg mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3 ${isTop ? "text-accent-hot" : "text-accent-cold"}`}
       >
         <span
           className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-lg sm:text-xl ${isTop ? "bg-accent-hot-glow" : "bg-accent-cold-glow"}`}
@@ -373,11 +373,11 @@ export function AnalyzerUI({ initialData, deltaMap }: { initialData: AnalysisRes
 
           <div className="relative">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <span className="text-2xl sm:text-3xl font-black text-accent-hot" aria-hidden="true">
+              <span className="text-2xl sm:text-3xl font-pixel text-accent-hot" aria-hidden="true">
                 ✓
               </span>
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-text-primary text-balance">
+                <h2 className="text-xl sm:text-2xl font-pixel text-text-primary text-balance">
                   Aggregated Form Leaders
                 </h2>
                 <p className="text-sm sm:text-base text-text-secondary">
@@ -398,7 +398,7 @@ export function AnalyzerUI({ initialData, deltaMap }: { initialData: AnalysisRes
         </div>
       ) : (
         <Card className="rounded-2xl p-4 sm:p-6 text-center animate-scale-in border-accent-cold">
-          <h2 className="text-lg sm:text-xl font-bold mb-2 text-accent-cold">
+          <h2 className="text-lg sm:text-xl font-pixel mb-2 text-accent-cold">
             No Clear Pattern
           </h2>
           <p className="text-sm sm:text-base text-text-secondary">
@@ -415,7 +415,7 @@ export function AnalyzerUI({ initialData, deltaMap }: { initialData: AnalysisRes
             aria-label={periodsOpen ? "Collapse per-period breakdown" : "Expand per-period breakdown"}
           >
             <span className="w-1 h-6 rounded-full bg-accent-blue" aria-hidden="true" />
-            <span className="text-lg font-bold">By Number of Matches</span>
+            <span className="text-lg font-pixel">By Number of Matches</span>
             <ChevronDown className={`w-5 h-5 transition-transform duration-200 ease-out ${periodsOpen ? "rotate-180" : ""}`} aria-hidden="true" />
             <span className="flex-1 h-px bg-border-subtle" />
           </button>

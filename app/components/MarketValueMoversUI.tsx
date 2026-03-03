@@ -77,7 +77,7 @@ function RepeatMoverCard({ appearances, variant }: { appearances: MarketValueMov
               href={latest.profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-base sm:text-lg font-black text-text-primary hover:text-accent-hot transition-colors"
+              className="text-base sm:text-lg font-pixel text-text-primary hover:text-accent-hot transition-colors"
             >
               {latest.name}
             </a>

@@ -89,7 +89,7 @@ export function Header() {
             height={28}
             className="transition-opacity group-hover:opacity-80"
           />
-          <h1 className="text-lg font-black tracking-tight text-text-primary transition-opacity group-hover:opacity-80 sm:text-xl">
+          <h1 className="text-lg font-pixel tracking-tight text-text-primary transition-opacity group-hover:opacity-80 sm:text-xl">
             Squad<span className="text-accent-hot">Stat</span>
           </h1>
         </Link>

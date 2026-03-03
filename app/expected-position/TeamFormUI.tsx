@@ -150,8 +150,8 @@ function TeamCard({ team, rank, type, index = 0, formLeader }: TeamCardProps) {
                   </Badge>
                 </a>
                 {formLeader && (
-                  <a href="/form" className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-semibold hover:opacity-80 transition-opacity ${formLeader.type === "top" ? "bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]" : "bg-[var(--accent-cold-glow)] text-[var(--accent-cold)]"}`}>
-                    {formLeader.type === "top" ? "↑ Best" : "↓ Worst"} form
+                  <a href="/form" className={`inline-flex items-center gap-0.5 text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-semibold transition-all duration-150 hover:scale-105 hover:brightness-125 ${formLeader.type === "top" ? "bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]" : "bg-[var(--accent-cold-glow)] text-[var(--accent-cold)]"}`}>
+                    {formLeader.type === "top" ? "↑ Best" : "↓ Worst"} form <span className="text-[8px] opacity-60">→</span>
                   </a>
                 )}
               </div>
@@ -186,7 +186,7 @@ function TeamCard({ team, rank, type, index = 0, formLeader }: TeamCardProps) {
           className={`w-16 sm:w-20 flex flex-col items-center justify-center shrink-0 border-l ${isOver ? "border-l-green-600/20 bg-green-600/[0.06]" : "border-l-red-600/20 bg-red-600/[0.06]"}`}
         >
           <span
-            className={`text-xl sm:text-2xl font-display ${isOver ? "text-green-600" : "text-red-600"}`}
+            className={`text-xl sm:text-2xl font-pixel ${isOver ? "text-green-600" : "text-red-600"}`}
           >
             {team.deltaPts > 0 ? `+${team.deltaPts}` : team.deltaPts}
           </span>
@@ -230,7 +230,7 @@ function TeamListsGrid({
         {/* Headers */}
         <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 shrink-0 text-green-600">
+            <h2 className="text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 text-green-600">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
@@ -242,7 +242,7 @@ function TeamListsGrid({
             <div className="flex-1 h-px bg-gradient-to-r from-green-600/30" />
           </div>
           <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 shrink-0 text-red-600">
+            <h2 className="text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 text-red-600">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -280,7 +280,7 @@ function TeamListsGrid({
         {/* Overperformers */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-lg font-bold flex items-center gap-2 shrink-0 text-green-600">
+            <h2 className="text-lg font-pixel flex items-center gap-2 shrink-0 text-green-600">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
@@ -303,7 +303,7 @@ function TeamListsGrid({
         {/* Underperformers */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-lg font-bold flex items-center gap-2 shrink-0 text-red-600">
+            <h2 className="text-lg font-pixel flex items-center gap-2 shrink-0 text-red-600">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>

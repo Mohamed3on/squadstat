@@ -332,10 +332,9 @@ body::before {
   color: var(--bg-base);
 }
 
-/* Serif display font for hero numbers */
-.font-display {
-  font-family: var(--font-display), Georgia, serif;
-  letter-spacing: -0.01em;
+/* Pixel display font for headings */
+.font-pixel {
+  font-family: var(--font-geist-pixel-square), monospace;
 }
 
 /* Monospace font for all stat numbers */

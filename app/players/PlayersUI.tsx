@@ -422,7 +422,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
   return (
     <>
       <div className="mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-black mb-1 sm:mb-2 text-text-primary">
+          <h1 className="text-2xl sm:text-3xl font-pixel mb-1 sm:mb-2 text-text-primary">
             Player <span className="text-accent-blue">Explorer</span>
           </h1>
           <p className="text-sm sm:text-base text-text-muted">

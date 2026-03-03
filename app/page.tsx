@@ -474,7 +474,7 @@ function SectionHeading({
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">{eyebrow}</p>
-        <h2 className="mt-1 text-2xl font-black text-text-primary sm:text-3xl">{title}</h2>
+        <h2 className="mt-1 text-2xl font-pixel text-text-primary sm:text-3xl">{title}</h2>
         <p className="mt-2 max-w-3xl text-sm text-text-muted sm:text-base">{description}</p>
       </div>
       {action && (
@@ -862,7 +862,7 @@ export default async function Home() {
                 Transfermarkt Signals Across Europe&apos;s Top Leagues
               </Badge>
 
-              <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-4xl text-4xl font-pixel leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
                 See what the table misses:
                 <span className="ml-2 bg-gradient-to-r from-accent-hot via-accent-blue to-accent-gold bg-clip-text text-transparent">
                   form, value, and injuries.
@@ -984,7 +984,7 @@ export default async function Home() {
 
       <section className="pt-12 sm:pt-16">
         <div className="rounded-2xl border border-border-medium bg-card p-5 sm:p-6">
-          <h2 className="text-xl font-black text-text-primary sm:text-2xl">Open a dashboard</h2>
+          <h2 className="text-xl font-pixel text-text-primary sm:text-2xl">Open a dashboard</h2>
           <p className="mt-1 text-sm text-text-muted">Start from the question you want to answer.</p>
 
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
