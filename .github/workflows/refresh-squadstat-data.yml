@@ -17,7 +17,7 @@ jobs:
           ANALYZE=$(curl -sf "$PROD_URL/api/analyze" || echo '{}')
 
           echo "Warming other endpoints in parallel..."
-          curl -sf "$PROD_URL/api/team-form" > /dev/null &
+          curl -sf "$PROD_URL/api/expected-position" > /dev/null &
           curl -sf "$PROD_URL/api/injured" > /dev/null &
           wait
 

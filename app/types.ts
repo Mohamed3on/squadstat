@@ -54,10 +54,24 @@ export interface PeriodAnalysis {
   hasMatch: boolean;
 }
 
+export interface AggregatedTeam {
+  name: string;
+  league: string;
+  leaguePosition: number;
+  logoUrl: string;
+  clubUrl: string;
+  clubId: string;
+  count: number;
+  entries: { category: string; period: number; value: number }[];
+  stats: { points: number; goalDiff: number; goalsScored: number; goalsConceded: number };
+}
+
 export interface AnalysisResult {
   success: boolean;
   matchedPeriod: number | null;
   analysis: PeriodAnalysis[];
+  aggregatedTop: AggregatedTeam[];
+  aggregatedBottom: AggregatedTeam[];
 }
 
 export interface ManagerTrivia {

@@ -6,27 +6,28 @@ import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 export const dynamic = "force-dynamic";
 
 export const metadata = createPageMetadata({
-  title: "Value vs Table Performance",
+  title: "Expected Position vs Actual",
   description:
-    "Compare each team's actual points with expected points from squad market value rank. Quickly spot clubs overperforming or underperforming their spending level.",
-  path: "/team-form",
+    "Compare each team's actual league position with expected position from squad market value rank. Spot clubs overperforming or underperforming their spending level.",
+  path: "/expected-position",
   keywords: [
+    "expected position football",
     "overperforming football teams",
     "underperforming football teams",
     "team value vs table",
   ],
 });
 
-export default async function TeamFormPage() {
+export default async function ExpectedPositionPage() {
   const data = await getTeamFormData();
   return (
     <>
       <TeamFormUI initialData={data} />
       <DiscoveryLinkGrid
-        section="team-form"
+        section="expected-position"
         title="Team Performance Boards"
         description="League-level and global boards for overperformers and underperformers."
-        currentPath="/team-form"
+        currentPath="/expected-position"
       />
     </>
   );

@@ -6,7 +6,7 @@ const CORE_ROUTES = [
   "/",
   "/discover",
   "/form",
-  "/team-form",
+  "/expected-position",
   "/players",
   "/value-analysis",
   "/injured",

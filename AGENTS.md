@@ -22,7 +22,7 @@ Use [shadcn/ui](https://ui.shadcn.com) for all UI components. Install new compon
 
 ## Performance
 
-- **Server-side data fetching:** Always fetch data in async server components and pass as `initialData` props to client components. Never use client-side `useQuery`/`fetch` waterfalls. Use Next.js `loading.tsx` for streaming skeletons while server fetches. See `team-form`, `injured`, `minutes-value` pages for the pattern.
+- **Server-side data fetching:** Always fetch data in async server components and pass as `initialData` props to client components. Never use client-side `useQuery`/`fetch` waterfalls. Use Next.js `loading.tsx` for streaming skeletons while server fetches. See `expected-position`, `injured`, `minutes-value` pages for the pattern.
 - **Parallel fetching:** Use `Promise.all` / `Promise.allSettled` for independent data fetches.
 - **Caching:** All API routes that fetch from Transfermarkt must use `unstable_cache` (see below).
 - **Retries:** Wrap external fetches with retry logic (exponential backoff, max 3 attempts) for rate-limited or flaky responses.
@@ -64,5 +64,5 @@ curl -s -L -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Apple
 
 - `underperformers` - Player underperformer candidates
 - `injured` - Injured players across all leagues
-- `team-form` - Team over/underperformers based on market value
+- `team-form` - Team over/underperformers based on market value (route: `/expected-position`)
 - `manager` - Manager info from mitarbeiterhistorie page

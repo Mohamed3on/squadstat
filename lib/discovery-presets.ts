@@ -1,4 +1,4 @@
-export type DiscoverySection = "players" | "value-analysis" | "injured" | "team-form";
+export type DiscoverySection = "players" | "value-analysis" | "injured" | "expected-position";
 
 export interface DiscoveryPreset {
   slug: string;
@@ -6,7 +6,7 @@ export interface DiscoveryPreset {
   title: string;
   navLabel: string;
   description: string;
-  sourcePath: "/players" | "/value-analysis" | "/injured" | "/team-form";
+  sourcePath: "/players" | "/value-analysis" | "/injured" | "/expected-position";
   query: Record<string, string>;
 }
 
@@ -14,14 +14,14 @@ export const DISCOVERY_SECTION_LABELS: Record<DiscoverySection, string> = {
   players: "Player Explorer",
   "value-analysis": "Over/Under",
   injured: "Injury Impact",
-  "team-form": "Team Value vs Table",
+  "expected-position": "Team Value vs Table",
 };
 
 export const DISCOVERY_SECTION_ORDER: DiscoverySection[] = [
   "players",
   "value-analysis",
   "injured",
-  "team-form",
+  "expected-position",
 ];
 
 export const DISCOVERY_PRESETS: DiscoveryPreset[] = [
@@ -200,32 +200,32 @@ export const DISCOVERY_PRESETS: DiscoveryPreset[] = [
 
   {
     slug: "value-vs-table-all-leagues",
-    section: "team-form",
+    section: "expected-position",
     title: "Value vs Table (All Leagues)",
     navLabel: "All leagues",
     description:
       "Overperformers and underperformers across all tracked leagues.",
-    sourcePath: "/team-form",
+    sourcePath: "/expected-position",
     query: {},
   },
   {
     slug: "value-vs-table-premier-league",
-    section: "team-form",
+    section: "expected-position",
     title: "Value vs Table (Premier League)",
     navLabel: "Premier League",
     description:
       "Premier League teams vs value-adjusted expectation.",
-    sourcePath: "/team-form",
+    sourcePath: "/expected-position",
     query: { league: "Premier League" },
   },
   {
     slug: "value-vs-table-laliga",
-    section: "team-form",
+    section: "expected-position",
     title: "Value vs Table (La Liga)",
     navLabel: "La Liga",
     description:
       "La Liga teams vs value-adjusted expectation.",
-    sourcePath: "/team-form",
+    sourcePath: "/expected-position",
     query: { league: "La Liga" },
   },
 ];

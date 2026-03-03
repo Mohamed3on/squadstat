@@ -317,7 +317,7 @@ function TeamListsGrid({
 
 export function TeamFormUI({ initialData }: TeamFormUIProps) {
   const data = initialData;
-  const { params, update } = useQueryParams("/team-form");
+  const { params, update } = useQueryParams("/expected-position");
   const requestedLeague = params.get("league");
   const selectedLeague = requestedLeague && LEAGUES.some((league) => league.name === requestedLeague)
     ? requestedLeague

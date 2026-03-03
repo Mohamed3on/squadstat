@@ -21,7 +21,7 @@ Football scouting dashboards built on Transfermarkt data.
 | `/` | Home and navigation |
 | `/discover` | Curated board links (shareable filtered views) |
 | `/form` | 5/10/15/20-match form analysis |
-| `/team-form` | Squad value vs table over/underperformance |
+| `/expected-position` | Squad value vs table over/underperformance |
 | `/players` | Player explorer with filters and sorting |
 | `/value-analysis` | Value efficiency, bargains, and minutes lens |
 | `/injured` | Injury impact dashboards |
@@ -31,7 +31,7 @@ Football scouting dashboards built on Transfermarkt data.
 | Endpoint | Method | Notes |
 | --- | --- | --- |
 | `/api/analyze` | `GET` | Form analysis data |
-| `/api/team-form` | `GET` | Team value vs table data |
+| `/api/expected-position` | `GET` | Team value vs table data |
 | `/api/players` | `GET` | Player dataset for explorer tables |
 | `/api/minutes-value` | `GET` | Minutes/value dataset |
 | `/api/player-form?id=<id>` | `GET` | Target player comparisons |

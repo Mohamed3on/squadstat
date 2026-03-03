@@ -18,10 +18,15 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 
 async function revalidateAll() {
-  await Promise.all([
+  const results = await Promise.all([
     fetch("/api/revalidate", { method: "POST" }),
     fetch("/api/refresh-data", { method: "POST" }),
   ]);
+  const failures = results.filter((res) => !res.ok);
+  if (failures.length > 0) {
+    for (const res of failures) console.error(`[refresh] ${res.url} returned ${res.status}`);
+    throw new Error("Refresh failed");
+  }
 }
 
 function RefreshIcon({ className }: { className?: string }) {
@@ -44,7 +49,7 @@ function SpinnerIcon({ className }: { className?: string }) {
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/form", label: "Recent Form" },
-  { href: "/team-form", label: "Value vs Table" },
+  { href: "/expected-position", label: "Value vs Table" },
   { href: "/players", label: "Players" },
   { href: "/value-analysis", label: "Over/Under" },
   { href: "/injured", label: "Injury Impact" },
@@ -64,7 +69,8 @@ export function Header() {
       toast.success("Data refreshed");
       queryClient.clear();
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("[refresh] Cache bust failed:", error);
       toast.error("Failed to refresh data");
     } finally {
       setIsRevalidating(false);

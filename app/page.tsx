@@ -23,7 +23,7 @@ import { missedPct } from "@/lib/filter-players";
 import { findRepeatLosers } from "@/lib/biggest-losers";
 import { findRepeatWinners } from "@/lib/biggest-winners";
 import { getManagerInfo } from "@/lib/fetch-manager";
-import type { ManagerInfo, MarketValueMover, MinutesValuePlayer, QualifiedTeam } from "@/app/types";
+import type { AggregatedTeam, ManagerInfo, MarketValueMover, MinutesValuePlayer } from "@/app/types";
 
 export const revalidate = 7200; // 2 hours — matches form/team-form cache
 
@@ -86,6 +86,12 @@ interface InjuryTeamSummary {
   clubLogoUrl: string;
   totalValue: number;
   count: number;
+}
+
+function aggregatedDetail(team: AggregatedTeam): string {
+  const uniqueCategories = [...new Set(team.entries.map((e) => e.category))];
+  const topCategories = uniqueCategories.slice(0, 3).join(", ");
+  return `${team.league} · ${team.entries.length} categories · ${topCategories}`;
 }
 
 function hasManagerRanking(manager: ManagerInfo): manager is ManagerInfo & {
@@ -255,29 +261,6 @@ function sortByNpgaDesc(players: MinutesValuePlayer[]): MinutesValuePlayer[] {
   });
 }
 
-function pickRecentPeriodHighlights(analysis: Awaited<ReturnType<typeof getAnalysis>> | null): {
-  period: number | null;
-  topTeams: QualifiedTeam[];
-  bottomTeams: QualifiedTeam[];
-} {
-  if (!analysis || analysis.analysis.length === 0) {
-    return { period: null, topTeams: [], bottomTeams: [] };
-  }
-
-  const periodData = analysis.matchedPeriod !== null
-    ? analysis.analysis.find((p) => p.period === analysis.matchedPeriod)
-    : analysis.analysis[0];
-  if (!periodData) return { period: null, topTeams: [], bottomTeams: [] };
-
-  const topTeams = [...periodData.topTeams].sort(
-    (a, b) => b.stats.points - a.stats.points || b.stats.goalDiff - a.stats.goalDiff
-  );
-  const bottomTeams = [...periodData.bottomTeams].sort(
-    (a, b) => a.stats.points - b.stats.points || a.stats.goalDiff - b.stats.goalDiff
-  );
-
-  return { period: periodData.period, topTeams, bottomTeams };
-}
 
 function pickWithTies<T>(
   items: T[],
@@ -371,7 +354,7 @@ const features: readonly Feature[] = [
   },
   {
     title: "Value vs Table",
-    href: "/team-form",
+    href: "/expected-position",
     tag: "Expectation Gap",
     description:
       "Compare actual points to value-based expectation and spot over- and under-achievers.",
@@ -571,9 +554,12 @@ export default async function Home() {
   const biggestWinners = winnersResult.status === "fulfilled" ? winnersResult.value : null;
   if (winnersResult.status === "rejected") console.error("[Home] findRepeatWinners failed:", winnersResult.reason);
 
-  const { period: recentPeriod, topTeams: recentTopTeams, bottomTeams: recentBottomTeams } =
-    pickRecentPeriodHighlights(analysisData);
-  const recentTopTeam = recentTopTeams[0] ?? null;
+  const aggregatedTop = analysisData?.aggregatedTop ?? [];
+  const aggregatedBottom = analysisData?.aggregatedBottom ?? [];
+  const topMaxCount = aggregatedTop[0]?.count ?? 0;
+  const bestFormTeams = aggregatedTop.filter((t) => t.count === topMaxCount);
+  const bottomMaxCount = aggregatedBottom[0]?.count ?? 0;
+  const worstFormTeams = aggregatedBottom.filter((t) => t.count === bottomMaxCount);
 
   const managerByClubId = new Map<string, ManagerInfo | null>();
   for (const team of [...(teamFormData?.overperformers ?? []), ...(teamFormData?.underperformers ?? [])]) {
@@ -581,9 +567,9 @@ export default async function Home() {
     managerByClubId.set(team.clubId, team.manager ?? null);
   }
 
-  const recentSnapshotTeams = [...recentTopTeams, ...recentBottomTeams];
+  const aggregatedSnapshotTeams = [...aggregatedTop, ...aggregatedBottom];
   const missingManagerClubIds = [...new Set(
-    recentSnapshotTeams
+    aggregatedSnapshotTeams
       .map((team) => team.clubId)
       .filter((clubId) => clubId && !managerByClubId.has(clubId))
   )];
@@ -615,6 +601,7 @@ export default async function Home() {
     { sort: (a, b) => a.points - b.points || a.marketValueNum - b.marketValueNum },
   );
   const mostOverperformingTeam = mostOverperformingTeams[0] ?? null;
+  const mostUnderperformingTeam = mostUnderperformingTeams[0] ?? null;
 
   const statsNoPenNoIntl = applyStatsToggles(players.map(toPlayerStats), {
     includePen: false,
@@ -708,22 +695,33 @@ export default async function Home() {
     { sort: (a, b) => b.count - a.count || a.club.localeCompare(b.club) },
   );
 
+  // --- Section snapshot items (ties always shown; Player Explorer capped by category count) ---
+
+  const recentFormItems: SnapshotItem[] = [
+    ...bestFormTeams.map((team) => teamItem(
+      team, "Best form", "/form",
+      aggregatedDetail(team),
+      { manager: getManagerForClub(team.clubId), tone: "green" },
+    )),
+    ...worstFormTeams.map((team) => teamItem(
+      team, "Worst form", "/form",
+      aggregatedDetail(team),
+      { manager: getManagerForClub(team.clubId), tone: "red" },
+    )),
+  ];
+
   // --- Hero snapshots (top-right card) ---
   const heroSnapshots = [
-    recentTopTeam && recentPeriod !== null && teamItem(
-      recentTopTeam, `Hottest team (last ${recentPeriod})`, "/form",
-      formDetail(recentTopTeam, recentPeriod),
-      { manager: getManagerForClub(recentTopTeam.clubId), tone: "green" },
-    ),
+    ...recentFormItems,
     mostOverperformingTeam && teamItem(
-      mostOverperformingTeam, "Biggest overperformer", "/team-form",
+      mostOverperformingTeam, "Biggest overperformer", "/expected-position",
       `${mostOverperformingTeam.league} · ${formatSigned(mostOverperformingTeam.deltaPts)} pts vs expected`,
       { manager: getManagerForClub(mostOverperformingTeam.clubId), tone: "green" },
     ),
-    mostUnderperformingTeams[0] && teamItem(
-      mostUnderperformingTeams[0], "Biggest underperformer", "/team-form",
-      `${mostUnderperformingTeams[0].league} · ${formatSigned(mostUnderperformingTeams[0].deltaPts)} pts vs expected`,
-      { manager: getManagerForClub(mostUnderperformingTeams[0].clubId), tone: "red" },
+    mostUnderperformingTeam && teamItem(
+      mostUnderperformingTeam, "Biggest underperformer", "/expected-position",
+      `${mostUnderperformingTeam.league} · ${formatSigned(mostUnderperformingTeam.deltaPts)} pts vs expected`,
+      { manager: getManagerForClub(mostUnderperformingTeam.clubId), tone: "red" },
     ),
     mostOverpricedPlayer && playerItem(
       mostOverpricedPlayer, "Most overpriced player", "/value-analysis?mode=ga",
@@ -737,41 +735,14 @@ export default async function Home() {
     ),
   ].filter(Boolean) as SnapshotItem[];
 
-  // --- Section snapshot items (ties always shown; Player Explorer capped by category count) ---
-  function formDetail(team: QualifiedTeam, period: number): string {
-    const stats = team.criteria.map((c) => {
-      switch (c) {
-        case "Most Points": case "Least Points": return `${team.stats.points} pts`;
-        case "Best GD": case "Worst GD": return `GD ${formatSigned(team.stats.goalDiff)}`;
-        case "Most Goals": case "Least Goals": return `${team.stats.goalsScored} scored`;
-        case "Best Defense": case "Worst Defense": return `${team.stats.goalsConceded} conceded`;
-        default: return c;
-      }
-    });
-    return `${team.league} · ${stats.join(" · ")} in last ${period}`;
-  }
-
-  const recentFormItems: SnapshotItem[] = recentPeriod !== null ? [
-    ...recentTopTeams.map((team) => teamItem(
-      team, "Hottest team", "/form",
-      formDetail(team, recentPeriod),
-      { manager: getManagerForClub(team.clubId), tone: "green" },
-    )),
-    ...recentBottomTeams.map((team) => teamItem(
-      team, "Coldest team", "/form",
-      formDetail(team, recentPeriod),
-      { manager: getManagerForClub(team.clubId), tone: "red" },
-    )),
-  ] : [];
-
   const teamFormItems: SnapshotItem[] = [
     ...mostOverperformingTeams.map((team) => teamItem(
-      team, "Biggest overperformer", "/team-form",
+      team, "Biggest overperformer", "/expected-position",
       `${team.league} · ${formatSigned(team.deltaPts)} pts vs expected`,
       { manager: getManagerForClub(team.clubId), tone: "green" },
     )),
     ...mostUnderperformingTeams.map((team) => teamItem(
-      team, "Biggest underperformer", "/team-form",
+      team, "Biggest underperformer", "/expected-position",
       `${team.league} · ${formatSigned(team.deltaPts)} pts vs expected`,
       { manager: getManagerForClub(team.clubId), tone: "red" },
     )),
@@ -871,8 +842,8 @@ export default async function Home() {
   addRepeatMovers(biggestWinners?.repeatMovers, "On the rise", "winners", "green");
 
   const snapshotGroups = [
-    recentFormItems.length && { title: "Recent Form", description: `Top and bottom teams in the latest ${recentPeriod}-match window.`, href: "/form", items: recentFormItems },
-    teamFormItems.length && { title: "Value vs Table", description: "Largest gaps between results and squad value expectation.", href: "/team-form", items: teamFormItems },
+    recentFormItems.length && { title: "Recent Form", description: "Teams leading the most categories across their last 5–20 matches.", href: "/form", items: recentFormItems },
+    teamFormItems.length && { title: "Value vs Table", description: "Largest gaps between results and squad value expectation.", href: "/expected-position", items: teamFormItems },
     valueAnalysisItems.length && { title: "Over/Under", description: "Most overpriced profiles and strongest bargain cases.", href: "/value-analysis", items: valueAnalysisItems },
     playerItems.length && { title: "Player Explorer", description: "Output leaders, signings, loans, and uncapped talents.", href: "/players", items: playerItems },
     injuryItems.length && { title: "Injury Impact", description: "Highest-value absences and hardest-hit clubs.", href: "/injured", items: injuryItems },

@@ -1,10 +1,24 @@
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
-import type { TeamStats, PeriodAnalysis, AnalysisResult } from "@/app/types";
+import type { TeamStats, PeriodAnalysis, AnalysisResult, AggregatedTeam } from "@/app/types";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
 
 const PERIODS = [20, 15, 10, 5];
+
+const TOP_CATEGORIES = [
+  { key: "points" as const, label: "Most Points" },
+  { key: "goalDiff" as const, label: "Best GD" },
+  { key: "goalsScored" as const, label: "Most Goals Scored" },
+  { key: "goalsConceded" as const, label: "Fewest Conceded" },
+];
+
+const BOTTOM_CATEGORIES = [
+  { key: "points" as const, label: "Fewest Points" },
+  { key: "goalDiff" as const, label: "Worst GD" },
+  { key: "goalsScored" as const, label: "Fewest Goals Scored" },
+  { key: "goalsConceded" as const, label: "Most Conceded" },
+];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseTeamRow($: cheerio.CheerioAPI, row: any): TeamStats | null {
@@ -41,24 +55,22 @@ function parseTeamRow($: cheerio.CheerioAPI, row: any): TeamStats | null {
 
 async function fetchAllTeams(period: number): Promise<TeamStats[]> {
   const teams: TeamStats[] = [];
-  const url = `${BASE_URL}/verein-statistik/formtabelle/statistik/stat/ajax/yw1/sortierung/best/letzte/${period}/selectedOptionKey/6/plus/1/sort/punkte.desc`;
+  const baseUrl = `${BASE_URL}/verein-statistik/formtabelle/statistik/stat/ajax/yw1/sortierung/best/letzte/${period}/selectedOptionKey/6/plus/1/sort/punkte.desc`;
 
-  // Fetch all pages in parallel for speed
   const pageUrls = Array.from({ length: 4 }, (_, i) => {
     const page = i + 1;
-    return page === 1 ? url : `${url}/page/${page}`;
+    return page === 1 ? baseUrl : `${baseUrl}/page/${page}`;
   });
 
-  const results = await Promise.allSettled(pageUrls.map(fetchPage));
+  // fetchPage limits concurrency globally to avoid rate limiting
+  const pages = await Promise.all(pageUrls.map(fetchPage));
 
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      const $ = cheerio.load(result.value);
-      $("table.items > tbody > tr").each((_, row) => {
-        const team = parseTeamRow($, row);
-        if (team?.name) teams.push(team);
-      });
-    }
+  for (const html of pages) {
+    const $ = cheerio.load(html);
+    $("table.items > tbody > tr").each((_, row) => {
+      const team = parseTeamRow($, row);
+      if (team?.name) teams.push(team);
+    });
   }
   return teams;
 }
@@ -93,23 +105,15 @@ function getLeaders(teams: TeamStats[]) {
   };
 }
 
-function findQualifiedTeams(teams: TeamStats[], type: "top" | "bottom") {
-  const leaders = getLeaders(teams);
+function findQualifiedTeams(teams: TeamStats[], type: "top" | "bottom", leaders: ReturnType<typeof getLeaders>) {
   const data = leaders[type];
+  const categories = type === "top" ? TOP_CATEGORIES : BOTTOM_CATEGORIES;
   const results: { team: TeamStats; criteria: string[] }[] = [];
 
   for (const team of teams) {
     const criteria: string[] = [];
-    if (type === "top") {
-      if (data.points.teams.includes(team.name)) criteria.push("Most Points");
-      if (data.goalDiff.teams.includes(team.name)) criteria.push("Best GD");
-      if (data.goalsScored.teams.includes(team.name)) criteria.push("Most Goals");
-      if (data.goalsConceded.teams.includes(team.name)) criteria.push("Best Defense");
-    } else {
-      if (data.points.teams.includes(team.name)) criteria.push("Least Points");
-      if (data.goalDiff.teams.includes(team.name)) criteria.push("Worst GD");
-      if (data.goalsScored.teams.includes(team.name)) criteria.push("Least Goals");
-      if (data.goalsConceded.teams.includes(team.name)) criteria.push("Worst Defense");
+    for (const { key, label } of categories) {
+      if (data[key].teams.includes(team.name)) criteria.push(label);
     }
     if (criteria.length >= 2) results.push({ team, criteria });
   }
@@ -128,15 +132,16 @@ export const getAnalysis = unstable_cache(
 
     const analysis: PeriodAnalysis[] = [];
     let matchedPeriod: number | null = null;
+    const leadersPerPeriod = allTeamsPerPeriod.map((teams) => teams.length > 0 ? getLeaders(teams) : null);
 
     for (let i = 0; i < PERIODS.length; i++) {
       const period = PERIODS[i];
       const teams = allTeamsPerPeriod[i];
-      if (teams.length === 0) continue;
+      const leaders = leadersPerPeriod[i];
+      if (teams.length === 0 || !leaders) continue;
 
-      const leaders = getLeaders(teams);
-      const topTeams = findQualifiedTeams(teams, "top");
-      const bottomTeams = findQualifiedTeams(teams, "bottom");
+      const topTeams = findQualifiedTeams(teams, "top", leaders);
+      const bottomTeams = findQualifiedTeams(teams, "bottom", leaders);
 
       const periodData: PeriodAnalysis = {
         period,
@@ -174,10 +179,60 @@ export const getAnalysis = unstable_cache(
       }
     }
 
-    if (matchedPeriod) {
-      return { success: true, matchedPeriod, analysis };
-    }
-    return { success: false, matchedPeriod: null, analysis };
+    // Aggregate: tally how often each team leads any category across all windows
+    const aggregateEntries = (type: "top" | "bottom") => {
+      const teamMap = new Map<string, { team: TeamStats; entries: { category: string; period: number; value: number }[] }>();
+
+      for (let i = 0; i < PERIODS.length; i++) {
+        const period = PERIODS[i];
+        const teams = allTeamsPerPeriod[i];
+        const leaders = leadersPerPeriod[i];
+        if (teams.length === 0 || !leaders) continue;
+        const data = leaders[type];
+
+        const categories = type === "top" ? TOP_CATEGORIES : BOTTOM_CATEGORIES;
+
+        for (const { key, label } of categories) {
+          const value = data[key].value;
+          for (const teamName of data[key].teams) {
+            const team = teams.find((t) => t.name === teamName);
+            if (!team) continue;
+            const existing = teamMap.get(team.clubId);
+            if (existing) {
+              existing.entries.push({ category: label, period, value });
+            } else {
+              teamMap.set(team.clubId, { team, entries: [{ category: label, period, value }] });
+            }
+          }
+        }
+      }
+
+      const result: AggregatedTeam[] = [];
+      for (const [, { team, entries }] of teamMap) {
+        if (entries.length < 2) continue;
+        // Use stats from the longest period available for this team
+        const longestPeriod = Math.max(...entries.map((e) => e.period));
+        const longestPeriodTeams = allTeamsPerPeriod[PERIODS.indexOf(longestPeriod)];
+        const statsTeam = longestPeriodTeams.find((t) => t.clubId === team.clubId) || team;
+        result.push({
+          name: team.name,
+          league: team.league,
+          leaguePosition: team.leaguePosition,
+          logoUrl: team.logoUrl,
+          clubUrl: team.clubUrl,
+          clubId: team.clubId,
+          count: entries.length,
+          entries,
+          stats: { points: statsTeam.points, goalDiff: statsTeam.goalDiff, goalsScored: statsTeam.goalsScored, goalsConceded: statsTeam.goalsConceded },
+        });
+      }
+      return result.sort((a, b) => b.count - a.count);
+    };
+
+    const aggregatedTop = aggregateEntries("top");
+    const aggregatedBottom = aggregateEntries("bottom");
+
+    return { success: matchedPeriod !== null, matchedPeriod, analysis, aggregatedTop, aggregatedBottom };
   },
   ["form-analysis"],
   { revalidate: 7200, tags: ["form-analysis"] }

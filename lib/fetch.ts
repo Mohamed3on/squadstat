@@ -6,8 +6,33 @@ const HEADERS = {
 
 const MAX_RETRIES = 5;
 const BASE_DELAY = 1000;
+const MAX_CONCURRENT = 4;
+
+let active = 0;
+const queue: (() => void)[] = [];
+
+async function acquireSlot() {
+  while (active >= MAX_CONCURRENT) {
+    await new Promise<void>((resolve) => queue.push(resolve));
+  }
+  active++;
+}
+
+function releaseSlot() {
+  active--;
+  queue.shift()?.();
+}
 
 export async function fetchPage(url: string, revalidate?: number): Promise<string> {
+  await acquireSlot();
+  try {
+    return await fetchPageInner(url, revalidate);
+  } finally {
+    releaseSlot();
+  }
+}
+
+async function fetchPageInner(url: string, revalidate?: number): Promise<string> {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const response = await fetch(url, {
       headers: HEADERS,

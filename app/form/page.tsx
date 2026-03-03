@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = createPageMetadata({
   title: "Recent Form",
   description:
-    "Who's hot and who's not across Europe's top 5 leagues. Compare form over 5, 10, 15, and 20 match windows.",
+    "Who's hot and who's not across Europe's top 5 leagues. Teams ranked by how many categories they lead across their last 5, 10, 15, and 20 matches.",
   path: "/form",
   keywords: [
     "football recent form",
@@ -25,7 +25,7 @@ export default async function FormPage() {
       <AnalyzerUI initialData={data} />
       <DiscoveryLinkGrid
         title="Explore Supporting Boards"
-        description="Move from team-form signals into player value and injury diagnostics."
+        description="Move from form signals into player value and injury diagnostics."
         maxItems={6}
         currentPath="/form"
       />

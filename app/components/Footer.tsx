@@ -6,7 +6,7 @@ const QUICK_VIEW_LINKS = [
   { href: "/players?signing=transfer&sort=ga", label: "Highest scoring signings" },
   { href: "/value-analysis?dTab=bargains&mode=ga", label: "Best bargains" },
   { href: "/injured?tab=teams", label: "Biggest injury losses" },
-  { href: "/team-form?league=Premier+League", label: "PL value vs table" },
+  { href: "/expected-position?league=Premier+League", label: "PL value vs table" },
 ] as const;
 
 export function Footer() {

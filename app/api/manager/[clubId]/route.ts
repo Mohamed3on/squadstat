@@ -6,6 +6,11 @@ export async function GET(
   { params }: { params: Promise<{ clubId: string }> }
 ) {
   const { clubId } = await params;
-  const manager = await getManagerInfo(clubId);
-  return NextResponse.json({ clubId, manager });
+  try {
+    const manager = await getManagerInfo(clubId);
+    return NextResponse.json({ clubId, manager });
+  } catch (error) {
+    console.error(`[manager] Failed to fetch manager for club ${clubId}:`, error);
+    return NextResponse.json({ clubId, manager: null }, { status: 500 });
+  }
 }
