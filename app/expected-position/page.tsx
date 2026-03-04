@@ -4,7 +4,7 @@ import { TeamFormUI } from "./TeamFormUI";
 import { createPageMetadata } from "@/lib/metadata";
 import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 7200; // 2 hours — matches unstable_cache TTL
 
 export const metadata = createPageMetadata({
   title: "Expected Position vs Actual",
