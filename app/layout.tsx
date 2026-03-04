@@ -8,6 +8,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { absoluteUrl, getSiteOrigin } from "@/lib/site-config";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteOrigin()),
@@ -73,6 +74,7 @@ export default function RootLayout({
           <Footer />
           <Toaster />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
