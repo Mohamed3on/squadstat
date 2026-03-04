@@ -89,7 +89,7 @@ export function Header() {
     setIsRevalidating(true);
     try {
       await refreshPage(pathname);
-      toast.success("Data refreshed");
+      toast.success("Cache cleared — refreshing page");
       queryClient.clear();
       router.refresh();
     } catch (error) {
