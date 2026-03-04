@@ -6,8 +6,8 @@ export default function FormLayout({ children }: { children: React.ReactNode }) 
           Recent Form
         </h1>
         <p className="text-sm sm:text-base text-text-muted">
-          Who&apos;s hot and who&apos;s not across Europe&apos;s top 5 leagues. Teams ranked by how often they lead
-          categories (points, GD, goals scored, goals conceded) across their last 5, 10, 15, and 20 matches.
+          Who&apos;s hot and who&apos;s not across Europe&apos;s top 5 leagues. Teams ranked by how many stats they
+          top — points, goal difference, attack, and defense — across their last 5, 10, 15, and 20 matches.
         </p>
       </div>
       {children}

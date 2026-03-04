@@ -6,7 +6,7 @@ export default function ExpectedPositionLayout({ children }: { children: React.R
           Expected Position vs Actual
         </h1>
         <p className="text-sm sm:text-base text-text-muted">
-          Each team&apos;s expected position is derived from their squad market value rank within the league. The delta shows how many points they&apos;re ahead or behind what their spending level predicts.
+          Teams ranked by squad value, then compared to the actual table. The gap shows how many points they&apos;re ahead or behind what their spending should deliver.
         </p>
       </div>
       {children}

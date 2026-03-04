@@ -119,7 +119,7 @@ function AggregatedTeamCard({
             )}
             {deltaPts != null && (
               <a href="/expected-position" className={`inline-flex items-center gap-0.5 font-value text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full transition-all duration-150 hover:scale-105 hover:brightness-125 ${deltaPts > 0 ? "bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]" : "bg-[var(--accent-cold-glow)] text-[var(--accent-cold)]"}`}>
-                {deltaPts > 0 ? "+" : ""}{deltaPts} vs exp <span className="text-[8px] opacity-60">→</span>
+                {deltaPts > 0 ? "+" : ""}{deltaPts} vs expected <span className="text-[8px] opacity-60">→</span>
               </a>
             )}
           </div>
@@ -128,7 +128,7 @@ function AggregatedTeamCard({
           variant="outline"
           className={`shrink-0 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${isTop ? "bg-accent-hot-glow text-accent-hot border-accent-hot" : "bg-accent-cold-glow text-accent-cold border-accent-cold"}`}
         >
-          <span className="font-value">{team.count}</span>&nbsp;categories
+          <span className="font-value">{team.count}</span>&nbsp;stats
         </Badge>
       </div>
 
@@ -264,7 +264,7 @@ function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }
           </div>
         ) : (
           <Card className="h-full p-4 text-center bg-elevated flex items-center justify-center">
-            <p className="text-sm text-text-muted">No team leads 2+ categories in this window</p>
+            <p className="text-sm text-text-muted">No team leads 2+ stats in this window</p>
           </Card>
         )}
 
@@ -281,7 +281,7 @@ function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }
           </div>
         ) : (
           <Card className="h-full p-4 text-center bg-elevated flex items-center justify-center">
-            <p className="text-sm text-text-muted">No team trails 2+ categories in this window</p>
+            <p className="text-sm text-text-muted">No team trails 2+ stats in this window</p>
           </Card>
         )}
       </div>
@@ -381,7 +381,7 @@ export function AnalyzerUI({ initialData, deltaMap }: { initialData: AnalysisRes
                   Aggregated Form Leaders
                 </h2>
                 <p className="text-sm sm:text-base text-text-secondary">
-                  Teams that lead the most categories across their last 5, 10, 15, and 20 matches.
+                  Teams that lead the most stats across their last 5, 10, 15, and 20 matches.
                 </p>
               </div>
             </div>
@@ -402,7 +402,7 @@ export function AnalyzerUI({ initialData, deltaMap }: { initialData: AnalysisRes
             No Clear Pattern
           </h2>
           <p className="text-sm sm:text-base text-text-secondary">
-            No team leads 2+ categories across their last 5, 10, 15, and 20 matches right now.
+            No team leads 2+ stats across their last 5, 10, 15, and 20 matches right now.
           </p>
         </Card>
       )}
@@ -422,7 +422,7 @@ export function AnalyzerUI({ initialData, deltaMap }: { initialData: AnalysisRes
         </CollapsibleTrigger>
         <CollapsibleContent>
           <p className="text-sm mt-4 mb-4 text-text-muted">
-            Breakdown by the last 5, 10, 15, and 20 matches. Only teams leading or trailing 2+ categories are shown.
+            Breakdown by the last 5, 10, 15, and 20 matches. Only teams leading or trailing 2+ stats are shown.
           </p>
           <div className="space-y-4">
             {initialData.analysis.map((period, index) => (

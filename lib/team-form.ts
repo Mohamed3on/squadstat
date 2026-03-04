@@ -173,12 +173,12 @@ export const getTeamFormData = unstable_cache(
 
     const overperformers = [...allTeams]
       .filter((t) => t.deltaPts > 0)
-      .sort((a, b) => b.deltaPts - a.deltaPts)
+      .sort((a, b) => b.deltaPts - a.deltaPts || b.marketValueNum - a.marketValueNum)
       .slice(0, 20);
 
     const underperformers = [...allTeams]
       .filter((t) => t.deltaPts < 0)
-      .sort((a, b) => a.deltaPts - b.deltaPts)
+      .sort((a, b) => a.deltaPts - b.deltaPts || b.marketValueNum - a.marketValueNum)
       .slice(0, 20);
 
     // Enrich with manager data

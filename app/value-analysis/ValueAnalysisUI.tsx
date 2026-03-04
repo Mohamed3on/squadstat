@@ -91,9 +91,9 @@ function TargetPlayerCard({ player, minutes }: { player: PlayerStats; minutes?: 
       imageUrl={player.imageUrl}
       href={getLeistungsdatenUrl(player.profileUrl)}
       subtitle={<><span className="font-medium"><PositionDisplay position={player.position} playedPosition={player.playedPosition} abbreviated /></span><span className="opacity-40">•</span><span className="truncate opacity-80 inline-flex items-center gap-1">{player.clubLogoUrl && <img src={player.clubLogoUrl} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />}{player.club}</span></>}
-      desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
-      mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} apps</span><span className="opacity-60">Age {player.age}</span></>}
-      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="Points" color="var(--accent-hot)" /><BigNumber value={`${minutes?.toLocaleString() || "—"}'`} label="Minutes" color="var(--accent-blue)" /></>}
+      desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} games</span><span className="opacity-60">Age {player.age}</span></>}
+      mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.matches} games</span><span className="opacity-60">Age {player.age}</span></>}
+      desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(player.points)} label="G+A" color="var(--accent-hot)" /><BigNumber value={`${minutes?.toLocaleString() || "—"}'`} label="Minutes" color="var(--accent-blue)" /></>}
       mobileBigNumbers={<><div className="text-lg font-medium font-value text-accent-gold">{player.marketValueDisplay}</div><div className="text-lg font-medium font-value text-accent-hot">{player.points}</div><div className="text-lg font-medium font-value text-accent-blue">{minutes?.toLocaleString() || "—"}&apos;</div></>}
     />
   );
@@ -206,7 +206,7 @@ function ComparisonCard({ player, targetPlayer, index = 0, variant, top5 }: {
         </div>
         <div className="w-px h-8 bg-border-subtle" />
         <div className="text-right min-w-[3rem]">
-          <div className="text-sm font-medium font-value text-text-primary">{player.points} pts</div>
+          <div className="text-sm font-medium font-value text-text-primary">{player.points} G+A</div>
           <div className="text-xs font-medium tabular-nums" style={{ color: theme.rankColor }}>{pointsDeltaLabel}</div>
         </div>
         <div className="w-px h-8 bg-border-subtle" />
@@ -214,12 +214,12 @@ function ComparisonCard({ player, targetPlayer, index = 0, variant, top5 }: {
       </>}
       mobileStats={<>
         <div className="text-xs font-medium font-value" style={{ color: theme.rankColor }}>{player.marketValueDisplay}</div>
-        <div className="text-xs tabular-nums text-text-primary">{player.points} pts</div>
+        <div className="text-xs tabular-nums text-text-primary">{player.points} G+A</div>
       </>}
       footer={<>
         <span className="tabular-nums text-text-secondary">{player.goals}G</span>
         <span className="tabular-nums text-text-secondary">{player.assists}A</span>
-        <span className="tabular-nums text-text-secondary">{player.matches} apps</span>
+        <span className="tabular-nums text-text-secondary">{player.matches} games</span>
         <span className="sm:hidden tabular-nums text-text-secondary">{player.age}y</span>
         <div className="sm:hidden ml-auto"><MinutesDisplay minutes={minutes} /></div>
         <LeagueLabel league={player.league} />
@@ -332,7 +332,7 @@ function DiscoveryListCard({ player, index = 0, top5, variant, pointsLabel = "G+
         </div>
         <div className="w-px h-8 bg-border-subtle" />
         <div className="text-right min-w-[3rem]">
-          <div className="text-sm font-medium font-value text-text-primary">{player.points} pts</div>
+          <div className="text-sm font-medium font-value text-text-primary">{player.points} G+A</div>
           <div className="text-xs text-text-secondary">{pointsLabel}</div>
         </div>
         <div className="w-px h-8 bg-border-subtle" />
@@ -346,12 +346,12 @@ function DiscoveryListCard({ player, index = 0, top5, variant, pointsLabel = "G+
           <div className="text-xs font-medium font-value mb-0.5" style={{ color: countColor }}>{player.comparisonCount} {countLabel}</div>
         )}
         <div className="text-xs font-medium font-value" style={{ color: valueColor }}>{player.marketValueDisplay}</div>
-        <div className="text-xs tabular-nums text-text-primary">{player.points} pts</div>
+        <div className="text-xs tabular-nums text-text-primary">{player.points} G+A</div>
       </>}
       footer={<>
         <span className="tabular-nums text-text-secondary">{player.goals}G</span>
         <span className="tabular-nums text-text-secondary">{player.assists}A</span>
-        <span className="tabular-nums text-text-secondary">{player.matches} apps</span>
+        <span className="tabular-nums text-text-secondary">{player.matches} games</span>
         <span className="sm:hidden tabular-nums text-text-secondary">{player.age}y</span>
         <span className="sm:hidden ml-auto tabular-nums text-accent-blue">{player.minutes?.toLocaleString() || "—"}&apos;</span>
         <LeagueLabel league={player.league} />
@@ -485,8 +485,8 @@ function MvBenchmarkCard({ player }: { player: MinutesValuePlayer }) {
       imageUrl={player.imageUrl}
       href={getLeistungsdatenUrl(player.profileUrl)}
       subtitle={<><span className="font-medium"><PositionDisplay position={player.position} playedPosition={player.playedPosition} abbreviated /></span><span className="opacity-40">•</span><span className="truncate opacity-80 inline-flex items-center gap-1">{player.clubLogoUrl && <img src={player.clubLogoUrl} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />}{player.club}</span></>}
-      desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.totalMatches} apps</span><span className="opacity-60">Age {player.age}</span></>}
-      mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.totalMatches} apps</span><span className="opacity-60">Age {player.age}</span></>}
+      desktopStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.totalMatches} games</span><span className="opacity-60">Age {player.age}</span></>}
+      mobileStats={<><span className="tabular-nums">{player.goals}G</span><span className="tabular-nums">{player.assists}A</span><span className="tabular-nums">{player.totalMatches} games</span><span className="opacity-60">Age {player.age}</span></>}
       desktopBigNumbers={<><BigNumber value={player.marketValueDisplay} label="Value" color="var(--accent-gold)" /><BigNumber value={String(ga)} label="G+A" color="var(--accent-hot)" /><BigNumber value={`${player.minutes.toLocaleString()}'`} label="Minutes" color="var(--accent-blue)" />{missedPctVal > 0 && <BigNumber value={`${missedPctVal}%`} label="Missed" color="var(--accent-cold-soft)" />}</>}
       mobileBigNumbers={<><div className="text-lg font-medium font-value text-accent-gold">{player.marketValueDisplay}</div><div className="text-lg font-medium font-value text-accent-hot">{ga}</div><div className="text-lg font-medium font-value text-accent-blue">{player.minutes.toLocaleString()}&apos;</div>{missedPctVal > 0 && <div className="text-lg font-medium font-value text-accent-cold-soft">{missedPctVal}%</div>}</>}
     />
@@ -623,7 +623,7 @@ interface ValueAnalysisUIProps {
 export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, initialUnderperformers, initialOverperformers, includePen, includeIntl }: ValueAnalysisUIProps) {
   const { params, update, push } = useQueryParams("/value-analysis");
 
-  const pointsLabel = includePen ? "G+A" : "npG+A";
+  const pointsLabel = includePen ? "G+A" : "Non-pen G+A";
 
   // Mode
   const mode: Mode = params.get("mode") === "mins" ? "mins" : "ga";
@@ -748,8 +748,8 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
           </h1>
           <p className="text-sm sm:text-base text-text-muted">
             {mode === "ga"
-              ? `Find overpriced players outperformed by cheaper peers and bargain players who punch above their price tag — based on ${pointsLabel} output.`
-              : "Expensive players ranked by fewest minutes played. Search any player to compare against others at the same or higher market value."}
+              ? `Are expensive players worth it? Compare any player's goals and assists against cheaper alternatives — based on ${pointsLabel}.`
+              : "Expensive players ranked by fewest minutes. Search any player to compare against others at the same or higher value."}
           </p>
         </div>
 
@@ -763,15 +763,15 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               push({ mode: v === "ga" ? null : v, tab: null, bTop5: null });
             }}
           >
-            <ToggleGroupItem value="ga" className="px-4">G+A</ToggleGroupItem>
+            <ToggleGroupItem value="ga" className="px-4">Goals + Assists</ToggleGroupItem>
             <ToggleGroupItem value="mins" className="px-4">Minutes</ToggleGroupItem>
           </ToggleGroup>
           <div className="w-px h-6 bg-border-subtle" />
           <FilterButton active={includePen} onClick={() => push({ pen: includePen ? null : "1" })}>
-            Pens in G+A
+            Include penalties
           </FilterButton>
           <FilterButton active={includeIntl} onClick={() => push({ intl: includeIntl ? null : "1" })}>
-            + Intl stats
+            Include national team
           </FilterButton>
         </div>
 
@@ -791,7 +791,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
               }}
               placeholder="Search player (e.g. Kenan Yildiz)"
               renderTrailing={(player) => (
-                <div className="text-xs tabular-nums shrink-0 text-accent-hot">{player.points} pts</div>
+                <div className="text-xs tabular-nums shrink-0 text-accent-hot">{player.points} G+A</div>
               )}
             />
           ) : (
@@ -856,7 +856,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                 </FilterButton>
 
                 <p className="text-xs text-text-muted">
-                  Comparing against players at similar or higher positions. &ldquo;Underdelivering&rdquo; = more expensive, same or worse G+A in same or more minutes. &ldquo;Better Value&rdquo; = cheaper, same or better G+A in same or fewer minutes.
+                  Players at the same position or higher value. &ldquo;Underdelivering&rdquo; = costs more, produces the same or fewer G+A. &ldquo;Better Value&rdquo; = costs less, produces the same or more G+A.
                 </p>
 
                 <Tabs value={gaTab} onValueChange={(v) => push({ tab: v === "underdelivering" ? null : v })}>
@@ -883,7 +883,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                             <p className="font-semibold text-base text-accent-cold-soft">Nobody more expensive is doing worse</p>
                             <p className="text-sm mt-1 text-text-muted">
                               Every player worth {gaData!.targetPlayer.marketValueDisplay} or more has produced more G+A.
-                              At {gaData!.targetPlayer.points} points for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} has the lowest output at this price range.
+                              At {gaData!.targetPlayer.points} G+A for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} has the lowest output at this price range.
                             </p>
                           </div>
                         </div>
@@ -909,7 +909,7 @@ export function ValueAnalysisUI({ initialAllPlayers, initialData, injuryMap, ini
                             <p className="font-semibold text-base text-accent-hot">{gaData!.targetPlayer.name} is a top performer for their price</p>
                             <p className="text-sm mt-1 text-text-muted">
                               No cheaper player has produced more goal contributions in the same or fewer minutes.
-                              At {gaData!.targetPlayer.points} points for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} offers excellent value.
+                              At {gaData!.targetPlayer.points} G+A for {gaData!.targetPlayer.marketValueDisplay}, {gaData!.targetPlayer.name} offers excellent value.
                             </p>
                           </div>
                         </div>

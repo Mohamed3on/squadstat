@@ -523,10 +523,10 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
                   <div className="w-px h-6 self-center bg-border-subtle hidden sm:block" />
                   <div className="flex items-center gap-2">
                     <FilterButton active={includePen} onClick={() => fadeUpdate({ pen: includePen ? null : "1" })}>
-                      Pens in G+A
+                      Include penalties
                     </FilterButton>
                     <FilterButton active={includeIntl} onClick={() => fadeUpdate({ intl: includeIntl ? null : "1" })}>
-                      + Intl stats
+                      Include national team
                     </FilterButton>
                   </div>
                 </div>

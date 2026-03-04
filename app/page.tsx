@@ -341,7 +341,7 @@ const features: readonly Feature[] = [
     highlights: [
       "Top and bottom teams by points, goal difference, scoring, and defense",
       "Window cards make trend changes easy to scan",
-      "Manager PPG context on standout clubs",
+      "Manager points-per-game on standout clubs",
     ],
     icon: Activity,
     tone: {
@@ -888,7 +888,7 @@ export default async function Home() {
             </div>
 
             <Card className="border-border-medium bg-black/85 backdrop-blur-sm transition-colors duration-200 hover:border-accent-blue/30">
-              <CardHeader>
+              <CardHeader className="!pb-0">
                 <Badge variant="outline" className="w-fit border-accent-blue/40 bg-accent-blue/10 text-accent-blue">
                   Live snapshots
                 </Badge>
@@ -897,7 +897,7 @@ export default async function Home() {
                   Key names across form, value, output, and injuries.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="!pt-0">
                 <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Latest Feed</p>
                 <div className="mt-3 space-y-2">
                   {heroSnapshots.length > 0 ? (
