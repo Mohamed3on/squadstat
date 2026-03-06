@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import type { PlayerStatsResult, RecentGameStats } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
+import { parseMarketValue } from "./parse-market-value";
 
 const ZERO_STATS: PlayerStatsResult = {
   minutes: 0,
@@ -25,6 +26,8 @@ const ZERO_STATS: PlayerStatsResult = {
   playedPosition: "",
   contractExpiry: undefined,
   gamesMissed: 0,
+  marketValue: 0,
+  marketValueDisplay: "-",
 };
 
 const CEAPI_HEADERS = {
@@ -142,7 +145,7 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const clubLogoUrl = clubLogoSrcset.split(/\s+/)[0] || clubLogoImg.attr("src") || "";
   const ribbonText = $(".data-header__ribbon span").text().trim().toLowerCase();
   const isOnLoan = ribbonText === "on loan";
-  const isNewSigning = ribbonText === "new arrival" || isOnLoan;
+  const isNewSigning = ribbonText === "new arrival" || ribbonText === "winter signing" || isOnLoan;
 
   // Nationality flag URL from profile header
   const natFlagImg = $("span[itemprop='nationality'] img.flaggenrahmen").first();
@@ -184,13 +187,21 @@ export async function fetchPlayerMinutesRaw(playerId: string): Promise<PlayerSta
   const contractLabel = clubInfo.find(".data-header__label:contains('Contract expires:')");
   const contractExpiry = contractLabel.find(".data-header__content").text().trim() || undefined;
 
+  // Parse market value from profile header
+  const mvEl = $(".data-header__market-value-wrapper");
+  const mvText = mvEl.clone().children("p").remove().end().text().trim();
+  const marketValue = parseMarketValue(mvText);
+  const marketValueDisplay = mvText || "-";
+
   // Parse stats + league from ceapi
+  const shared = { club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed, nationalityFlagUrl, leagueLogoUrl, marketValue, marketValueDisplay };
+
   if (!ceapiRes.ok) {
-    return { ...ZERO_STATS, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed, nationalityFlagUrl, leagueLogoUrl };
+    return { ...ZERO_STATS, ...shared };
   }
   const ceapi = await ceapiRes.json();
   const games: CeapiGame[] = ceapi?.data?.performance ?? [];
   const stats = aggregateSeasonStats(games);
 
-  return { ...stats, club, clubLogoUrl, intlCareerCaps, isCurrentIntl, isNewSigning, isOnLoan, playedPosition, contractExpiry, gamesMissed, nationalityFlagUrl, leagueLogoUrl };
+  return { ...stats, ...shared };
 }

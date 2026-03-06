@@ -254,4 +254,6 @@ export interface PlayerStatsResult {
   nationalityFlagUrl?: string;
   leagueLogoUrl?: string;
   recentForm?: RecentGameStats[];
+  marketValue: number;
+  marketValueDisplay: string;
 }
