@@ -117,6 +117,9 @@ function AggregatedTeamCard({
             ) : (
               team.league
             )}
+            {team.leaguePosition > 0 && (
+              <span className="font-value text-text-muted">· {formatOrdinal(team.leaguePosition)}</span>
+            )}
             {deltaPts != null && (
               <a href="/expected-position" className={`inline-flex items-center gap-0.5 font-value text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full transition-all duration-150 hover:scale-105 hover:brightness-125 ${deltaPts > 0 ? "bg-[var(--accent-hot-glow)] text-[var(--accent-hot)]" : "bg-[var(--accent-cold-glow)] text-[var(--accent-cold)]"}`}>
                 {deltaPts > 0 ? "+" : ""}{deltaPts} vs expected <span className="text-[8px] opacity-60">→</span>
