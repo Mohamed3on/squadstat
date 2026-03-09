@@ -3,7 +3,7 @@ name: Refresh SquadStat Data
 on:
   schedule:
     - cron: "0 */3 * * *"
-    - cron: "0 6 * * 1" # Weekly Monday 6am UTC for biggest-movers
+    - cron: "0 6 * * *" # Daily 6am UTC — checks if Transfermarkt updated market values
   workflow_dispatch:
 
 concurrency:
@@ -72,7 +72,8 @@ jobs:
           key: player-cache-${{ github.run_id }}
 
       - name: Commit and push
-        run: bash scripts/ci-push.sh "chore: refresh minutes-value data" data/minutes-value.json data/updated-at.txt
+        run: |
+          bash scripts/ci-push.sh "chore: refresh minutes-value data" data/minutes-value.json data/updated-at.txt
 
       - name: Alert on failure
         if: failure() && steps.refresh.outcome == 'failure'
@@ -85,18 +86,41 @@ jobs:
           if [ -n "$EXISTING" ]; then
             echo "Alert issue #$EXISTING already open, skipping."
           else
-            gh issue create \
-              --title "Scraper broken: data refresh failed" \
-              --label "scraper-broken" \
-              --body "The data refresh script failed. Transfermarkt may have changed their page structure again.
+            BODY="The data refresh script failed. Transfermarkt may have changed their page structure again."
+            BODY="$BODY"$'\n\n'"**Run:** $RUN_URL"
+            BODY="$BODY"$'\n\n'"Check \`lib/fetch-player-minutes.ts\` — the ceapi or HTML selectors likely need updating."
+            gh issue create --title "Scraper broken: data refresh failed" --label "scraper-broken" --body "$BODY"
+          fi
 
-          **Run:** $RUN_URL
+  check-mv-updates:
+    if: github.event.schedule == '0 6 * * *'
+    runs-on: ubuntu-latest
+    outputs:
+      has_updates: ${{ steps.check.outputs.has_updates }}
+    steps:
+      - uses: actions/checkout@v4
 
-          Check \`lib/fetch-player-minutes.ts\` — the ceapi or HTML selectors likely need updating."
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check for market value updates today
+        id: check
+        run: |
+          if bun run scripts/check-mv-updates.ts; then
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
           fi
 
   refresh-biggest-movers:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * 1'
+    needs: [check-mv-updates]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      needs.check-mv-updates.outputs.has_updates == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -114,4 +138,5 @@ jobs:
         run: bun run scripts/refresh-biggest-movers.ts
 
       - name: Commit and push
-        run: bash scripts/ci-push.sh "chore: refresh biggest-movers data" data/biggest-winners.json data/biggest-losers.json data/biggest-movers-updated-at.txt
+        run: |
+          bash scripts/ci-push.sh "chore: refresh biggest-movers data" data/biggest-winners.json data/biggest-losers.json data/biggest-movers-updated-at.txt
