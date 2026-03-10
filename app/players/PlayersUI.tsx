@@ -333,7 +333,9 @@ function parseSigningFilter(v: string | null): SigningFilter {
 
 export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
   const { params, update } = useQueryParams("/players");
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth >= 640
+  );
   const [isFiltering, setIsFiltering] = useState(false);
 
   const sortBy = parseSortKey(params.get("sort"));
