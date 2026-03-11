@@ -808,21 +808,21 @@ export default async function Home() {
 
     if (sameSet && topScorersLast10.length > 0) {
       formScorerItems.push(topScorersLast10.map((p) => playerItem(
-        p, "Top scorer (last 5 & 10)", "/players?sort=ga&form=5",
+        p, "Top scorer (last 5 & 10)", "/players?sort=ga&fw=5",
         `${p.club} · ${getFormNpga(p, 5)} npG+A (5) · ${getFormNpga(p, 10)} npG+A (10)`,
         { metrics: [`Season ${getNpga(p)} npG+A`, p.marketValueDisplay], tone: "green" },
       )));
     } else {
       if (topScorersLast10.length > 0) {
         formScorerItems.push(topScorersLast10.map((p) => playerItem(
-          p, "Top scorer (last 10)", "/players?sort=ga&form=10",
+          p, "Top scorer (last 10)", "/players?sort=ga&fw=10",
           `${p.club} · ${getFormNpga(p, 10)} npG+A in last 10`,
           { metrics: [`Season ${getNpga(p)} npG+A`, p.marketValueDisplay], tone: "green" },
         )));
       }
       if (topScorersLast5.length > 0) {
         formScorerItems.push(topScorersLast5.map((p) => playerItem(
-          p, "Top scorer (last 5)", "/players?sort=ga&form=5",
+          p, "Top scorer (last 5)", "/players?sort=ga&fw=5",
           `${p.club} · ${getFormNpga(p, 5)} npG+A in last 5`,
           { metrics: [`Season ${getNpga(p)} npG+A`, p.marketValueDisplay], tone: "green" },
         )));
