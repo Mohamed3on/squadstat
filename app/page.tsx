@@ -670,16 +670,31 @@ export default async function Home() {
     { sort: (a, b) => b.marketValue - a.marketValue },
   );
 
-  const playersWithForm = players.filter((p) => (p.recentForm ?? []).length >= 5);
+  const formNpga10 = new Map<string, number>();
+  const formNpga5 = new Map<string, number>();
+  const playersWithForm10: MinutesValuePlayer[] = [];
+  const playersWithForm5: MinutesValuePlayer[] = [];
+  for (const p of players) {
+    const formLen = (p.recentForm ?? []).length;
+    if (formLen >= 5) {
+      const score5 = getFormNpga(p, 5);
+      formNpga5.set(p.playerId, score5);
+      playersWithForm5.push(p);
+      if (formLen >= 10) {
+        formNpga10.set(p.playerId, getFormNpga(p, 10));
+        playersWithForm10.push(p);
+      }
+    }
+  }
   const topScorersLast10 = pickWithTies(
-    playersWithForm.filter((p) => (p.recentForm ?? []).length >= 10),
-    (p) => getFormNpga(p, 10),
+    playersWithForm10,
+    (p) => formNpga10.get(p.playerId)!,
     "top",
     { sort: (a, b) => b.marketValue - a.marketValue },
   );
   const topScorersLast5 = pickWithTies(
-    playersWithForm,
-    (p) => getFormNpga(p, 5),
+    playersWithForm5,
+    (p) => formNpga5.get(p.playerId)!,
     "top",
     { sort: (a, b) => b.marketValue - a.marketValue },
   );
@@ -801,21 +816,21 @@ export default async function Home() {
     if (sameSet && topScorersLast10.length > 0) {
       formScorerItems.push(topScorersLast10.map((p) => playerItem(
         p, "Top scorer (last 5 & 10)", "/players?sort=ga&form=5",
-        `${p.club} · ${getFormNpga(p, 5)} npG+A (5) · ${getFormNpga(p, 10)} npG+A (10)`,
+        `${p.club} · ${formNpga5.get(p.playerId)} npG+A (5) · ${formNpga10.get(p.playerId)} npG+A (10)`,
         { metrics: [`Season ${getNpga(p)} npG+A`, p.marketValueDisplay], tone: "green" },
       )));
     } else {
       if (topScorersLast10.length > 0) {
         formScorerItems.push(topScorersLast10.map((p) => playerItem(
           p, "Top scorer (last 10)", "/players?sort=ga&form=10",
-          `${p.club} · ${getFormNpga(p, 10)} npG+A in last 10`,
+          `${p.club} · ${formNpga10.get(p.playerId)} npG+A in last 10`,
           { metrics: [`Season ${getNpga(p)} npG+A`, p.marketValueDisplay], tone: "green" },
         )));
       }
       if (topScorersLast5.length > 0) {
         formScorerItems.push(topScorersLast5.map((p) => playerItem(
           p, "Top scorer (last 5)", "/players?sort=ga&form=5",
-          `${p.club} · ${getFormNpga(p, 5)} npG+A in last 5`,
+          `${p.club} · ${formNpga5.get(p.playerId)} npG+A in last 5`,
           { metrics: [`Season ${getNpga(p)} npG+A`, p.marketValueDisplay], tone: "green" },
         )));
       }
