@@ -255,9 +255,7 @@ function getNpga(player: Pick<MinutesValuePlayer, "goals" | "assists" | "penalty
 }
 
 function getFormNpga(player: MinutesValuePlayer, window: number): number {
-  const games = (player.recentForm ?? []).slice(0, window);
-  if (games.length === 0) return 0;
-  return games.reduce((s, g) => s + g.goals - (g.penaltyGoals ?? 0) + g.assists, 0);
+  return (player.recentForm ?? []).slice(0, window).reduce((s, g) => s + g.goals - (g.penaltyGoals ?? 0) + g.assists, 0);
 }
 
 function sortByNpgaDesc(players: MinutesValuePlayer[]): MinutesValuePlayer[] {
@@ -674,18 +672,13 @@ export default async function Home() {
   let tiedForm10: MinutesValuePlayer[] = [];
   let tiedForm5: MinutesValuePlayer[] = [];
   for (const p of players) {
-    const formLen = (p.recentForm ?? []).length;
-    if (formLen >= 5) {
-      const s5 = getFormNpga(p, 5);
-      if (s5 > maxForm5) { maxForm5 = s5; tiedForm5 = [p]; }
-      else if (s5 === maxForm5) tiedForm5.push(p);
+    const s5 = getFormNpga(p, 5);
+    if (s5 > maxForm5) { maxForm5 = s5; tiedForm5 = [p]; }
+    else if (s5 === maxForm5 && s5 > 0) tiedForm5.push(p);
 
-      if (formLen >= 10) {
-        const s10 = getFormNpga(p, 10);
-        if (s10 > maxForm10) { maxForm10 = s10; tiedForm10 = [p]; }
-        else if (s10 === maxForm10) tiedForm10.push(p);
-      }
-    }
+    const s10 = getFormNpga(p, 10);
+    if (s10 > maxForm10) { maxForm10 = s10; tiedForm10 = [p]; }
+    else if (s10 === maxForm10 && s10 > 0) tiedForm10.push(p);
   }
   const byValueDesc = (a: MinutesValuePlayer, b: MinutesValuePlayer) => b.marketValue - a.marketValue;
   const topScorersLast10 = tiedForm10.sort(byValueDesc);
