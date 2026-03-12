@@ -350,11 +350,10 @@ function getPositionCategory(pos: string): string | null {
 
 function matchesPositionFilter(player: MinutesValuePlayer, filter: string): boolean {
   if (!filter) return true;
+  const pos = player.playedPosition || player.position;
   const positions = POSITION_CATEGORIES[filter];
-  if (positions) {
-    return positions.includes(player.position) || (!!player.playedPosition && positions.includes(player.playedPosition));
-  }
-  return player.position === filter || player.playedPosition === filter;
+  if (positions) return positions.includes(pos);
+  return pos === filter;
 }
 
 export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
