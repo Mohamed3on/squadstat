@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { Combobox } from "@/components/Combobox";
+import { Combobox, type ComboboxGroup } from "@/components/Combobox";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { RangeFilter } from "@/components/RangeFilter";
@@ -331,6 +331,34 @@ function parseSigningFilter(v: string | null): SigningFilter {
   return null;
 }
 
+const POSITION_CATEGORIES: Record<string, string[]> = {
+  Attackers: ["Centre-Forward", "Second Striker", "Left Winger", "Right Winger"],
+  Midfielders: ["Attacking Midfield", "Central Midfield", "Defensive Midfield", "Left Midfield", "Right Midfield"],
+  Defenders: ["Centre-Back", "Left-Back", "Right-Back"],
+  Goalkeeper: ["Goalkeeper"],
+};
+
+const POSITION_GROUP_OPTIONS: ComboboxGroup[] = [
+  { heading: "", options: [{ value: "all", label: "All positions" }] },
+  ...Object.entries(POSITION_CATEGORIES).map(([heading, positions]) => ({
+    heading,
+    options: [
+      { value: `group:${heading}`, label: `All ${heading}` },
+      ...positions.map((p) => ({ value: p, label: p })),
+    ],
+  })),
+];
+
+function matchesPositionFilter(player: MinutesValuePlayer, filter: string): boolean {
+  if (filter === "all") return true;
+  if (filter.startsWith("group:")) {
+    const group = filter.slice(6);
+    const positions = POSITION_CATEGORIES[group];
+    return positions ? positions.includes(player.position) || (!!player.playedPosition && positions.includes(player.playedPosition)) : true;
+  }
+  return player.position === filter || player.playedPosition === filter;
+}
+
 export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData: MinutesValuePlayer[]; injuryMap?: InjuryMap }) {
   const { params, update } = useQueryParams("/players");
   const [moreOpen, setMoreOpen] = useState(() =>
@@ -344,6 +372,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
   const leagueFilter = params.get("league") || "all";
   const clubFilter = params.get("club") || "all";
   const nationalityFilter = params.get("nat") || "all";
+  const positionFilter = params.get("pos") || "all";
   const top5Only = params.get("top5") === "1";
   const signingFilter = parseSigningFilter(params.get("signing"));
   const includePen = params.get("pen") === "1";
@@ -413,16 +442,18 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     let base = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
     if (top5Only) base = filterTop5(base);
     if (nationalityFilter !== "all") base = base.filter((p) => p.nationality === nationalityFilter);
+    if (positionFilter !== "all") base = base.filter((p) => matchesPositionFilter(p, positionFilter));
     return {
       newSignings: base.filter((p) => p.isNewSigning).length,
       loans: base.filter((p) => p.isOnLoan).length,
     };
-  }, [players, leagueFilter, clubFilter, top5Only, nationalityFilter]);
+  }, [players, leagueFilter, clubFilter, top5Only, nationalityFilter, positionFilter]);
 
   const sortedPlayers = useMemo(() => {
     let list = filterPlayersByLeagueAndClub(players, leagueFilter, clubFilter);
     if (top5Only) list = filterTop5(list);
     if (nationalityFilter !== "all") list = list.filter((p) => p.nationality === nationalityFilter);
+    if (positionFilter !== "all") list = list.filter((p) => matchesPositionFilter(p, positionFilter));
     if (signingFilter === "transfer") list = list.filter((p) => p.isNewSigning);
     if (signingFilter === "loan") list = list.filter((p) => p.isOnLoan);
     if (excludeCurrentIntl) list = list.filter((p) => !p.isCurrentIntl);
@@ -451,7 +482,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       }
       return sortAsc ? -diff : diff;
     });
-  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, top5Only, signingFilter, includePen, excludeCurrentIntl, minCaps, maxCaps, minAge, maxAge, contractYear, formWindow]);
+  }, [players, sortBy, sortAsc, leagueFilter, clubFilter, nationalityFilter, positionFilter, top5Only, signingFilter, includePen, excludeCurrentIntl, minCaps, maxCaps, minAge, maxAge, contractYear, formWindow]);
 
   return (
     <>
@@ -533,6 +564,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
               </FilterButton>
               <Combobox value={clubFilter} onChange={(v) => { setIsFiltering(true); update({ club: v === "all" ? null : v || null }); }} options={clubOptions} placeholder="All clubs" searchPlaceholder="Search clubs..." />
               <Combobox value={nationalityFilter} onChange={(v) => { setIsFiltering(true); update({ nat: v === "all" ? null : v || null }); }} options={nationalityOptions} placeholder="All nationalities" searchPlaceholder="Search nationalities..." />
+              <Combobox value={positionFilter} onChange={(v) => { setIsFiltering(true); update({ pos: v === "all" ? null : v || null }); }} groups={POSITION_GROUP_OPTIONS} placeholder="All positions" searchPlaceholder="Search positions..." />
             </div>
 
             {/* Advanced filters — collapsible */}

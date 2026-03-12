@@ -6,24 +6,45 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
+export type ComboboxOption = { value: string; label: string };
+export type ComboboxGroup = { heading: string; options: ComboboxOption[] };
+
 export function Combobox({
   value,
   onChange,
   options,
+  groups,
   placeholder,
   searchPlaceholder,
   className,
 }: {
   value: string;
   onChange: (value: string) => void;
-  options: { value: string; label: string }[];
+  options?: ComboboxOption[];
+  groups?: ComboboxGroup[];
   placeholder: string;
   searchPlaceholder?: string;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = options.find((o) => o.value === value);
+
+  const allOptions = options ?? groups?.flatMap((g) => g.options) ?? [];
+  const selected = allOptions.find((o) => o.value === value);
   const isDefault = !selected || selected.value === "all";
+
+  const renderItem = (option: ComboboxOption) => (
+    <CommandItem
+      key={option.value}
+      value={option.label}
+      onSelect={() => {
+        onChange(option.value === value ? "" : option.value);
+        setOpen(false);
+      }}
+    >
+      <Check className={cn("shrink-0 transition-opacity", value === option.value ? "opacity-100" : "opacity-0")} />
+      {option.label}
+    </CommandItem>
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,21 +74,17 @@ export function Combobox({
           <CommandInput placeholder={searchPlaceholder || "Search..."} />
           <CommandList className="max-h-[220px]">
             <CommandEmpty className="py-4 text-center text-xs text-muted-foreground">No results.</CommandEmpty>
-            <CommandGroup className="p-1">
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    onChange(option.value === value ? "" : option.value);
-                    setOpen(false);
-                  }}
-                >
-                  <Check className={cn("shrink-0 transition-opacity", value === option.value ? "opacity-100" : "opacity-0")} />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {groups ? (
+              groups.map((group) => (
+                <CommandGroup key={group.heading} heading={group.heading} className="p-1">
+                  {group.options.map(renderItem)}
+                </CommandGroup>
+              ))
+            ) : (
+              <CommandGroup className="p-1">
+                {allOptions.map(renderItem)}
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>
