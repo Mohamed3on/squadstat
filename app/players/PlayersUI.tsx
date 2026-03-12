@@ -339,22 +339,21 @@ const POSITION_CATEGORIES: Record<string, string[]> = {
 };
 
 const POSITION_GROUP_OPTIONS: ComboboxGroup[] = [
-  { heading: "", options: [{ value: "all", label: "All positions" }] },
+  { options: [{ value: "all", label: "All positions" }] },
   ...Object.entries(POSITION_CATEGORIES).map(([heading, positions]) => ({
     heading,
-    options: [
-      { value: `group:${heading}`, label: `All ${heading}` },
-      ...positions.map((p) => ({ value: p, label: p })),
-    ],
+    options: positions.length > 1
+      ? [{ value: `group:${heading}`, label: `All ${heading}` }, ...positions.map((p) => ({ value: p, label: p }))]
+      : positions.map((p) => ({ value: p, label: p })),
   })),
 ];
 
 function matchesPositionFilter(player: MinutesValuePlayer, filter: string): boolean {
   if (filter === "all") return true;
   if (filter.startsWith("group:")) {
-    const group = filter.slice(6);
-    const positions = POSITION_CATEGORIES[group];
-    return positions ? positions.includes(player.position) || (!!player.playedPosition && positions.includes(player.playedPosition)) : true;
+    const positions = POSITION_CATEGORIES[filter.slice(6)];
+    if (!positions) return false;
+    return positions.includes(player.position) || (!!player.playedPosition && positions.includes(player.playedPosition));
   }
   return player.position === filter || player.playedPosition === filter;
 }

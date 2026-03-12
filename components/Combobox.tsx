@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export type ComboboxOption = { value: string; label: string };
-export type ComboboxGroup = { heading: string; options: ComboboxOption[] };
+export type ComboboxGroup = { heading?: string; options: ComboboxOption[] };
 
 export function Combobox({
   value,
@@ -75,8 +75,8 @@ export function Combobox({
           <CommandList className="max-h-[220px]">
             <CommandEmpty className="py-4 text-center text-xs text-muted-foreground">No results.</CommandEmpty>
             {groups ? (
-              groups.map((group) => (
-                <CommandGroup key={group.heading} heading={group.heading} className="p-1">
+              groups.map((group, i) => (
+                <CommandGroup key={group.heading ?? i} heading={group.heading} className="p-1">
                   {group.options.map(renderItem)}
                 </CommandGroup>
               ))
