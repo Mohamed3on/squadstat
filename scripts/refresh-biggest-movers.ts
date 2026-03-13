@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { parseMarketValue } from "@/lib/parse-market-value";
+import { BASE_URL } from "@/lib/constants";
 import type { MarketValueMover, MarketValueMoversResult } from "@/app/types";
 
 const AJAX_HEADERS = {
@@ -16,13 +17,13 @@ const AJAX_HEADERS = {
 
 const MAX_RETRIES = 5;
 const BASE_DELAY = 1000;
+const LOOKBACK_YEARS = 7;
 
 type Direction = "losers" | "winners";
 
 interface DirectionConfig {
   urlPath: string;
   sortParam: string;
-  ageClass: string;
   label: string;
   outFile: string;
 }
@@ -31,25 +32,23 @@ const DIRECTION_CONFIG: Record<Direction, DirectionConfig> = {
   losers: {
     urlPath: "marktwertverluste",
     sortParam: "aenderung",
-    ageClass: "alle",
     label: "biggest-losers",
     outFile: "biggest-losers.json",
   },
   winners: {
     urlPath: "marktwertspruenge",
     sortParam: "aenderung.desc",
-    ageClass: "o23",
     label: "biggest-winners",
     outFile: "biggest-winners.json",
   },
 };
 
 function buildUrl(date: string, cfg: DirectionConfig): string {
-  return `https://www.transfermarkt.com/spieler-statistik/${cfg.urlPath}/marktwertetop/plus/ajax/yw1/datum/${date}/ausrichtung/alle/spielerposition_id//altersklasse/${cfg.ageClass}/land_id/0/yt0/Show/0//sort/${cfg.sortParam}?ajax=yw1`;
+  return `${BASE_URL}/spieler-statistik/${cfg.urlPath}/marktwertetop/plus/ajax/yw1/datum/${date}/ausrichtung/alle/spielerposition_id//altersklasse/alle/land_id/0/yt0/Show/0//sort/${cfg.sortParam}?ajax=yw1`;
 }
 
 function buildReferer(date: string, cfg: DirectionConfig): string {
-  return `https://www.transfermarkt.com/spieler-statistik/${cfg.urlPath}/marktwertetop/plus/0/galerie/0?datum=${date}&ausrichtung=alle&spielerposition_id=&altersklasse=${cfg.ageClass}&land_id=0&yt0=Show`;
+  return `${BASE_URL}/spieler-statistik/${cfg.urlPath}/marktwertetop/plus/0/galerie/0?datum=${date}&ausrichtung=alle&spielerposition_id=&altersklasse=alle&land_id=0&yt0=Show`;
 }
 
 async function fetchWithRetry(url: string, referer: string, label: string): Promise<string> {
@@ -57,9 +56,13 @@ async function fetchWithRetry(url: string, referer: string, label: string): Prom
     const response = await fetch(url, {
       headers: { ...AJAX_HEADERS, Referer: referer },
     });
-    const html = await response.text();
-    if (html.length > 500) return html;
-    console.warn(`[${label}] Rate limited (${html.length}b), retry ${attempt + 1}/${MAX_RETRIES}`);
+    if (!response.ok) {
+      console.warn(`[${label}] HTTP ${response.status}, retry ${attempt + 1}/${MAX_RETRIES}`);
+    } else {
+      const html = await response.text();
+      if (html.length > 500) return html;
+      console.warn(`[${label}] Rate limited (${html.length}b), retry ${attempt + 1}/${MAX_RETRIES}`);
+    }
     if (attempt < MAX_RETRIES - 1) {
       const jitter = Math.random() * 500;
       await new Promise((r) => setTimeout(r, BASE_DELAY * 2 ** attempt + jitter));
@@ -99,21 +102,21 @@ function parsePeriodMovers(html: string, date: string): MarketValueMover[] {
     const currentValueText = $valueCell.text().replace(/\u00a0/g, "").trim();
     const currentValue = parseMarketValue(currentValueText);
     const prevTitle = $valueCell.find("span").attr("title") || "";
-    const prevMatch = prevTitle.match(/€[\d.]+[kmbn]*/i);
+    const prevMatch = prevTitle.match(/€[\d.]+\s*(bn|m|k)?/i);
     const previousValue = prevMatch ? parseMarketValue(prevMatch[0]) : 0;
 
     const relText = cells.eq(6).text().trim();
-    const relativeChange = Math.abs(parseFloat(relText.replace(/[^0-9.\-]/g, "")) || 0);
+    const relativeChange = Math.abs(parseFloat(relText.replace(/[^0-9.]/g, "")) || 0);
 
     const diffText = cells.eq(7).text().trim();
-    const absoluteChange = Math.abs(parseMarketValue(diffText.replace(/[+-]/g, "")));
+    const absoluteChange = parseMarketValue(diffText.replace(/[+-]/g, ""));
 
     if (name && playerId) {
       players.push({
         name, position, age, club, clubLogoUrl, nationality,
         currentValue, previousValue, absoluteChange, relativeChange,
-        imageUrl, profileUrl: `https://www.transfermarkt.com${href}`,
-        playerId, period: date, reason: "",
+        imageUrl, profileUrl: `${BASE_URL}${href}`,
+        playerId, period: date,
       });
     }
   });
@@ -121,12 +124,10 @@ function parsePeriodMovers(html: string, date: string): MarketValueMover[] {
   return players;
 }
 
-function selectPeriodMovers(players: MarketValueMover[], direction: Direction): MarketValueMover[] {
+function selectPeriodMovers(players: MarketValueMover[]): MarketValueMover[] {
   if (players.length === 0) return [];
-  const noun = direction === "losers" ? "loss" : "gain";
 
   const sorted = [...players].sort((a, b) => b.absoluteChange - a.absoluteChange);
-  sorted[0].reason = `Biggest absolute ${noun} (${formatVal(sorted[0].absoluteChange)}). Relative: ${sorted[0].relativeChange.toFixed(1)}% → sets initial threshold.`;
   const selected: MarketValueMover[] = [sorted[0]];
   let highestRelPct = sorted[0].relativeChange;
 
@@ -141,39 +142,26 @@ function selectPeriodMovers(players: MarketValueMover[], direction: Direction): 
     const qualifying = tier.filter((p) => p.relativeChange > highestRelPct);
     if (qualifying.length === 0) break;
 
-    for (const p of qualifying) {
-      p.reason = `Tier ${formatVal(tierVal)} ${noun}: ${p.relativeChange.toFixed(1)}% relative > ${highestRelPct.toFixed(1)}% threshold.`;
-    }
     selected.push(...qualifying);
-    const maxRelInQualifying = Math.max(...qualifying.map((p) => p.relativeChange));
-    highestRelPct = Math.max(highestRelPct, maxRelInQualifying);
+    highestRelPct = Math.max(...qualifying.map((p) => p.relativeChange));
   }
 
   return selected;
 }
 
-function formatVal(v: number): string {
-  if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `€${(v / 1_000).toFixed(0)}K`;
-  return `€${v}`;
-}
-
 function getPeriodDates(): string[] {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() >= 6 ? 6 : 0, 1);
+  const stop = new Date(start.getFullYear() - LOOKBACK_YEARS, start.getMonth(), 1);
+
   const dates: string[] = [];
-  let year = 2026;
-  let month = 1;
-  for (let i = 0; i < 24; i++) {
-    dates.push(`${year}-${String(month).padStart(2, "0")}-01`);
-    month -= 6;
-    if (month <= 0) {
-      month += 12;
-      year -= 1;
-    }
+  for (let d = new Date(start); d >= stop; d.setMonth(d.getMonth() - 6)) {
+    dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`);
   }
   return dates;
 }
 
-async function fetchBatch(dates: string[], cfg: DirectionConfig): Promise<Map<string, MarketValueMover[]>> {
+async function fetchAllPeriods(dates: string[], cfg: DirectionConfig): Promise<Map<string, MarketValueMover[]>> {
   const results = await Promise.allSettled(
     dates.map((d) =>
       fetchWithRetry(buildUrl(d, cfg), buildReferer(d, cfg), cfg.label).then((html) => parsePeriodMovers(html, d))
@@ -181,10 +169,13 @@ async function fetchBatch(dates: string[], cfg: DirectionConfig): Promise<Map<st
   );
   const map = new Map<string, MarketValueMover[]>();
   results.forEach((r, i) => {
-    if (r.status === "fulfilled" && r.value.length > 0) {
+    if (r.status === "fulfilled") {
+      if (r.value.length === 0) {
+        console.warn(`[${cfg.label}] ${dates[i]}: fetched OK but parsed 0 players`);
+      }
       map.set(dates[i], r.value);
-    } else if (r.status === "rejected") {
-      console.warn(`[${cfg.label}] Failed to fetch ${dates[i]}: ${r.reason}`);
+    } else {
+      console.warn(`[${cfg.label}] ${dates[i]}: ${r.reason}`);
     }
   });
   return map;
@@ -192,41 +183,30 @@ async function fetchBatch(dates: string[], cfg: DirectionConfig): Promise<Map<st
 
 async function processDirection(direction: Direction): Promise<void> {
   const cfg = DIRECTION_CONFIG[direction];
-  console.log(`[${cfg.label}] Starting...`);
   const allDates = getPeriodDates();
-  const BATCH_SIZE = 6;
+  console.log(`[${cfg.label}] Fetching ${allDates.length} periods: ${allDates[0]} → ${allDates.at(-1)}`);
+
+  const periodResults = await fetchAllPeriods(allDates, cfg);
   const processedPeriods: { date: string; movers: MarketValueMover[] }[] = [];
   const moversByPlayer = new Map<string, MarketValueMover[]>();
 
-  for (let batchStart = 0; batchStart < allDates.length; batchStart += BATCH_SIZE) {
-    const batchDates = allDates.slice(batchStart, batchStart + BATCH_SIZE);
-    console.log(`[${cfg.label}] Fetching batch: ${batchDates.join(", ")}`);
-    const batchResults = await fetchBatch(batchDates, cfg);
+  for (const date of allDates) {
+    const allPlayers = periodResults.get(date);
+    if (!allPlayers || allPlayers.length === 0) continue;
+    const movers = selectPeriodMovers(allPlayers);
+    processedPeriods.push({ date, movers });
+    console.log(`[${cfg.label}] ${date}: ${allPlayers.length} players → ${movers.length} selected`);
 
-    for (const date of batchDates) {
-      const allPlayers = batchResults.get(date);
-      if (!allPlayers) continue;
-      const movers = selectPeriodMovers(allPlayers, direction);
-      processedPeriods.push({ date, movers });
-      console.log(`[${cfg.label}] ${date}: ${allPlayers.length} players → ${movers.length} selected`);
-
-      for (const mover of movers) {
-        const existing = moversByPlayer.get(mover.playerId) || [];
-        existing.push(mover);
-        moversByPlayer.set(mover.playerId, existing);
-      }
-    }
-
-    const repeats = [...moversByPlayer.values()].filter((a) => a.length >= 2);
-    if (repeats.length > 0) {
-      console.log(`[${cfg.label}] Found ${repeats.length} repeat(s) after ${processedPeriods.length} periods`);
-      await writeResult({ repeatMovers: repeats, periods: processedPeriods }, cfg);
-      return;
+    for (const mover of movers) {
+      const existing = moversByPlayer.get(mover.playerId) || [];
+      existing.push(mover);
+      moversByPlayer.set(mover.playerId, existing);
     }
   }
 
-  console.log(`[${cfg.label}] No repeats found across all periods`);
-  await writeResult({ repeatMovers: [], periods: processedPeriods }, cfg);
+  const repeats = [...moversByPlayer.values()].filter((a) => a.length >= 2);
+  console.log(`[${cfg.label}] ${repeats.length} repeat(s) across ${processedPeriods.length} periods`);
+  await writeResult({ repeatMovers: repeats, periods: processedPeriods }, cfg);
 }
 
 async function writeResult(result: MarketValueMoversResult, cfg: DirectionConfig) {
@@ -238,11 +218,10 @@ async function writeResult(result: MarketValueMoversResult, cfg: DirectionConfig
 }
 
 async function main() {
-  await processDirection("losers");
-  await processDirection("winners");
+  await Promise.all([processDirection("losers"), processDirection("winners")]);
   const tsPath = join(process.cwd(), "data", "biggest-movers-updated-at.txt");
   await writeFile(tsPath, new Date().toISOString());
-  console.log(`[biggest-movers] Wrote timestamp to ${tsPath}`);
+  console.log("[biggest-movers] Done");
 }
 
 main().catch((err) => {

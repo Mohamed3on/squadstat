@@ -213,7 +213,6 @@ export interface MarketValueMover {
   profileUrl: string;
   playerId: string;
   period: string;
-  reason: string;
 }
 
 export interface MarketValueMoversResult {
