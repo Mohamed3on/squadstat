@@ -468,7 +468,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
     return [...list].sort((a, b) => {
       let diff: number;
       switch (sortBy) {
-        case "mins": diff = getFormMinutes(b, formWindow) - getFormMinutes(a, formWindow); break;
+        case "mins": diff = b.minutes - a.minutes; break;
         case "games": diff = b.totalMatches - a.totalMatches; break;
         case "ga":
           diff = getFormGA(b, formWindow, includePen).total - getFormGA(a, formWindow, includePen).total;
@@ -510,7 +510,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
                 onValueChange={(value) => {
                   setIsFiltering(true);
                   if (!value) { update({ dir: sortAsc ? null : "asc" }); return; }
-                  update({ sort: value === "ga" ? null : value, dir: null });
+                  update({ sort: value === "ga" ? null : value, dir: null, ...(value !== "ga" && { fw: null }) });
                 }}
                 className="rounded-lg overflow-hidden border border-border-subtle"
               >
@@ -527,7 +527,7 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
-              {(sortBy === "ga" || sortBy === "mins") && (
+              {sortBy === "ga" && (
                 <ToggleGroup
                   type="single"
                   value={String(formWindow)}
