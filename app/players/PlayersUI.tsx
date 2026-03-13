@@ -90,7 +90,6 @@ function PlayerCard({ player, index, injuryMap, ctx }: { player: MinutesValuePla
   const isRecent = formWindow !== "season";
   const seasonGA = getFormGA(player, "season", includePen);
   const recentGA = isRecent ? getFormGA(player, formWindow, includePen) : null;
-  const penAdj = includePen ? 0 : penGoals;
   const injuryInfo = injuryMap?.[player.playerId];
   const benchmarkHref = `/value-analysis?${new URLSearchParams({ id: player.playerId, name: player.name })}`;
 
@@ -465,7 +464,6 @@ export function PlayersUI({ initialData: rawPlayers, injuryMap }: { initialData:
       const y = contractExpiryYear(p.contractExpiry);
       return y !== null && y <= contractYear;
     });
-    const penAdj = includePen ? 0 : 1;
     return [...list].sort((a, b) => {
       let diff: number;
       switch (sortBy) {
