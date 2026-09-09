@@ -1,161 +1,162 @@
-/* World Cup 2026 sim — styles scoped under .wc-root so they never touch the rest of the app. */
-.wc-root {
-  --wc-panel: #141d2b;
-  --wc-panel2: #0e1521;
-  --wc-line: rgba(125, 145, 170, 0.32);
-  --wc-txt: #e8eef6;
-  --wc-muted: #8a98ab;
-  --wc-win: #3fb950;
-  --wc-gold: #ffd24a;
-  --wc-over: #3fce6b;
-  --wc-under: #ff6b7a;
+/* Tournament bracket + tracker styling, scoped under .tourney so it never touches the
+   rest of the app. Shared by the World Cup pages and /leagues/champions-league. */
+.tourney {
+  --tny-panel: #141d2b;
+  --tny-panel2: #0e1521;
+  --tny-line: rgba(125, 145, 170, 0.32);
+  --tny-txt: #e8eef6;
+  --tny-muted: #8a98ab;
+  --tny-win: #3fb950;
+  --tny-gold: #ffd24a;
+  --tny-over: #3fce6b;
+  --tny-under: #ff6b7a;
 
-  color: var(--wc-txt);
+  color: var(--tny-txt);
   font-family:
     var(--font-geist-sans),
     system-ui,
     -apple-system,
     sans-serif;
 }
-.wc-root .wc-num,
-.wc-root .bv,
-.wc-root .n,
-.wc-root .pts,
-.wc-root .pos,
-.wc-root .mv-rank,
-.wc-root .mv-val,
-.wc-root .mv-pos,
-.wc-root .pmv,
-.wc-root .delta {
+.tourney .t-num,
+.tourney .bv,
+.tourney .n,
+.tourney .pts,
+.tourney .pos,
+.tourney .mv-rank,
+.tourney .mv-val,
+.tourney .mv-pos,
+.tourney .pmv,
+.tourney .delta {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
-.wc-root .flag {
+.tourney .flag {
   line-height: 1;
 }
 
 /* hero / podium */
-.wc-root .wc-hero {
+.tourney .t-hero {
   text-align: center;
   margin-bottom: 14px;
 }
-.wc-root .kicker {
+.tourney .kicker {
   letter-spacing: 0.34em;
   text-transform: uppercase;
   font-size: 12px;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   margin-bottom: 12px;
 }
-.wc-root .wc-title {
+.tourney .t-title {
   font-size: clamp(28px, 5vw, 50px);
   margin: 0 0 6px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--wc-txt);
+  color: var(--tny-txt);
 }
-.wc-root .rule {
-  color: var(--wc-muted);
+.tourney .rule {
+  color: var(--tny-muted);
   font-size: 15px;
   max-width: 560px;
   margin: 8px auto 0;
 }
-.wc-root .rule b {
-  color: var(--wc-gold);
+.tourney .rule b {
+  color: var(--tny-gold);
   font-weight: 600;
 }
 
-.wc-root .podiums {
+.tourney .podiums {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin: 26px 0 14px;
 }
-.wc-root .podium {
-  background: var(--wc-panel);
-  border: 1px solid var(--wc-line);
+.tourney .podium {
+  background: var(--tny-panel);
+  border: 1px solid var(--tny-line);
   border-radius: 18px;
   padding: 18px 12px;
   text-align: center;
 }
-.wc-root .podium.gold {
+.tourney .podium.gold {
   border-color: rgba(255, 210, 74, 0.5);
   background: linear-gradient(180deg, rgba(255, 210, 74, 0.12), transparent);
   box-shadow: 0 24px 60px -30px rgba(255, 210, 74, 0.5);
 }
-.wc-root .podium.silver {
+.tourney .podium.silver {
   border-color: rgba(205, 215, 225, 0.4);
 }
-.wc-root .podium.bronze {
+.tourney .podium.bronze {
   border-color: rgba(205, 139, 79, 0.45);
 }
-.wc-root .podium .medal {
+.tourney .podium .medal {
   font-size: 22px;
 }
-.wc-root .podium.iron .medal {
+.tourney .podium.iron .medal {
   font-size: 13px;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   width: 24px;
   height: 24px;
   line-height: 22px;
   margin: 0 auto;
-  border: 1px solid var(--wc-line);
+  border: 1px solid var(--tny-line);
   border-radius: 50%;
 }
-.wc-root .podium .pflag {
+.tourney .podium .pflag {
   font-size: 38px;
   margin: 4px 0 2px;
   line-height: 1;
 }
-.wc-root .podium .pname {
+.tourney .podium .pname {
   font-weight: 700;
   font-size: 15px;
 }
-.wc-root .podium .pword {
-  color: var(--wc-muted);
+.tourney .podium .pword {
+  color: var(--tny-muted);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin-top: 3px;
 }
-.wc-root .podium .pmv {
-  color: var(--wc-muted);
+.tourney .podium .pmv {
+  color: var(--tny-muted);
   font-size: 12px;
   margin-top: 6px;
 }
 
-.wc-root .section-title {
+.tourney .section-title {
   font-size: 13px;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   margin: 50px 0 4px;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--wc-line);
+  border-bottom: 1px solid var(--tny-line);
 }
-.wc-root .hint {
-  color: var(--wc-muted);
+.tourney .hint {
+  color: var(--tny-muted);
   font-size: 13px;
   margin: 0 0 4px;
 }
-.wc-root .hint b {
-  color: var(--wc-txt);
+.tourney .hint b {
+  color: var(--tny-txt);
   font-weight: 600;
 }
 /* bracket confirmed / projected key (live page) */
-.wc-root .bkey {
+.tourney .bkey {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 18px;
   margin: 8px 2px 2px;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   font-size: 12px;
 }
-.wc-root .bkey .item {
+.tourney .bkey .item {
   display: inline-flex;
   align-items: center;
   gap: 7px;
 }
-.wc-root .bkey .sw {
+.tourney .bkey .sw {
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -163,25 +164,25 @@
   width: 22px;
   height: 16px;
   border-radius: 5px;
-  border: 1px solid var(--wc-line);
-  background: var(--wc-panel);
+  border: 1px solid var(--tny-line);
+  background: var(--tny-panel);
   font-size: 10px;
   font-weight: 800;
 }
-.wc-root .bkey .sw.conf {
-  color: var(--wc-win);
+.tourney .bkey .sw.conf {
+  color: var(--tny-win);
   border-color: rgba(63, 185, 80, 0.4);
 }
-.wc-root .bkey .sw.proj {
+.tourney .bkey .sw.proj {
   border-style: dashed;
   border-color: rgba(255, 210, 74, 0.5);
 }
-.wc-root .bkey .sw.adv {
-  box-shadow: inset 2px 0 0 var(--wc-gold);
+.tourney .bkey .sw.adv {
+  box-shadow: inset 2px 0 0 var(--tny-gold);
 }
 
 /* bracket */
-.wc-root .wc-bracket-scroll {
+.tourney .t-scroll {
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -190,29 +191,29 @@
   justify-content: safe center;
   padding: 44px 20px 14px;
 }
-.wc-root .bracket {
+.tourney .bracket {
   position: relative;
   flex: 0 0 auto;
 }
-.wc-root .rlabel {
+.tourney .rlabel {
   position: absolute;
   top: 46px;
   text-align: center;
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   font-weight: 600;
 }
-.wc-root .lines {
+.tourney .lines {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
 }
-.wc-root .lines path {
+.tourney .lines path {
   fill: none;
-  stroke: var(--wc-line);
+  stroke: var(--tny-line);
   stroke-width: 1.6;
   transition:
     stroke 0.15s,
@@ -220,36 +221,36 @@
     stroke-width 0.15s;
 }
 
-.wc-root .bcard {
+.tourney .bcard {
   position: absolute;
   z-index: 1;
 }
-.wc-root .bt {
+.tourney .bt {
   display: flex;
   align-items: center;
   gap: 6px;
   height: 26px;
   padding: 0 8px;
   cursor: pointer;
-  border: 1px solid var(--wc-line);
-  background: var(--wc-panel);
+  border: 1px solid var(--tny-line);
+  background: var(--tny-panel);
   transition:
     opacity 0.15s,
     box-shadow 0.15s,
     background 0.15s;
 }
-.wc-root .bcard .bt:first-child {
+.tourney .bcard .bt:first-child {
   border-radius: 9px 9px 0 0;
   border-bottom: none;
 }
-.wc-root .bcard .bt:last-child {
+.tourney .bcard .bt:last-child {
   border-radius: 0 0 9px 9px;
 }
-.wc-root .bt .bf {
+.tourney .bt .bf {
   font-size: 14px;
   line-height: 1;
 }
-.wc-root .bt .bn {
+.tourney .bt .bn {
   flex: 1;
   font-size: 12px;
   font-weight: 600;
@@ -257,58 +258,58 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.wc-root .bt .bv {
+.tourney .bt .bv {
   font-size: 9.5px;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
 }
-.wc-root .bt.w {
+.tourney .bt.w {
   background: linear-gradient(90deg, rgba(63, 185, 80, 0.18), rgba(63, 185, 80, 0.03));
-  box-shadow: inset 2px 0 0 var(--wc-win);
+  box-shadow: inset 2px 0 0 var(--tny-win);
 }
-.wc-root .bt.w .bn {
+.tourney .bt.w .bn {
   color: #d7ffe0;
 }
-.wc-root .bt.l {
+.tourney .bt.l {
   opacity: 0.42;
 }
 
 /* live page (/wc-live): per-side confirmed vs value-projected slots */
-.wc-root .bt.conf {
+.tourney .bt.conf {
   border-color: rgba(63, 185, 80, 0.4);
 }
-.wc-root .bt.proj {
+.tourney .bt.proj {
   border-style: dashed;
   border-color: rgba(255, 210, 74, 0.4);
 }
 /* a value-projected winner is gold (predicted to advance), not the green of a real result */
-.wc-root .bt.wp {
+.tourney .bt.wp {
   background: linear-gradient(90deg, rgba(255, 210, 74, 0.16), transparent);
-  box-shadow: inset 2px 0 0 var(--wc-gold);
+  box-shadow: inset 2px 0 0 var(--tny-gold);
 }
-.wc-root .bt.wp .bn {
+.tourney .bt.wp .bn {
   color: #fff3cf;
 }
 /* ✓ on a side whose real team has qualified into the slot but not yet played */
-.wc-root .bt .bok {
-  color: var(--wc-win);
+.tourney .bt .bok {
+  color: var(--tny-win);
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
 }
 
-.wc-root .bcard.isfinal .bt {
+.tourney .bcard.isfinal .bt {
   height: 30px;
   border-color: rgba(255, 210, 74, 0.4);
 }
-.wc-root .bcard.isfinal .bt.w {
+.tourney .bcard.isfinal .bt.w {
   background: linear-gradient(90deg, rgba(255, 210, 74, 0.22), transparent);
-  box-shadow: inset 2px 0 0 var(--wc-gold);
+  box-shadow: inset 2px 0 0 var(--tny-gold);
 }
-.wc-root .bcard.isfinal .bt.w .bn {
+.tourney .bcard.isfinal .bt.w .bn {
   color: #fff3cf;
 }
 
-.wc-root .crown {
+.tourney .crown {
   position: absolute;
   width: 180px;
   text-align: center;
@@ -319,184 +320,184 @@
   justify-content: flex-end;
   align-items: center;
 }
-.wc-root .crown .ccup {
+.tourney .crown .ccup {
   font-size: 30px;
   filter: drop-shadow(0 6px 14px rgba(255, 210, 74, 0.5));
 }
-.wc-root .crown .cfl {
+.tourney .crown .cfl {
   font-size: 30px;
   line-height: 1;
   margin-top: -2px;
 }
-.wc-root .crown .cnm {
+.tourney .crown .cnm {
   font-weight: 800;
   font-size: 16px;
   margin-top: 2px;
 }
-.wc-root .crown .clb {
+.tourney .crown .clb {
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--wc-gold);
+  color: var(--tny-gold);
   margin-top: 2px;
 }
 
-.wc-root .tpp {
+.tourney .tpp {
   position: absolute;
   z-index: 2;
 }
-.wc-root .tpp .tplb {
+.tourney .tpp .tplb {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   text-align: center;
   margin-bottom: 6px;
 }
 
 /* hover / pin trace */
-.wc-root .bracket.lit .bt:not(.on) {
+.tourney .bracket.lit .bt:not(.on) {
   opacity: 0.14;
 }
-.wc-root .bracket.lit .bt.on {
+.tourney .bracket.lit .bt.on {
   opacity: 1;
 }
-.wc-root .bt.on {
+.tourney .bt.on {
   box-shadow:
-    inset 2px 0 0 var(--wc-gold),
+    inset 2px 0 0 var(--tny-gold),
     0 0 0 1px rgba(255, 210, 74, 0.7);
   background: linear-gradient(90deg, rgba(255, 210, 74, 0.16), rgba(255, 210, 74, 0.03));
 }
-.wc-root .bt.on .bn {
+.tourney .bt.on .bn {
   color: #fff3cf;
 }
-.wc-root .bracket.lit .lines path:not(.on) {
+.tourney .bracket.lit .lines path:not(.on) {
   opacity: 0.08;
 }
-.wc-root .lines path.on {
-  stroke: var(--wc-gold);
+.tourney .lines path.on {
+  stroke: var(--tny-gold);
   stroke-width: 3;
 }
 /* the tracked nation's full route — its own chips strong, each opponent softer.
    Scoped under .bracket.lit so it outranks the predicted / winner / loser chip styles. */
-.wc-root .bracket.lit .bcard.onroute .bt {
+.tourney .bracket.lit .bcard.onroute .bt {
   opacity: 1;
 }
-.wc-root .bracket.lit .bcard.onroute .bt.on {
+.tourney .bracket.lit .bcard.onroute .bt.on {
   box-shadow:
-    inset 2px 0 0 var(--wc-gold),
+    inset 2px 0 0 var(--tny-gold),
     0 0 0 1px rgba(255, 210, 74, 0.7);
   background: linear-gradient(90deg, rgba(255, 210, 74, 0.16), rgba(255, 210, 74, 0.03));
 }
-.wc-root .bracket.lit .bcard.onroute .bt.on .bn {
+.tourney .bracket.lit .bcard.onroute .bt.on .bn {
   color: #fff3cf;
 }
-.wc-root .bracket.lit .bcard.onroute .bt:not(.on) {
+.tourney .bracket.lit .bcard.onroute .bt:not(.on) {
   box-shadow:
     inset 2px 0 0 rgba(255, 210, 74, 0.4),
     0 0 0 1px rgba(255, 210, 74, 0.28);
   background: linear-gradient(90deg, rgba(255, 210, 74, 0.07), rgba(255, 210, 74, 0.01));
 }
-.wc-root .bracket.lit .bcard.onroute .bt:not(.on) .bn {
+.tourney .bracket.lit .bcard.onroute .bt:not(.on) .bn {
   color: #ffe9a8;
 }
 /* same nation highlighted everywhere it appears: groups, value tables, tracker */
-.wc-root .group-card tr.row.on {
+.tourney .group-card tr.row.on {
   opacity: 1;
 }
-.wc-root .group-card tr.row.on td {
+.tourney .group-card tr.row.on td {
   background: rgba(255, 210, 74, 0.12);
 }
-.wc-root .mv-table tr.on td {
+.tourney .mv-table tr.on td {
   background: rgba(255, 210, 74, 0.1);
 }
-.wc-root .trow.on {
+.tourney .trow.on {
   background: rgba(255, 210, 74, 0.1);
 }
 
 /* value-sorted placement table */
-.wc-root .mv-grid {
+.tourney .mv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr));
   gap: 4px 28px;
 }
-.wc-root .mv-table {
+.tourney .mv-table {
   width: 100%;
   border-collapse: collapse;
 }
-.wc-root .mv-table th {
+.tourney .mv-table th {
   text-align: left;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   padding: 8px 8px 6px;
   font-weight: 600;
 }
-.wc-root .mv-table th.r,
-.wc-root .mv-table td.r {
+.tourney .mv-table th.r,
+.tourney .mv-table td.r {
   text-align: right;
 }
-.wc-root .mv-table td {
+.tourney .mv-table td {
   padding: 7px 8px;
   border-top: 1px solid rgba(125, 145, 170, 0.14);
   font-size: 13px;
 }
-.wc-root .mv-table tr.row {
+.tourney .mv-table tr.row {
   cursor: pointer;
 }
-.wc-root .mv-table tr.row:hover td {
+.tourney .mv-table tr.row:hover td {
   background: rgba(125, 145, 170, 0.07);
 }
-.wc-root .mv-table tr.row.pinned td {
+.tourney .mv-table tr.row.pinned td {
   background: rgba(255, 210, 74, 0.09);
 }
-.wc-root .mv-table tr.row.pinned td:first-child {
-  box-shadow: inset 3px 0 0 var(--wc-gold);
+.tourney .mv-table tr.row.pinned td:first-child {
+  box-shadow: inset 3px 0 0 var(--tny-gold);
 }
-.wc-root .mv-rank {
-  color: var(--wc-muted);
+.tourney .mv-rank {
+  color: var(--tny-muted);
   width: 26px;
 }
-.wc-root .mv-team {
+.tourney .mv-team {
   font-weight: 600;
   white-space: nowrap;
 }
-.wc-root .mv-team .flag {
+.tourney .mv-team .flag {
   margin-right: 8px;
   font-size: 15px;
 }
 /* "view players" icon next to a nation name */
-.wc-root .nat-players {
+.tourney .nat-players {
   display: inline-flex;
   align-items: center;
   margin-left: 6px;
   padding: 2px;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   vertical-align: middle;
   transition: color 0.15s;
 }
-.wc-root .nat-players:hover {
-  color: var(--wc-gold);
+.tourney .nat-players:hover {
+  color: var(--tny-gold);
 }
 /* in flex rows (tracker / group cells) the parent gap already spaces it */
-.wc-root .trow .nat-players,
-.wc-root .group-card .tc .nat-players {
+.tourney .trow .nat-players,
+.tourney .group-card .tc .nat-players {
   margin-left: 0;
 }
-.wc-root .mv-val {
-  color: var(--wc-muted);
+.tourney .mv-val {
+  color: var(--tny-muted);
 }
-.wc-root .mv-pos {
-  color: var(--wc-txt);
+.tourney .mv-pos {
+  color: var(--tny-txt);
   font-weight: 600;
   width: 42px;
 }
-.wc-root td.mv-exp {
-  color: var(--wc-muted);
+.tourney td.mv-exp {
+  color: var(--tny-muted);
   white-space: nowrap;
 }
-.wc-root .pill {
+.tourney .pill {
   display: inline-block;
   padding: 1px 8px;
   border: 1px solid transparent;
@@ -505,42 +506,42 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.wc-root .p-champ {
+.tourney .p-champ {
   background: rgba(255, 210, 74, 0.18);
   color: #ffd24a;
 }
-.wc-root .p-runner {
+.tourney .p-runner {
   background: rgba(205, 215, 225, 0.16);
   color: #d6e0ea;
 }
-.wc-root .p-third {
+.tourney .p-third {
   background: rgba(205, 139, 79, 0.2);
   color: #e0a06a;
 }
-.wc-root .p-fourth {
+.tourney .p-fourth {
   background: rgba(205, 139, 79, 0.12);
   color: #c79873;
 }
-.wc-root .p-qf {
+.tourney .p-qf {
   background: rgba(63, 185, 80, 0.16);
   color: #5fd07a;
 }
-.wc-root .p-r16 {
+.tourney .p-r16 {
   background: rgba(63, 185, 140, 0.14);
   color: #54c69a;
 }
-.wc-root .p-r32 {
+.tourney .p-r32 {
   background: rgba(91, 112, 137, 0.2);
   color: #9fb1c6;
 }
-.wc-root .p-group {
+.tourney .p-group {
   background: rgba(125, 135, 150, 0.12);
   color: #8696a8;
 }
 /* certainty: a round already reached reads solid (filled); a value projection is a
    dashed, ghosted outline in the same stage colour — mirroring the bracket's confirmed
    vs projected language. `.real` keeps the filled `.p-*` background as-is. */
-.wc-root .pill.proj {
+.tourney .pill.proj {
   background: transparent;
   border-color: currentColor;
   border-style: dashed;
@@ -548,135 +549,135 @@
 }
 
 /* over / under achievement vs market value */
-.wc-root .delta {
+.tourney .delta {
   font-weight: 700;
   font-size: 12px;
   white-space: nowrap;
 }
-.wc-root .delta.over {
-  color: var(--wc-over);
+.tourney .delta.over {
+  color: var(--tny-over);
 }
-.wc-root .delta.under {
-  color: var(--wc-under);
+.tourney .delta.under {
+  color: var(--tny-under);
 }
-.wc-root .delta.met {
-  color: var(--wc-muted);
+.tourney .delta.met {
+  color: var(--tny-muted);
 }
 /* a still-projected verdict gets a dashed underline; a decided one stays solid */
-.wc-root .delta.proj {
+.tourney .delta.proj {
   border-bottom: 1px dashed currentColor;
   padding-bottom: 1px;
   opacity: 0.85;
 }
 /* same language in the over/under tracker: projected round dashed, decided round solid */
-.wc-root .trow .tround.proj {
+.tourney .trow .tround.proj {
   border-bottom: 1px dashed currentColor;
   opacity: 0.85;
 }
 
 /* value-table certainty key: real reached pills sit inline with their description */
-.wc-root .mv-key {
+.tourney .mv-key {
   margin: 6px 2px 12px;
 }
 
 /* groups */
-.wc-root .groups {
+.tourney .groups {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
   gap: 14px;
 }
-.wc-root .group-card {
-  background: var(--wc-panel);
-  border: 1px solid var(--wc-line);
+.tourney .group-card {
+  background: var(--tny-panel);
+  border: 1px solid var(--tny-line);
   border-radius: 14px;
   overflow: hidden;
 }
-.wc-root .ghead {
+.tourney .ghead {
   padding: 10px 14px;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  background: var(--wc-panel2);
-  border-bottom: 1px solid var(--wc-line);
-  color: var(--wc-muted);
+  background: var(--tny-panel2);
+  border-bottom: 1px solid var(--tny-line);
+  color: var(--tny-muted);
 }
-.wc-root .group-card table {
+.tourney .group-card table {
   width: 100%;
   border-collapse: collapse;
 }
-.wc-root .group-card th {
+.tourney .group-card th {
   text-align: right;
   font-size: 10px;
   font-weight: 600;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   padding: 8px 10px 6px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.wc-root .group-card th:nth-child(2) {
+.tourney .group-card th:nth-child(2) {
   text-align: left;
 }
-.wc-root .group-card td {
+.tourney .group-card td {
   padding: 8px 10px;
   border-top: 1px solid rgba(125, 145, 170, 0.16);
   font-size: 13.5px;
 }
-.wc-root .group-card tr.row {
+.tourney .group-card tr.row {
   cursor: pointer;
 }
-.wc-root .group-card tr.row:hover td {
+.tourney .group-card tr.row:hover td {
   background: rgba(125, 145, 170, 0.07);
 }
-.wc-root .group-card .pos {
-  color: var(--wc-muted);
+.tourney .group-card .pos {
+  color: var(--tny-muted);
   width: 22px;
 }
-.wc-root .group-card .tc {
+.tourney .group-card .tc {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
 }
-.wc-root .group-card .tc .flag {
+.tourney .group-card .tc .flag {
   font-size: 15px;
 }
-.wc-root .group-card .n {
+.tourney .group-card .n {
   text-align: right;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   width: 30px;
 }
-.wc-root .group-card .pts {
-  color: var(--wc-txt);
+.tourney .group-card .pts {
+  color: var(--tny-txt);
   font-weight: 700;
 }
-.wc-root .group-card tr.q {
-  box-shadow: inset 3px 0 0 var(--wc-win);
+.tourney .group-card tr.q {
+  box-shadow: inset 3px 0 0 var(--tny-win);
 }
-.wc-root .group-card tr.q .pos {
-  color: var(--wc-win);
+.tourney .group-card tr.q .pos {
+  color: var(--tny-win);
   font-weight: 700;
 }
-.wc-root .group-card tr.q3 {
-  box-shadow: inset 3px 0 0 var(--wc-gold);
+.tourney .group-card tr.q3 {
+  box-shadow: inset 3px 0 0 var(--tny-gold);
 }
-.wc-root .group-card tr.q3 .pos {
-  color: var(--wc-gold);
+.tourney .group-card tr.q3 .pos {
+  color: var(--tny-gold);
   font-weight: 700;
 }
-.wc-root .group-card tr.ko {
+.tourney .group-card tr.ko {
   opacity: 0.5;
 }
 
-.wc-root .legend {
+.tourney .legend {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
   margin: 14px 2px 0;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   font-size: 12px;
 }
-.wc-root .legend i {
+.tourney .legend i {
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -684,74 +685,74 @@
   margin-right: 6px;
   vertical-align: middle;
 }
-.wc-root .wc-foot {
+.tourney .t-foot {
   text-align: center;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   font-size: 12px;
   margin-top: 54px;
 }
 
 /* ---- /wc-live additions ---- */
-.wc-root .wc-link {
-  color: var(--wc-gold);
+.tourney .t-link {
+  color: var(--tny-gold);
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
 }
-.wc-root .wc-link:hover {
+.tourney .t-link:hover {
   text-decoration: underline;
 }
-.wc-root .wc-clear {
-  color: var(--wc-gold);
+.tourney .t-clear {
+  color: var(--tny-gold);
   font-weight: 600;
 }
-.wc-root .wc-banner {
+.tourney .t-banner {
   margin: 18px 0 6px;
   padding: 12px 16px;
-  border: 1px solid var(--wc-line);
+  border: 1px solid var(--tny-line);
   border-radius: 12px;
-  background: var(--wc-panel2);
-  color: var(--wc-muted);
+  background: var(--tny-panel2);
+  color: var(--tny-muted);
   font-size: 13.5px;
   line-height: 1.5;
 }
-.wc-root .wc-banner b {
-  color: var(--wc-txt);
+.tourney .t-banner b {
+  color: var(--tny-txt);
   font-weight: 600;
 }
-.wc-root .wc-banner.live {
+.tourney .t-banner.live {
   border-color: rgba(255, 107, 122, 0.4);
   background: linear-gradient(90deg, rgba(255, 107, 122, 0.1), transparent);
-  color: var(--wc-txt);
+  color: var(--tny-txt);
 }
 
 /* over/under tracker */
-.wc-root .tracker {
+.tourney .tracker {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 14px 28px;
 }
-.wc-root .track-col {
-  border: 1px solid var(--wc-line);
+.tourney .track-col {
+  border: 1px solid var(--tny-line);
   border-radius: 12px;
   overflow: hidden;
 }
-.wc-root .track-head {
+.tourney .track-head {
   padding: 9px 14px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: var(--wc-panel2);
-  border-bottom: 1px solid var(--wc-line);
+  background: var(--tny-panel2);
+  border-bottom: 1px solid var(--tny-line);
 }
-.wc-root .track-head.over {
-  color: var(--wc-over);
+.tourney .track-head.over {
+  color: var(--tny-over);
 }
-.wc-root .track-head.under {
-  color: var(--wc-under);
+.tourney .track-head.under {
+  color: var(--tny-under);
 }
-.wc-root .trow {
+.tourney .trow {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -759,146 +760,146 @@
   border-top: 1px solid rgba(125, 145, 170, 0.12);
   cursor: pointer;
 }
-.wc-root .trow-top {
+.tourney .trow-top {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.wc-root .trow .tmgr {
+.tourney .trow .tmgr {
   font-size: 12px;
 }
-.wc-root .track-col .trow:first-of-type {
+.tourney .track-col .trow:first-of-type {
   border-top: none;
 }
-.wc-root .trow:hover {
+.tourney .trow:hover {
   background: rgba(125, 145, 170, 0.07);
 }
-.wc-root .trow .flag {
+.tourney .trow .flag {
   font-size: 16px;
 }
-.wc-root .trow .tn {
+.tourney .trow .tn {
   font-weight: 600;
   font-size: 13.5px;
   white-space: nowrap;
 }
-.wc-root .trow .ts {
+.tourney .trow .ts {
   flex: 1;
   font-size: 12px;
-  color: var(--wc-txt);
+  color: var(--tny-txt);
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.wc-root .trow .tmut {
-  color: var(--wc-muted);
+.tourney .trow .tmut {
+  color: var(--tny-muted);
 }
-.wc-root .track-empty {
+.tourney .track-empty {
   padding: 16px 14px;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   font-size: 13px;
 }
 
 /* predicted (not-yet-real) styling on the live page */
-.wc-root .crown.pred {
+.tourney .crown.pred {
   opacity: 0.6;
 }
-.wc-root .group-card.predcard {
+.tourney .group-card.predcard {
   opacity: 0.72;
 }
-.wc-root .ghead .glive {
-  color: var(--wc-under);
+.tourney .ghead .glive {
+  color: var(--tny-under);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
 
 /* third-placed qualification race (live page) */
-.wc-root .third-race {
-  border: 1px solid var(--wc-line);
+.tourney .third-race {
+  border: 1px solid var(--tny-line);
   border-radius: 14px;
   overflow: hidden;
   margin-top: 8px;
 }
-.wc-root .third-race table {
+.tourney .third-race table {
   width: 100%;
   border-collapse: collapse;
 }
-.wc-root .third-race th {
+.tourney .third-race th {
   text-align: right;
   font-size: 10px;
   font-weight: 600;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   padding: 9px 12px 7px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: var(--wc-panel2);
+  background: var(--tny-panel2);
 }
-.wc-root .third-race th:first-child {
+.tourney .third-race th:first-child {
   text-align: left;
   width: 30px;
 }
-.wc-root .third-race th:nth-child(2) {
+.tourney .third-race th:nth-child(2) {
   text-align: left;
 }
-.wc-root .third-race th:nth-child(3) {
+.tourney .third-race th:nth-child(3) {
   text-align: center;
 }
-.wc-root .third-race td {
+.tourney .third-race td {
   padding: 9px 12px;
   border-top: 1px solid rgba(125, 145, 170, 0.16);
   font-size: 13.5px;
 }
-.wc-root .third-race td.r {
+.tourney .third-race td.r {
   text-align: right;
 }
-.wc-root .third-race tr.row.pin {
+.tourney .third-race tr.row.pin {
   cursor: pointer;
 }
-.wc-root .third-race tr.row:hover td {
+.tourney .third-race tr.row:hover td {
   background: rgba(125, 145, 170, 0.07);
 }
-.wc-root .third-race .pos {
-  color: var(--wc-muted);
+.tourney .third-race .pos {
+  color: var(--tny-muted);
   width: 30px;
 }
-.wc-root .third-race .tc {
+.tourney .third-race .tc {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
 }
-.wc-root .third-race .tc .flag {
+.tourney .third-race .tc .flag {
   font-size: 15px;
 }
-.wc-root .third-race .grp {
-  color: var(--wc-muted);
+.tourney .third-race .grp {
+  color: var(--tny-muted);
   text-align: center;
   width: 38px;
 }
-.wc-root .third-race .n {
+.tourney .third-race .n {
   text-align: right;
-  color: var(--wc-muted);
+  color: var(--tny-muted);
   width: 40px;
 }
-.wc-root .third-race .pts {
-  color: var(--wc-txt);
+.tourney .third-race .pts {
+  color: var(--tny-txt);
   font-weight: 700;
 }
-.wc-root .third-race tr.in {
-  box-shadow: inset 3px 0 0 var(--wc-gold);
+.tourney .third-race tr.in {
+  box-shadow: inset 3px 0 0 var(--tny-gold);
 }
-.wc-root .third-race tr.in .pos {
-  color: var(--wc-gold);
+.tourney .third-race tr.in .pos {
+  color: var(--tny-gold);
   font-weight: 700;
 }
-.wc-root .third-race tr.out {
+.tourney .third-race tr.out {
   opacity: 0.5;
 }
-.wc-root .third-race tr.row.on td {
+.tourney .third-race tr.row.on td {
   background: rgba(255, 210, 74, 0.12);
 }
-.wc-root .third-race .tag {
+.tourney .third-race .tag {
   display: inline-block;
   padding: 2px 9px;
   border-radius: 999px;
@@ -907,65 +908,65 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.wc-root .third-race .tag.in {
+.tourney .third-race .tag.in {
   background: rgba(255, 210, 74, 0.18);
-  color: var(--wc-gold);
+  color: var(--tny-gold);
 }
-.wc-root .third-race .tag.out {
+.tourney .third-race .tag.out {
   background: rgba(125, 135, 150, 0.14);
-  color: var(--wc-muted);
+  color: var(--tny-muted);
 }
-.wc-root .third-race tr.cutline td {
+.tourney tr.cutline td {
   text-align: center;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--wc-gold);
+  color: var(--tny-gold);
   background: rgba(255, 210, 74, 0.06);
   padding: 6px 12px;
   border-top: 1px solid rgba(255, 210, 74, 0.3);
 }
 /* on small screens, drop the played/GD/GF columns to keep the table inside the viewport */
 @media (max-width: 640px) {
-  .wc-root .third-race th:nth-child(4),
-  .wc-root .third-race td:nth-child(4),
-  .wc-root .third-race th:nth-child(5),
-  .wc-root .third-race td:nth-child(5),
-  .wc-root .third-race th:nth-child(6),
-  .wc-root .third-race td:nth-child(6) {
+  .tourney .third-race th:nth-child(4),
+  .tourney .third-race td:nth-child(4),
+  .tourney .third-race th:nth-child(5),
+  .tourney .third-race td:nth-child(5),
+  .tourney .third-race th:nth-child(6),
+  .tourney .third-race td:nth-child(6) {
     display: none;
   }
 }
 
 /* mobile: keep the value tables inside the viewport */
 @media (max-width: 640px) {
-  .wc-root .mv-exp {
+  .tourney .mv-exp {
     display: none;
   }
-  .wc-root .mv-team {
+  .tourney .mv-team {
     white-space: normal;
   }
-  .wc-root .mv-table th,
-  .wc-root .mv-table td {
+  .tourney .mv-table th,
+  .tourney .mv-table td {
     padding-left: 6px;
     padding-right: 6px;
   }
 }
 
 /* top scorers (live page): reuses .mv-table, adds a sort/penalty control bar */
-.wc-root .scorer-controls {
+.tourney .scorer-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin: 12px 0 6px;
 }
-.wc-root .sbtn {
+.tourney .sbtn {
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid var(--wc-line);
-  background: var(--wc-panel);
-  color: var(--wc-muted);
+  border: 1px solid var(--tny-line);
+  background: var(--tny-panel);
+  color: var(--tny-muted);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -974,24 +975,24 @@
     background 0.15s,
     border-color 0.15s;
 }
-.wc-root .sbtn:hover {
-  color: var(--wc-txt);
+.tourney .sbtn:hover {
+  color: var(--tny-txt);
 }
-.wc-root .sbtn.on {
-  color: var(--wc-panel2);
-  background: var(--wc-gold);
-  border-color: var(--wc-gold);
+.tourney .sbtn.on {
+  color: var(--tny-panel2);
+  background: var(--tny-gold);
+  border-color: var(--tny-gold);
 }
-.wc-root .pen-toggle {
+.tourney .pen-toggle {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid var(--wc-line);
-  background: var(--wc-panel);
-  color: var(--wc-muted);
+  border: 1px solid var(--tny-line);
+  background: var(--tny-panel);
+  color: var(--tny-muted);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -999,63 +1000,108 @@
     color 0.15s,
     border-color 0.15s;
 }
-.wc-root .pen-toggle.on {
-  color: var(--wc-txt);
+.tourney .pen-toggle.on {
+  color: var(--tny-txt);
   border-color: rgba(255, 210, 74, 0.5);
 }
-.wc-root .pen-toggle .dot {
+.tourney .pen-toggle .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--wc-line);
+  background: var(--tny-line);
   transition: background 0.15s;
 }
-.wc-root .pen-toggle.on .dot {
-  background: var(--wc-gold);
+.tourney .pen-toggle.on .dot {
+  background: var(--tny-gold);
 }
-.wc-root .scorer-table th.on {
-  color: var(--wc-gold);
+.tourney .scorer-table th.on {
+  color: var(--tny-gold);
 }
-.wc-root .scorer-table td.r {
+.tourney .scorer-table td.r {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
-.wc-root .scorer-table .sc-player {
+.tourney .scorer-table .sc-player {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
-.wc-root .scorer-table .sc-av {
+.tourney .scorer-table .sc-av {
   width: 26px;
   height: 26px;
   border-radius: 7px;
   flex: none;
 }
-.wc-root .scorer-table .sc-name {
-  color: var(--wc-txt);
+.tourney .scorer-table .sc-name {
+  color: var(--tny-txt);
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
 }
-.wc-root .scorer-table .sc-name:hover {
-  color: var(--wc-gold);
+.tourney .scorer-table .sc-name:hover {
+  color: var(--tny-gold);
 }
-.wc-root .scorer-table .sc-club {
+.tourney .scorer-table .sc-club {
   width: 15px;
   height: 15px;
   object-fit: contain;
   flex: none;
   opacity: 0.9;
 }
-.wc-root .scorer-table td.sc-pts {
-  color: var(--wc-gold);
+.tourney .scorer-table td.sc-pts {
+  color: var(--tny-gold);
   font-weight: 700;
 }
-.wc-root .scorer-table td.sc-min {
-  color: var(--wc-muted);
+.tourney .scorer-table td.sc-min {
+  color: var(--tny-muted);
 }
 @media (max-width: 640px) {
-  .wc-root .scorer-table .sc-col {
+  .tourney .scorer-table .sc-col {
     display: none;
   }
+}
+
+/* ---- /leagues/champions-league additions ---- */
+
+/* Club crests stand in for the World Cup's flag emoji, in bracket cards and rows.
+   inline-block because Tailwind's preflight makes every img a block, which would
+   drop the club name onto its own line. */
+.tourney .crest {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  flex: none;
+}
+.tourney .mv-team .crest {
+  margin-right: 8px;
+  vertical-align: -3px;
+}
+
+/* The club column absorbs the slack so the numbers stay in a tight right-hand
+   block instead of drifting apart across a full-width table. */
+.tourney .mv-table td.mv-team,
+.tourney .mv-table th:nth-child(2) {
+  width: 100%;
+}
+
+/* The league phase's three bands, striped down the position column. */
+.tourney .mv-table tr.z-r16 td:first-child {
+  box-shadow: inset 3px 0 0 var(--tny-win);
+}
+.tourney .mv-table tr.z-po td:first-child {
+  box-shadow: inset 3px 0 0 var(--tny-gold);
+}
+.tourney .mv-table tr.z-out td {
+  opacity: 0.62;
+}
+
+/* A tie that has not been drawn yet: both sides are a market-value guess. */
+.tourney .bcard.proj .bt {
+  border-style: dashed;
+}
+.tourney .seedno {
+  color: var(--tny-muted);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
 }

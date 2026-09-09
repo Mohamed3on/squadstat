@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Menu, HelpCircle, ChevronDown } from "lucide-react";
 import { PlayerSearch } from "./PlayerSearch";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
+import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 
 const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = {
   "/form": { tags: ["form-analysis", "manager"] },
@@ -29,6 +30,7 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/squad-values": { workflow: true },
   "/fee-vs-value": { tags: ["top-transfers"] },
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
+  "/leagues/champions-league": { tags: ["cl-values", "cl-results"] },
 };
 
 async function refreshPage(pathname: string) {
@@ -125,12 +127,23 @@ const mobileNavItems = navItems.flatMap((i): NavLink[] =>
   "children" in i ? [...i.children] : [{ href: i.href, label: i.label }],
 );
 
-const LEAGUE_NAV = LEAGUES.map((l) => ({
-  slug: l.slug,
-  name: l.name,
-  href: `/leagues/${l.slug}`,
-  logoUrl: getLeagueLogoUrl(l.name),
-}));
+// The Champions League rides in the same strip but stays out of lib/leagues.ts:
+// LEAGUES drives the player pool, the colour maps and /leagues/[slug], none of
+// which a cross-border cup belongs to. Its page is its own static segment.
+const LEAGUE_NAV = [
+  ...LEAGUES.map((l) => ({
+    slug: l.slug,
+    name: l.name,
+    href: `/leagues/${l.slug}`,
+    logoUrl: getLeagueLogoUrl(l.name),
+  })),
+  {
+    slug: "champions-league",
+    name: "Champions League",
+    href: "/leagues/champions-league",
+    logoUrl: leagueLogoUrl("CL"),
+  },
+];
 
 type LeagueNavItem = (typeof LEAGUE_NAV)[number];
 

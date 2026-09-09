@@ -13,7 +13,7 @@ import { TeamCell } from "../wc/TeamCell";
 import { PlayersLink } from "../wc/PlayersLink";
 import { WcScorers } from "./WcScorers";
 import { ManagerSection } from "../components/ManagerPPGBadge";
-import "../wc/wc.css";
+import "@/app/components/tournament.css";
 
 // `decided` (value table only): a settled result reads solid, a projection reads dashed.
 function groupDelta(delta: number | null, decided?: boolean) {
@@ -232,27 +232,27 @@ export function WcLive({
   };
 
   return (
-    <div className="wc-root" onClick={onCanvasClick}>
-      <header className="wc-hero">
+    <div className="tourney" onClick={onCanvasClick}>
+      <header className="t-hero">
         <div className="kicker">FIFA World Cup 2026 · Final results vs the value model</div>
-        <h1 className="wc-title">Expectations vs Reality</h1>
+        <h1 className="t-title">Expectations vs Reality</h1>
         <p className="rule">
           The market-value prediction, overwritten by the real results. <b>vs Exp</b> tracks who
           beat or fell short of the round their squad value seeded them into.{" "}
-          <Link href="/wc-schedule" className="wc-link">
+          <Link href="/wc-schedule" className="t-link">
             See the full schedule →
           </Link>
         </p>
       </header>
 
       {!started ? (
-        <div className="wc-banner">
+        <div className="t-banner">
           ⏳ The tournament kicks off <b>Thursday 11 June 2026</b>. Until then this mirrors the
           value prediction below — it fills in with real results as matches are played (refreshed
           every hour).
         </div>
       ) : (
-        <div className="wc-banner">
+        <div className="t-banner">
           🏁 Full time · <b>{overRows.length}</b> teams finished ahead of their value seeding,{" "}
           <b>{underRows.length}</b> behind.
         </div>
@@ -323,7 +323,7 @@ export function WcLive({
         {pinned && (
           <>
             {" "}
-            <span className="wc-clear">Pinned {pinned}</span> — click empty space to reset.
+            <span className="t-clear">Pinned {pinned}</span> — click empty space to reset.
           </>
         )}
       </p>
@@ -332,7 +332,7 @@ export function WcLive({
           <span className="sw conf">✓</span> Confirmed — qualified into the slot
         </span>
       </div>
-      <div ref={scrollRef} className="full-bleed wc-bracket-scroll" style={{ scrollMarginTop: 72 }}>
+      <div ref={scrollRef} className="full-bleed t-scroll" style={{ scrollMarginTop: 72 }}>
         <div
           className={clsx("bracket", activeInBracket && "lit")}
           style={{ width: bracket.width, height: bracket.height }}
@@ -409,11 +409,11 @@ export function WcLive({
       </div>
       <div className="legend">
         <span>
-          <i style={{ background: "var(--wc-win)" }} />
+          <i style={{ background: "var(--tny-win)" }} />
           Qualifying (top 2)
         </span>
         <span>
-          <i style={{ background: "var(--wc-gold)" }} />
+          <i style={{ background: "var(--tny-gold)" }} />
           Best third-placed
         </span>
       </div>
@@ -486,7 +486,7 @@ export function WcLive({
         </table>
       </div>
 
-      <div className="wc-foot">
+      <div className="t-foot">
         Final results from Transfermarkt · value seeding from squad market values · refreshed daily.
       </div>
     </div>

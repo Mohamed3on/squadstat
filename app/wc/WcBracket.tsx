@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { fmt, fmtS } from "@/lib/wc/format";
 import type { Card, RankRow, TeamLite, WcModel } from "@/lib/wc/model";
 import { TeamCell } from "./TeamCell";
-import "./wc.css";
+import "@/app/components/tournament.css";
 
 export function WcBracket({
   model,
@@ -85,10 +85,10 @@ export function WcBracket({
   const info = hovered ? model.info[hovered] : null;
 
   return (
-    <div className="wc-root" onMouseMove={onMove} onClick={onCanvasClick}>
-      <header className="wc-hero">
+    <div className="tourney" onMouseMove={onMove} onClick={onCanvasClick}>
+      <header className="t-hero">
         <div className="kicker">FIFA World Cup 2026 · USA · Canada · Mexico</div>
-        <h1 className="wc-title">The Market-Value World Cup</h1>
+        <h1 className="t-title">The Market-Value World Cup</h1>
         <p className="rule">
           A fully deterministic run where, in every single match,{" "}
           <b>the higher squad market value always wins</b> — no draws, no upsets.
@@ -114,13 +114,13 @@ export function WcBracket({
         {pinned && (
           <>
             {" "}
-            <span style={{ color: "var(--wc-gold)", fontWeight: 600 }}>Pinned {pinned}</span> —
+            <span style={{ color: "var(--tny-gold)", fontWeight: 600 }}>Pinned {pinned}</span> —
             click empty space to reset.
           </>
         )}
       </p>
 
-      <div ref={scrollRef} className="full-bleed wc-bracket-scroll" style={{ scrollMarginTop: 72 }}>
+      <div ref={scrollRef} className="full-bleed t-scroll" style={{ scrollMarginTop: 72 }}>
         <div
           className={clsx("bracket", active && "lit")}
           style={{ width: bracket.width, height: bracket.height }}
@@ -218,16 +218,16 @@ export function WcBracket({
       </div>
       <div className="legend">
         <span>
-          <i style={{ background: "var(--wc-win)" }} />
+          <i style={{ background: "var(--tny-win)" }} />
           Qualified (top 2)
         </span>
         <span>
-          <i style={{ background: "var(--wc-gold)" }} />
+          <i style={{ background: "var(--tny-gold)" }} />
           Qualified as one of 8 best third-placed teams
         </span>
       </div>
 
-      <div className="wc-foot">
+      <div className="t-foot">
         Built from Transfermarkt squad market values · higher value wins every match.
       </div>
 
