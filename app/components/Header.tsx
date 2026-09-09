@@ -97,20 +97,17 @@ function SpinnerIcon({ className }: { className?: string }) {
 const navItems = [
   { href: "/", label: "Home", desktopHidden: true },
   { href: "/form", label: "Recent Form" },
-  // Grouped for the same reason as Transfers below: both read a club's squad in
-  // market value, and an eighth top-level entry overflows the bar into the logo
-  // at the xl breakpoint, which is exactly where the bar first appears.
-  {
-    label: "Squads",
-    children: [
-      { href: "/squad-values", label: "Most Valuable" },
-      { href: "/expected-position", label: "Value vs Table" },
-    ],
-  },
+  { href: "/squad-values", label: "Squad Values" },
+  { href: "/expected-position", label: "Value vs Table" },
   { href: "/players", label: "Players" },
   { href: "/value-analysis", label: "Over/Under" },
   { href: "/injured", label: "Injury Impact" },
   { href: "/biggest-movers", label: "Biggest Movers" },
+  // Grouped, not top-level: both read the transfer window in money, and the bar
+  // has no room for two more. Measured at the xl breakpoint, where it first
+  // appears: these eight leave 8px either side of the nav with the refresh
+  // button in its wider "Refreshing Data…" state. Anything added here has to be
+  // measured at 1280px before it goes top-level.
   {
     label: "Transfers",
     children: [
