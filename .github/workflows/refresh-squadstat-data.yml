@@ -195,3 +195,32 @@ jobs:
       - name: Commit and push
         run: |
           bash scripts/ci-push.sh "chore: refresh transfer-balance data" $(bun run scripts/outputs.ts transfer-balance)
+
+  # Squad values move on any market-value update or completed transfer, so this
+  # rides the plain 3-hourly tick rather than a gate. The script writes nothing
+  # when the hundred come back identical, so an unchanged run leaves no commit
+  # and triggers no deploy.
+  refresh-squad-values:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bash scripts/ci-install.sh
+
+      - name: Run refresh script
+        env:
+          TM_RELAY_URL: ${{ secrets.TM_RELAY_URL }}
+          TM_RELAY_SECRET: ${{ secrets.TM_RELAY_SECRET }}
+        run: bun run scripts/refresh-squad-values.ts
+
+      - name: Commit and push
+        run: |
+          bash scripts/ci-push.sh "chore: refresh squad-values data" $(bun run scripts/outputs.ts squad-values)

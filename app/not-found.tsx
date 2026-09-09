@@ -10,6 +10,7 @@ const PAGES = [
   { title: "Injury Impact", href: "/injured" },
   { title: "Biggest Movers", href: "/biggest-movers" },
   { title: "Club Transfers", href: "/club-transfers" },
+  { title: "Most Valuable Squads", href: "/squad-values" },
 ];
 
 export default function NotFound() {

@@ -26,6 +26,7 @@ import { DetailDeck } from "@/components/DetailDeck";
 import { HeroMetric } from "@/components/HeroMetric";
 import { SectionPanel } from "@/components/SectionPanel";
 import { ClubWindowBadges } from "./ClubWindowBadges";
+import { SquadValueBadge } from "./SquadValueBadge";
 import { SquadTab } from "./SquadTab";
 import { TransfersTab } from "./TransfersTab";
 import { ManagerClient } from "./TeamDeferredData";
@@ -312,9 +313,12 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
                   Form leader
                 </Badge>
               )}
-              {/* What the summer came to, and any club table this club heads.
-                  Streamed: the crest and the name should not wait on a transfer
-                  scrape. */}
+              {/* Where the squad ranks among the world's most valuable, what the
+                  summer came to, and any club table this club heads. Streamed:
+                  the crest and the name should not wait on a transfer scrape. */}
+              <Suspense>
+                <SquadValueBadge clubId={clubId} />
+              </Suspense>
               <Suspense>
                 <ClubWindowBadges clubId={clubId} />
               </Suspense>
@@ -379,9 +383,12 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
           )}
           {teamForm && (
             <HeroMetric
-              label="Avg. squad value"
+              // Transfermarkt's ø market value, and a rank over that same
+              // column: 12th here is 12th per player, not 12th by the squad's
+              // total (Brighton is 8th on the total and 12th per head).
+              label="Value per player"
               value={teamForm.marketValue}
-              subline={`${ordinal(teamForm.marketValueRank)} by squad value`}
+              subline={`${ordinal(teamForm.marketValueRank)} highest in ${league}`}
               accentClass="text-accent-gold"
             />
           )}

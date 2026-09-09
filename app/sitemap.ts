@@ -13,6 +13,7 @@ const CORE_ROUTES = [
   "/value-analysis",
   "/injured",
   "/biggest-movers",
+  "/squad-values",
   "/fee-vs-value",
   "/club-transfers",
   "/wc-live",

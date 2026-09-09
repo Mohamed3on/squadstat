@@ -26,6 +26,7 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/players": { workflow: true },
   "/value-analysis": { workflow: true },
   "/biggest-movers": { workflow: true },
+  "/squad-values": { workflow: true },
   "/fee-vs-value": { tags: ["top-transfers"] },
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
 };
@@ -96,14 +97,20 @@ function SpinnerIcon({ className }: { className?: string }) {
 const navItems = [
   { href: "/", label: "Home", desktopHidden: true },
   { href: "/form", label: "Recent Form" },
-  { href: "/expected-position", label: "Value vs Table" },
+  // Grouped for the same reason as Transfers below: both read a club's squad in
+  // market value, and an eighth top-level entry overflows the bar into the logo
+  // at the xl breakpoint, which is exactly where the bar first appears.
+  {
+    label: "Squads",
+    children: [
+      { href: "/squad-values", label: "Most Valuable" },
+      { href: "/expected-position", label: "Value vs Table" },
+    ],
+  },
   { href: "/players", label: "Players" },
   { href: "/value-analysis", label: "Over/Under" },
   { href: "/injured", label: "Injury Impact" },
   { href: "/biggest-movers", label: "Biggest Movers" },
-  // Grouped, not top-level: both read the transfer window in money, and a
-  // top-level entry each overflows the bar into the logo at the xl breakpoint,
-  // which is exactly where the bar first appears.
   {
     label: "Transfers",
     children: [

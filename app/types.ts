@@ -304,3 +304,32 @@ export interface TransferBalanceWindow {
 export interface TransferBalanceResult {
   windows: TransferBalanceWindow[];
 }
+
+/**
+ * One club on Transfermarkt's most-valuable-squads table. Money in euros.
+ *
+ * The set is the hundred TM ranks highest by *total* squad value, so the array's
+ * order is that ranking — sorting the set another way re-orders it, it doesn't
+ * re-pick it.
+ */
+export interface SquadValueClub {
+  id: string;
+  name: string;
+  /** Competition the club plays in, e.g. "Premier League". */
+  league: string;
+  /** TM's competition code ("GB1"), which is also how its logo is addressed. */
+  leagueCode: string;
+  squadSize: number;
+  averageAge: number;
+  totalValue: number;
+  /** Total value ÷ squad size, as Transfermarkt prints it. */
+  averageValue: number;
+  /** What the eighteen most valuable players in the squad are worth. */
+  topEighteenValue: number;
+  /** Those eighteen as a percentage of the whole squad's value. */
+  topEighteenShare: number;
+}
+
+export interface SquadValueResult {
+  clubs: SquadValueClub[];
+}

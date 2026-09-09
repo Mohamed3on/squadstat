@@ -30,6 +30,13 @@ export function formatSignedMillions(millions: number): string {
   return formatPremium(millions * 1_000_000);
 }
 
+/** A squad's value per player, to the second decimal. `formatMarketValue` stops
+ *  at the first, which rounds €4.73M and €4.69M into the same string — a tie in
+ *  the very column the squad-values table sorts on by default. */
+export function formatValuePerPlayer(euros: number): string {
+  return `€${(euros / 1_000_000).toFixed(2)}M`;
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export function formatReturnInfo(dateStr: string): { label: string; imminent: boolean } | null {

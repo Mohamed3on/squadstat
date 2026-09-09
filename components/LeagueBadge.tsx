@@ -2,14 +2,19 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getLeagueLogoUrl, getLeagueUrl, getLeagueStyle } from "@/lib/leagues";
+import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 
 interface LeagueBadgeProps {
   league: string;
+  /** Transfermarkt competition code, for the leagues the site doesn't cover.
+   *  Without it a Championship or Torneo Clausura badge carries no logo at all,
+   *  and the site's five are the only rows with one. */
+  code?: string;
   variant?: "inline" | "badge";
 }
 
-export function LeagueBadge({ league, variant = "badge" }: LeagueBadgeProps) {
-  const logoUrl = getLeagueLogoUrl(league);
+export function LeagueBadge({ league, code, variant = "badge" }: LeagueBadgeProps) {
+  const logoUrl = getLeagueLogoUrl(league) ?? (code ? leagueLogoUrl(code) : undefined);
   const url = getLeagueUrl(league);
   const logo = logoUrl && (
     <img src={logoUrl} alt="" className="w-3.5 h-3.5 object-contain rounded-sm bg-white/90 p-px" />

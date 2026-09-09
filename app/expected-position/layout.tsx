@@ -6,8 +6,8 @@ export default function ExpectedPositionLayout({ children }: { children: React.R
           Expected Position vs Actual
         </h1>
         <p className="text-sm sm:text-base text-text-muted">
-          Teams ranked by squad value, then compared to the actual table. The gap shows how many
-          points they&apos;re ahead or behind what their spending should deliver.
+          Teams ranked by market value per player, then compared to the actual table. The gap shows
+          how many points they&apos;re ahead or behind what their spending should deliver.
         </p>
       </div>
       {children}

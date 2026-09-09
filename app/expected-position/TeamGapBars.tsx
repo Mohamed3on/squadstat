@@ -66,7 +66,7 @@ function GapBarRow({ team, formLeader, manager, managerLoading }: GapBarRowProps
 
         <div className="truncate text-[11px] sm:text-xs text-text-muted">
           <span className="font-value">{ordinal(team.leaguePosition)}</span> now,{" "}
-          <span className="font-value">{ordinal(team.marketValueRank)}</span> by squad value
+          <span className="font-value">{ordinal(team.marketValueRank)}</span> by value per player
           {valueStr !== "-" && <span className="text-text-muted/60"> · {valueStr}</span>}
         </div>
       </div>
