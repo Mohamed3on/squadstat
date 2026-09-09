@@ -691,8 +691,6 @@ async function fetchHomeData(): Promise<{
     "bottom",
     { sort: (a, b) => a.points - b.points || a.marketValueNum - b.marketValueNum },
   );
-  const mostOverperformingTeam = mostOverperformingTeams[0] ?? null;
-  const mostUnderperformingTeam = mostUnderperformingTeams[0] ?? null;
 
   const statsNoPen = applyStatsToggles(players.map(toPlayerStats), { includePen: false });
   const underperformerCandidates = findValueCandidates(statsNoPen, {
@@ -717,7 +715,6 @@ async function fetchHomeData(): Promise<{
     "top",
     { sort: (a, b) => b.points - a.points || a.marketValue - b.marketValue },
   );
-  const mostOverpricedPlayer = mostOverpricedPlayers[0] ?? null;
 
   const playersByNpga = sortByNpgaDesc(players);
   const byFewerMins = (a: MinutesValuePlayer, b: MinutesValuePlayer) => a.minutes - b.minutes;
@@ -725,7 +722,6 @@ async function fetchHomeData(): Promise<{
     sort: byFewerMins,
     max: 1,
   });
-  const mostNpgaPlayer = mostNpgaPlayers[0] ?? null;
   const mostNpgaSignings = pickWithTies(
     players.filter((p) => p.isNewSigning),
     (player) => npga(player),
@@ -823,38 +819,47 @@ async function fetchHomeData(): Promise<{
   // --- Hero snapshots (top-right card) ---
   const heroSnapshots = [
     ...recentFormItems,
-    mostOverperformingTeam &&
+    // Every one of a tie, the same rule the sections below follow: two clubs
+    // both -7 are both the biggest underperformer, and showing whichever the
+    // tiebreak sorted first made the hero disagree with its own grid. The
+    // player picks that would run long are capped where they are built
+    // (`max: 1` on the npG+A ties), not truncated again here.
+    ...mostOverperformingTeams.map((team) =>
       teamItem(
-        mostOverperformingTeam,
+        team,
         "Biggest overperformer",
         "/expected-position",
-        `${mostOverperformingTeam.league} · ${formatSigned(mostOverperformingTeam.deltaPts)} points above squad value expectation`,
-        { manager: getManagerForClub(mostOverperformingTeam.clubId), tone: "green" },
+        `${team.league} · ${formatSigned(team.deltaPts)} points above squad value expectation`,
+        { manager: getManagerForClub(team.clubId), tone: "green" },
       ),
-    mostUnderperformingTeam &&
+    ),
+    ...mostUnderperformingTeams.map((team) =>
       teamItem(
-        mostUnderperformingTeam,
+        team,
         "Biggest underperformer",
         "/expected-position",
-        `${mostUnderperformingTeam.league} · ${formatSigned(mostUnderperformingTeam.deltaPts)} points below squad value expectation`,
-        { manager: getManagerForClub(mostUnderperformingTeam.clubId), tone: "red" },
+        `${team.league} · ${formatSigned(team.deltaPts)} points below squad value expectation`,
+        { manager: getManagerForClub(team.clubId), tone: "red" },
       ),
-    mostOverpricedPlayer &&
+    ),
+    ...mostOverpricedPlayers.map((player) =>
       playerItem(
-        mostOverpricedPlayer,
+        player,
         "Most overpriced player",
         "/value-analysis?mode=ga",
-        `${mostOverpricedPlayer.marketValueDisplay} · outscored by ${mostOverpricedPlayer.count} players who cost less`,
+        `${player.marketValueDisplay} · outscored by ${player.count} players who cost less`,
         { tone: "red" },
       ),
-    mostNpgaPlayer &&
+    ),
+    ...mostNpgaPlayers.map((player) =>
       playerItem(
-        mostNpgaPlayer,
+        player,
         "Top scorer (npG+A)",
         "/players?sort=ga",
-        `${mostNpgaPlayer.club} · ${npga(mostNpgaPlayer)} G+A (excl. pens)`,
+        `${player.club} · ${npga(player)} G+A (excl. pens)`,
         { tone: "green" },
       ),
+    ),
   ].filter(Boolean) as SnapshotItem[];
 
   const teamFormItems: SnapshotItem[] = [
