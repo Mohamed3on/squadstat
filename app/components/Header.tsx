@@ -380,32 +380,40 @@ export function Header() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-64 border-border-subtle bg-background">
+            {/* Flex column with the links as the only scrolling part, so the close
+                button stays put instead of scrolling away with a nav that is
+                taller than a phone screen. */}
+            <SheetContent
+              side="right"
+              className="flex w-64 flex-col border-border-subtle bg-background"
+            >
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <nav className="mt-8 flex flex-col gap-1">
-                {[...mobileNavItems, { href: "/how-it-works", label: "How It Works" }].map(
-                  ({ href, label }) => (
-                    <SheetClose key={href} asChild>
-                      <MainNavLink
-                        href={href}
-                        label={label}
-                        variant="mobile"
-                        isActive={pathname === href}
-                      />
-                    </SheetClose>
-                  ),
-                )}
-              </nav>
-              <div className="mt-6 border-t border-border-subtle pt-5">
-                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-                  Leagues
-                </p>
-                <div className="mt-2 flex flex-col gap-1">
-                  {LEAGUE_NAV.map((l) => (
-                    <SheetClose key={l.slug} asChild>
-                      <LeagueNavLink league={l} variant="sheet" isActive={pathname === l.href} />
-                    </SheetClose>
-                  ))}
+              <div className="-mr-2 mt-8 min-h-0 flex-1 overflow-y-auto pr-2">
+                <nav className="flex flex-col gap-1">
+                  {[...mobileNavItems, { href: "/how-it-works", label: "How It Works" }].map(
+                    ({ href, label }) => (
+                      <SheetClose key={href} asChild>
+                        <MainNavLink
+                          href={href}
+                          label={label}
+                          variant="mobile"
+                          isActive={pathname === href}
+                        />
+                      </SheetClose>
+                    ),
+                  )}
+                </nav>
+                <div className="mt-6 border-t border-border-subtle pt-5">
+                  <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                    Leagues
+                  </p>
+                  <div className="mt-2 flex flex-col gap-1">
+                    {LEAGUE_NAV.map((l) => (
+                      <SheetClose key={l.slug} asChild>
+                        <LeagueNavLink league={l} variant="sheet" isActive={pathname === l.href} />
+                      </SheetClose>
+                    ))}
+                  </div>
                 </div>
               </div>
             </SheetContent>
