@@ -10,6 +10,7 @@ import {
   formatInjuryDuration,
   formatMarketValue,
   formatReturnInfo,
+  formatValuePerPlayer,
   getPlayerDetailHref,
   getPlayerIdFromProfileUrl,
   ordinal,
@@ -384,29 +385,33 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
               }
             />
           )}
-          {teamForm && (
+          {(teamForm || squadValuePlace) && (
             <HeroMetric
               // Transfermarkt's ø market value, and ranks over that same
               // column: 12th here is 12th per player, not 12th by the squad's
               // total (Brighton is 8th on the total and 12th per head). The
               // world place is per player too, among the hundred most
-              // valuable squads; the link lands on that table.
+              // valuable squads; the link lands on that table. A club outside
+              // the tracked leagues but inside that hundred (Trabzonspor) has
+              // only the world place, so the figure comes from the same table.
               label="Value per player"
-              value={teamForm.marketValue}
+              value={
+                teamForm
+                  ? teamForm.marketValue
+                  : formatValuePerPlayer(squadValuePlace!.club.averageValue)
+              }
               subline={
                 <>
                   {squadValuePlace && (
-                    <>
-                      <Link
-                        href={SQUAD_VALUES_PATH}
-                        className="hover:text-text-primary hover:underline"
-                      >
-                        #{squadValuePlace.perPlayerRank} in the world
-                      </Link>
-                      {" · "}
-                    </>
+                    <Link
+                      href={SQUAD_VALUES_PATH}
+                      className="hover:text-text-primary hover:underline"
+                    >
+                      #{squadValuePlace.perPlayerRank} in the world
+                    </Link>
                   )}
-                  {ordinal(teamForm.marketValueRank)} in {league}
+                  {squadValuePlace && teamForm && " · "}
+                  {teamForm && `${ordinal(teamForm.marketValueRank)} in ${league}`}
                 </>
               }
               accentClass="text-accent-gold"
