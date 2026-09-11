@@ -225,13 +225,6 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
     : null;
   const pageUrl = absoluteUrl(`/teams/${clubId}`);
   const leaguePath = getLeagueUrl(league);
-  const metricCount = (teamForm ? 3 : 0) + (squadValuePlace ? 1 : 0);
-  const metricGridCols =
-    metricCount === 4
-      ? "grid-cols-2"
-      : metricCount === 3
-        ? "grid-cols-2 sm:grid-cols-3"
-        : "grid-cols-1";
   // One chip per direction instead of one per category: the Recent Form table
   // directly below marks every window it leads, so the chip only has to say
   // *that* it leads and on what.
@@ -366,7 +359,9 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
           </div>
         </div>
 
-        <div className={`grid gap-x-8 gap-y-5 ${metricGridCols}`}>
+        <div
+          className={`grid gap-x-8 gap-y-5 ${teamForm ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"}`}
+        >
           {teamForm && (
             <HeroMetric
               label="League position"
@@ -414,14 +409,6 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
                   {ordinal(teamForm.marketValueRank)} in {league}
                 </>
               }
-              accentClass="text-accent-gold"
-            />
-          )}
-          {squadValuePlace && (
-            <HeroMetric
-              label="Squad value"
-              value={formatMarketValue(squadValuePlace.club.totalValue)}
-              subline={`${squadValuePlace.club.squadSize} players`}
               accentClass="text-accent-gold"
             />
           )}
