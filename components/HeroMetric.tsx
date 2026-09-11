@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 export function HeroMetric({
   label,
   value,
@@ -6,7 +7,7 @@ export function HeroMetric({
 }: {
   label: string;
   value: string;
-  subline: string;
+  subline: ReactNode;
   accentClass: string;
 }) {
   return (

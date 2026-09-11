@@ -27,7 +27,6 @@ import { HeroMetric } from "@/components/HeroMetric";
 import { SectionPanel } from "@/components/SectionPanel";
 import { ChampionsLeagueBadge } from "./ChampionsLeagueBadge";
 import { ClubWindowBadges } from "./ClubWindowBadges";
-import { SquadValueBadge } from "./SquadValueBadge";
 import { SquadTab } from "./SquadTab";
 import { TransfersTab } from "./TransfersTab";
 import { ManagerClient } from "./TeamDeferredData";
@@ -35,8 +34,21 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import type { InjuredPlayer } from "@/app/types";
 import { JsonLd } from "@/components/JsonLd";
 import { getLeagueUrl } from "@/lib/leagues";
+import { SQUAD_VALUES_PATH, getSquadValuePlace } from "@/lib/squad-values";
 import { absoluteUrl } from "@/lib/site-config";
 import { EmptyNote } from "@/components/EmptyNote";
+
+/** The stat behind each form-analysis category, for the one-line chip. */
+const FORM_STAT: Record<string, string> = {
+  "Most Points": "points",
+  "Fewest Points": "points",
+  "Best GD": "GD",
+  "Worst GD": "GD",
+  "Most Goals Scored": "goals",
+  "Fewest Goals Scored": "goals",
+  "Fewest Conceded": "defence",
+  "Most Conceded": "defence",
+};
 
 function InjuredPlayerRow({ player }: { player: InjuredPlayer }) {
   const returnInfo = formatReturnInfo(player.returnDate);
@@ -126,9 +138,10 @@ export async function generateMetadata({
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
   const { clubId } = await params;
-  const [data, injuredData] = await Promise.all([
+  const [data, injuredData, squadValuePlace] = await Promise.all([
     getTeamDetailData(clubId),
     getInjuredPlayers().catch(() => ({ players: [] as import("@/app/types").InjuredPlayer[] })),
+    getSquadValuePlace(clubId).catch(() => null),
   ]);
   const allInjured = injuredData.players ?? [];
   const clubInjuries = allInjured.filter((p) => extractClubIdFromLogoUrl(p.clubLogoUrl) === clubId);
@@ -212,6 +225,20 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
     : null;
   const pageUrl = absoluteUrl(`/teams/${clubId}`);
   const leaguePath = getLeagueUrl(league);
+  const metricCount = (teamForm ? 3 : 0) + (squadValuePlace ? 1 : 0);
+  const metricGridCols =
+    metricCount === 4
+      ? "grid-cols-2"
+      : metricCount === 3
+        ? "grid-cols-2 sm:grid-cols-3"
+        : "grid-cols-1";
+  // One chip per direction instead of one per category: the Recent Form table
+  // directly below marks every window it leads, so the chip only has to say
+  // *that* it leads and on what.
+  const formSignals = (["top", "bottom"] as const).flatMap((type) => {
+    const stats = formPresence.filter((f) => f.type === type).map((f) => FORM_STAT[f.category]);
+    return stats.length ? [{ type, stats: [...new Set(stats)] }] : [];
+  });
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -297,36 +324,13 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
           </div>
 
           <div className="min-w-0 flex-1">
+            {/* Identity only: the competitions this club plays in. Every
+                measurement lives in the metrics or the signals row below, so
+                nothing up here restates a number the eye meets a moment later. */}
             <div className="flex flex-wrap items-center gap-2">
               <LeagueBadge league={league} />
-              {/* Streamed like the badges below: a cup entry should not hold up
-                  the crest and the name. */}
               <Suspense>
                 <ChampionsLeagueBadge clubId={clubId} />
-              </Suspense>
-              {teamForm && teamForm.deltaPts > 0 && (
-                <Badge className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
-                  Overperforming
-                </Badge>
-              )}
-              {teamForm && teamForm.deltaPts < 0 && (
-                <Badge className="rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-xs text-red-400">
-                  Underperforming
-                </Badge>
-              )}
-              {formPresence.some((f) => f.type === "top") && (
-                <Badge className="rounded-full border border-accent-hot-border bg-accent-hot-glow px-3 py-1 text-xs text-accent-hot">
-                  Form leader
-                </Badge>
-              )}
-              {/* Where the squad ranks among the world's most valuable, what the
-                  summer came to, and any club table this club heads. Streamed:
-                  the crest and the name should not wait on a transfer scrape. */}
-              <Suspense>
-                <SquadValueBadge clubId={clubId} />
-              </Suspense>
-              <Suspense>
-                <ClubWindowBadges clubId={clubId} />
               </Suspense>
             </div>
 
@@ -362,9 +366,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
           </div>
         </div>
 
-        <div
-          className={`grid gap-x-8 gap-y-5 ${teamForm ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"}`}
-        >
+        <div className={`grid gap-x-8 gap-y-5 ${metricGridCols}`}>
           {teamForm && (
             <HeroMetric
               label="League position"
@@ -395,6 +397,20 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
               label="Value per player"
               value={teamForm.marketValue}
               subline={`${ordinal(teamForm.marketValueRank)} highest in ${league}`}
+              accentClass="text-accent-gold"
+            />
+          )}
+          {squadValuePlace && (
+            <HeroMetric
+              // The world place is exact only because the table that picked
+              // the hundred is the same one ranked here; the link lands on it.
+              label="Squad value"
+              value={formatMarketValue(squadValuePlace.club.totalValue)}
+              subline={
+                <Link href={SQUAD_VALUES_PATH} className="hover:text-text-primary hover:underline">
+                  #{squadValuePlace.rank} in the world
+                </Link>
+              }
               accentClass="text-accent-gold"
             />
           )}
@@ -435,19 +451,29 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
               </Badge>
             </Link>
           ))}
-          {formPresence.map((fp) => (
-            <Link key={`${fp.type}-${fp.category}`} href="/form">
+          {formSignals.map((fs) => (
+            <Link key={fs.type} href="/form">
               <Badge
                 className={`rounded-full border px-3 py-1 text-xs transition-colors hover:brightness-125 ${
-                  fp.type === "top"
+                  fs.type === "top"
                     ? "border-accent-hot-border bg-accent-hot-glow text-accent-hot"
                     : "border-accent-cold-border bg-accent-cold-glow text-accent-cold-soft"
                 }`}
               >
-                {fp.type === "top" ? "↑" : "↓"} {fp.category} · last {fp.periods.join(", ")}
+                {fs.type === "top" ? (
+                  <TrendingUp className="mr-1 h-3.5 w-3.5" />
+                ) : (
+                  <TrendingDown className="mr-1 h-3.5 w-3.5" />
+                )}
+                {fs.type === "top" ? "Form leader" : "Worst form"} · {fs.stats.join(", ")}
               </Badge>
             </Link>
           ))}
+          {/* What the window came to, and any club table this club heads.
+              Streamed: the hero should not wait on a transfer scrape. */}
+          <Suspense>
+            <ClubWindowBadges clubId={clubId} />
+          </Suspense>
         </div>
       </DetailHero>
 
