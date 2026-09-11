@@ -2,7 +2,6 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
-import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 
 export async function GET() {
   try {
@@ -26,13 +25,10 @@ export async function GET() {
       name: c.name,
       logoUrl: c.logoUrl,
     }));
-    const leagueIndex = LEAGUES.map((l) => ({
-      slug: l.slug,
-      name: l.name,
-      logoUrl: getLeagueLogoUrl(l.name) ?? "",
-    }));
+    // Leagues and every other page come from the static lib/site-pages.ts on the
+    // client; only the data-driven players and teams need to travel over the wire.
     return NextResponse.json(
-      { players: playerIndex, teams: teamIndex, leagues: leagueIndex },
+      { players: playerIndex, teams: teamIndex },
       {
         headers: { "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400" },
       },

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, Trophy, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -16,6 +16,7 @@ import {
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { formatMarketValue } from "@/lib/format";
 import { normalizeForSearch } from "@/lib/normalize";
+import { SITE_PAGES, type SitePage } from "@/lib/site-pages";
 
 interface SearchPlayer {
   id: string;
@@ -34,28 +35,41 @@ interface SearchTeam {
   logoUrl: string;
 }
 
-interface SearchLeague {
-  slug: string;
-  name: string;
-  logoUrl: string;
-}
-
 interface SearchIndex {
   players: SearchPlayer[];
   teams: SearchTeam[];
-  leagues: SearchLeague[];
 }
 
 type ScoredResult =
   | { type: "player"; data: SearchPlayer; score: number }
   | { type: "team"; data: SearchTeam; score: number }
-  | { type: "league"; data: SearchLeague; score: number };
+  | { type: "page"; data: SitePage; score: number };
 
-const ROUTE_PREFIX = { player: "/players", team: "/teams", league: "/leagues" } as const;
-const KEY_PREFIX = { player: "p", team: "t", league: "l" } as const;
-
+// Score: lower = better. name startsWith (0) > name contains (1) > secondary field (2)
 function scoreName(normalized: string, q: string): number {
   return normalized.startsWith(q) ? 0 : normalized.includes(q) ? 1 : -1;
+}
+
+// Pages are static, so they're normalized once at module load and searchable
+// before the player index has arrived.
+const NORMALIZED_PAGES = SITE_PAGES.map((p) => ({
+  name: normalizeForSearch(p.name),
+  keywords: (p.keywords ?? []).map(normalizeForSearch),
+}));
+
+function scorePage(i: number, q: string): number {
+  const n = NORMALIZED_PAGES[i];
+  const byName = scoreName(n.name, q);
+  if (byName >= 0) return byName;
+  return n.keywords.some((k) => k.startsWith(q)) ? 2 : -1;
+}
+
+const EMPTY_INDEX: SearchIndex = { players: [], teams: [] };
+
+// Rank among equal scores: competitions, then pages, then players by value, then teams.
+function tieRank(r: ScoredResult): number {
+  if (r.type === "page") return r.data.kind === "competition" ? 0 : 1;
+  return r.type === "player" ? 2 : 3;
 }
 
 export function PlayerSearch() {
@@ -74,16 +88,12 @@ export function PlayerSearch() {
         return r.json();
       })
       .then((data) =>
-        setIndex(
-          Array.isArray(data)
-            ? { players: data, teams: [], leagues: [] }
-            : { leagues: [], ...data },
-        ),
+        setIndex(Array.isArray(data) ? { players: data, teams: [] } : { ...EMPTY_INDEX, ...data }),
       )
       .catch((err) => {
         console.error("[PlayerSearch] Failed to load search index:", err);
         fetchedRef.current = false;
-        setIndex({ players: [], teams: [], leagues: [] });
+        setIndex(EMPTY_INDEX);
       });
   }, []);
 
@@ -127,16 +137,21 @@ export function PlayerSearch() {
         position: normalizeForSearch(p.position),
       })),
       teams: index.teams.map((t) => normalizeForSearch(t.name)),
-      leagues: index.leagues.map((l) => normalizeForSearch(l.name)),
     };
   }, [index]);
 
   const results = useMemo((): ScoredResult[] => {
-    if (!index || !normalizedIndex || query.length === 0) return [];
+    if (query.length === 0) return [];
     const q = normalizeForSearch(query);
+    if (q.length === 0) return [];
     const scored: ScoredResult[] = [];
 
-    // Score: lower = better. name startsWith (0) > name contains (1) > secondary field (2)
+    for (let i = 0; i < SITE_PAGES.length; i++) {
+      const score = scorePage(i, q);
+      if (score >= 0) scored.push({ type: "page", data: SITE_PAGES[i], score });
+    }
+    if (!index || !normalizedIndex) return scored.slice(0, 8);
+
     for (let i = 0; i < index.players.length; i++) {
       const n = normalizedIndex.players[i];
       let score = scoreName(n.name, q);
@@ -155,16 +170,11 @@ export function PlayerSearch() {
       const score = scoreName(normalizedIndex.teams[i], q);
       if (score >= 0) scored.push({ type: "team", data: index.teams[i], score });
     }
-    for (let i = 0; i < index.leagues.length; i++) {
-      const score = scoreName(normalizedIndex.leagues[i], q);
-      if (score >= 0) scored.push({ type: "league", data: index.leagues[i], score });
-    }
 
     scored.sort((a, b) => {
       if (a.score !== b.score) return a.score - b.score;
-      // Within same score tier: leagues first, then players by market value, then teams
-      if (a.type === "league" && b.type !== "league") return -1;
-      if (b.type === "league" && a.type !== "league") return 1;
+      const rankDiff = tieRank(a) - tieRank(b);
+      if (rankDiff !== 0) return rankDiff;
       const aVal = a.type === "player" ? a.data.marketValue : 0;
       const bVal = b.type === "player" ? b.data.marketValue : 0;
       return bVal - aVal;
@@ -196,11 +206,11 @@ export function PlayerSearch() {
         <DialogContent className="top-[30%] translate-y-0 gap-0 overflow-hidden rounded-2xl border-border-subtle/60 bg-[var(--bg-card)] p-0 shadow-2xl shadow-black/40 sm:max-w-xl [&>button]:hidden">
           <DialogTitle className="sr-only">Search</DialogTitle>
           <DialogDescription className="sr-only">
-            Search for players, teams, or leagues
+            Search for players, teams, competitions, or pages
           </DialogDescription>
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Search players, teams, or leagues..."
+              placeholder="Search players, teams, or pages..."
               value={query}
               onValueChange={setQuery}
               wrapperClassName="border-border-subtle/40 px-4"
@@ -211,22 +221,23 @@ export function PlayerSearch() {
                 <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
                   <Search className="h-5 w-5 opacity-30" />
                   <p className="text-sm">
-                    {index ? "Search players, teams, and leagues" : "Loading\u2026"}
+                    {index ? "Search players, teams, and pages" : "Loading\u2026"}
                   </p>
-                  <p className="text-xs opacity-50">Try a name, club, league, or nationality</p>
+                  <p className="text-xs opacity-50">Try a name, club, competition, or page</p>
                 </div>
               ) : results.length === 0 ? (
                 <CommandEmpty className="py-12 text-text-muted">No results found.</CommandEmpty>
               ) : (
                 <CommandGroup>
                   {results.map((r) => {
-                    const id = r.type === "league" ? r.data.slug : r.data.id;
-                    const href = `${ROUTE_PREFIX[r.type]}/${id}`;
-                    const prefix = KEY_PREFIX[r.type];
+                    const href =
+                      r.type === "page"
+                        ? r.data.href
+                        : `${r.type === "player" ? "/players" : "/teams"}/${r.data.id}`;
                     return (
                       <CommandItem
-                        key={`${prefix}-${id}`}
-                        value={`${prefix}-${id}`}
+                        key={href}
+                        value={href}
                         onSelect={() => handleSelect(href)}
                         className="gap-3 rounded-xl px-3 py-2.5 data-[selected=true]:bg-white/5"
                       >
@@ -236,12 +247,20 @@ export function PlayerSearch() {
                             imageUrl={r.data.imageUrl}
                             className="h-9 w-9 rounded-lg border border-border-subtle/50"
                           />
-                        ) : (
+                        ) : r.type === "team" || r.data.logoUrl ? (
                           <img
                             src={r.data.logoUrl}
                             alt={r.data.name}
                             className="h-9 w-9 shrink-0 rounded-lg bg-white object-contain p-0.5"
                           />
+                        ) : (
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border-subtle/50 bg-elevated text-text-muted">
+                            {r.data.kind === "competition" ? (
+                              <Trophy className="h-4 w-4" />
+                            ) : (
+                              <LayoutGrid className="h-4 w-4" />
+                            )}
+                          </span>
                         )}
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="truncate text-sm text-text-primary">{r.data.name}</span>
@@ -256,7 +275,9 @@ export function PlayerSearch() {
                             ? formatMarketValue(r.data.marketValue)
                             : r.type === "team"
                               ? "Team"
-                              : "League"}
+                              : r.data.kind === "competition"
+                                ? "Competition"
+                                : "Page"}
                         </span>
                       </CommandItem>
                     );
