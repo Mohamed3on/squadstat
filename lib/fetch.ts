@@ -18,6 +18,21 @@ const JSON_HEADERS: Record<string, string> = {
   Accept: "application/json",
 };
 
+// The relay answers its own rejections with exactly these bodies
+// (workers/tm-relay/src/index.ts): a bad secret, a host outside the allowlist,
+// a bad url param. Any other 403/429 is Transfermarkt's AWS WAF — its
+// rate-based block is a bare 403 with no body — and that one is transient:
+// Workers egress IPs rotate per request, so the retry lands on a different
+// address. Retrying a relay rejection never helps.
+const RELAY_REJECTIONS = new Set([
+  "forbidden",
+  "host not allowed",
+  "missing url param",
+  "malformed url param",
+]);
+const isWafBlock = (status: number, body: string) =>
+  (status === 403 || status === 429) && !RELAY_REJECTIONS.has(body);
+
 const MAX_RETRIES = 5;
 const BASE_DELAY = 1000;
 // Transfermarkt pages average ~4s, so wall time is roughly sum(latency)/maxConcurrent.
@@ -76,14 +91,19 @@ async function fetchWithRetries<T>(
     try {
       const response = await tmFetch(url, init);
       if (response.status >= 400 && response.status < 500) {
-        // 4xx = relay rejection or WAF block — retrying never helps. The relay
-        // explains itself in the body ("host not allowed", "forbidden"), so carry
-        // it into the error: the status alone can't tell a bad secret from a
-        // dead upstream.
-        const reason = await response.text().catch(() => "");
-        throw new Error(`HTTP ${response.status}${reason ? `: ${reason.slice(0, 120)}` : ""}`);
-      }
-      if (response.status >= 500) {
+        const reason = (await response.text().catch(() => "")).trim();
+        if (isWafBlock(response.status, reason)) {
+          lastReason = `HTTP ${response.status} from Transfermarkt`;
+          console.warn(
+            `[fetch] ${lastReason} (WAF block), retry ${attempt + 1}/${MAX_RETRIES}: ${url}`,
+          );
+        } else {
+          // Relay rejection or a plain 404 — retrying never helps. The relay
+          // explains itself in the body, so carry it into the error: the status
+          // alone can't tell a bad secret from a dead upstream.
+          throw new Error(`HTTP ${response.status}${reason ? `: ${reason.slice(0, 120)}` : ""}`);
+        }
+      } else if (response.status >= 500) {
         // 5xx = TM outage/maintenance — transient by nature.
         lastReason = `HTTP ${response.status}`;
         console.warn(`[fetch] ${lastReason}, retry ${attempt + 1}/${MAX_RETRIES}: ${url}`);

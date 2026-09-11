@@ -88,6 +88,10 @@ printf %s "$S" | bunx wrangler secret put RELAY_SECRET   # in workers/tm-relay
 printf %s "$S" | gh secret set TM_RELAY_SECRET
 ```
 
+A bare `HTTP 403` from Transfermarkt (its AWS WAF rate block carries no body) is retried with
+backoff — Workers egress IPs rotate per request. Only the relay's own rejections (`forbidden`,
+`host not allowed`) are fatal.
+
 If TM ever blocks Cloudflare too (`[relay] upstream 200 len=0` in the Worker log, or
 `Rate limited (0b)` in the run), point `TM_RELAY_URL` at another unblocked host — AWS works.
 

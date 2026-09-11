@@ -38,10 +38,24 @@ describe("fetchPage", () => {
     expect(mocked).toHaveBeenCalledTimes(2);
   });
 
-  it("treats 4xx as fatal — no retries, reason carried", async () => {
+  it("treats a relay rejection as fatal — no retries, reason carried", async () => {
     mocked.mockResolvedValueOnce(res("forbidden", 403));
     await expect(fetchPage("https://tm/x")).rejects.toThrow("HTTP 403: forbidden");
     expect(mocked).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries a bare 403 — Transfermarkt's WAF block — until healthy", async () => {
+    mocked.mockResolvedValueOnce(res("", 403)).mockResolvedValueOnce(res(LONG_HTML));
+    await expect(withBackoff(fetchPage("https://tm/x"))).resolves.toBe(LONG_HTML);
+    expect(mocked).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up on a persistent WAF block naming Transfermarkt, not the relay", async () => {
+    mocked.mockImplementation(async () => res("", 403));
+    await expect(withBackoff(fetchPage("https://tm/x"))).rejects.toThrow(
+      /Failed after 5 retries \(HTTP 403 from Transfermarkt\)/,
+    );
+    expect(mocked).toHaveBeenCalledTimes(5);
   });
 
   it("treats 5xx as transient — retried, then succeeds", async () => {
