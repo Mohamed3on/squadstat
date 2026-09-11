@@ -9,13 +9,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Menu, HelpCircle, ChevronDown } from "lucide-react";
+import { Menu, HelpCircle, RefreshCw } from "lucide-react";
 import { PlayerSearch } from "./PlayerSearch";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
@@ -59,75 +62,39 @@ async function refreshPage(pathname: string) {
   }
 }
 
-function RefreshIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      aria-hidden="true"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-      />
-    </svg>
-  );
-}
-
-function SpinnerIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={cn("animate-spin", className)}
-      aria-hidden="true"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
-}
-
-const navItems = [
-  { href: "/", label: "Home", desktopHidden: true },
-  { href: "/form", label: "Recent Form" },
-  { href: "/squad-values", label: "Squad Values" },
-  { href: "/expected-position", label: "Value vs Table" },
-  { href: "/players", label: "Players" },
-  { href: "/value-analysis", label: "Over/Under" },
-  { href: "/injured", label: "Injury Impact" },
-  { href: "/biggest-movers", label: "Biggest Movers" },
-  // Grouped, not top-level: both read the transfer window in money, and the bar
-  // has no room for two more. Measured at the xl breakpoint, where it first
-  // appears: these eight leave 8px either side of the nav with the refresh
-  // button in its wider "Refreshing Data…" state. Anything added here has to be
-  // measured at 1280px before it goes top-level.
-  {
-    label: "Transfers",
-    children: [
-      { href: "/fee-vs-value", label: "Fee vs Value" },
-      { href: "/club-transfers", label: "Clubs" },
-    ],
-  },
-] as const;
-
 type NavLink = { href: string; label: string };
 
-// Mobile sheet is a flat list — a group has no page of its own, so it comes
-// through as its children rather than as a row that leads nowhere.
-const mobileNavItems = navItems.flatMap((i): NavLink[] =>
-  "children" in i ? [...i.children] : [{ href: i.href, label: i.label }],
-);
+// Three groups instead of eight top-level words. Each group is what the page is
+// *about*, so the bar reads at a glance and every page is one hover away.
+// A group is a label only, never a page: the mobile sheet renders it as a heading.
+const NAV_GROUPS: readonly { label: string; items: readonly NavLink[] }[] = [
+  {
+    label: "Teams",
+    items: [
+      { href: "/form", label: "Recent Form" },
+      { href: "/expected-position", label: "Value vs Table" },
+      { href: "/squad-values", label: "Squad Values" },
+      { href: "/injured", label: "Injury Impact" },
+    ],
+  },
+  {
+    label: "Players",
+    items: [
+      { href: "/players", label: "All Players" },
+      { href: "/value-analysis", label: "Over/Under" },
+      { href: "/biggest-movers", label: "Biggest Movers" },
+    ],
+  },
+  {
+    label: "Transfers",
+    items: [
+      { href: "/fee-vs-value", label: "Fee vs Value" },
+      { href: "/club-transfers", label: "By Club" },
+    ],
+  },
+];
 
-// The Champions League rides in the same strip but stays out of lib/leagues.ts:
+// The Champions League rides with the leagues but stays out of lib/leagues.ts:
 // LEAGUES drives the player pool, the colour maps and /leagues/[slug], none of
 // which a cross-border cup belongs to. Its page is its own static segment.
 const LEAGUE_NAV = [
@@ -147,131 +114,116 @@ const LEAGUE_NAV = [
 
 type LeagueNavItem = (typeof LEAGUE_NAV)[number];
 
-function MainNavLink({
+// One crest, no word. The six marks are the best-known logos in the sport and
+// the audience reads them faster than the names; the name lives in a tooltip
+// for the pointer and in the sheet for touch. The inactive ones sit at 60% so
+// the strip reads as one quiet cluster, not six white tiles.
+function LeagueCrest({ league, isActive }: { league: LeagueNavItem; isActive: boolean }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link
+          href={league.href}
+          aria-label={league.name}
+          aria-current={isActive ? "page" : undefined}
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-md transition-[opacity,background-color] duration-200",
+            isActive
+              ? "bg-elevated opacity-100 ring-1 ring-border-medium"
+              : "opacity-60 hover:bg-elevated hover:opacity-100",
+          )}
+        >
+          <img
+            src={league.logoUrl}
+            alt=""
+            className="h-5 w-5 rounded-sm bg-white/90 object-contain p-px"
+          />
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent sideOffset={6}>{league.name}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+// Desktop group: label in the bar, pages in a hover menu. The label brightens
+// while any of its pages is the current one, so the bar still shows where you are.
+function NavGroup({ group, pathname }: { group: (typeof NAV_GROUPS)[number]; pathname: string }) {
+  const isActive = group.items.some((i) => i.href === pathname);
+  return (
+    <NavigationMenuItem>
+      <NavigationMenuTrigger
+        className={cn(
+          "h-8 rounded-md bg-transparent px-2.5 text-sm font-medium hover:bg-elevated hover:text-text-primary focus:bg-elevated focus:text-text-primary data-[state=open]:bg-elevated data-[state=open]:text-text-primary",
+          isActive ? "text-text-primary" : "text-text-secondary",
+        )}
+      >
+        {group.label}
+      </NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <ul className="flex w-48 flex-col p-1.5">
+          {group.items.map((item) => {
+            const current = pathname === item.href;
+            return (
+              <li key={item.href}>
+                <NavigationMenuLink asChild active={current}>
+                  <Link
+                    href={item.href}
+                    aria-current={current ? "page" : undefined}
+                    className={cn(
+                      "block rounded-md px-2.5 py-2 text-sm transition-colors",
+                      current
+                        ? "bg-card-hover text-accent-hot"
+                        : "text-text-secondary hover:bg-card-hover hover:text-text-primary focus:bg-card-hover focus:text-text-primary focus:outline-none",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                </NavigationMenuLink>
+              </li>
+            );
+          })}
+        </ul>
+      </NavigationMenuContent>
+    </NavigationMenuItem>
+  );
+}
+
+function SheetLink({
   href,
   label,
-  variant,
   isActive,
   className,
+  children,
   ...rest
 }: {
   href: string;
   label: string;
-  variant: "desktop" | "mobile";
   isActive: boolean;
 } & Omit<ComponentProps<typeof Link>, "href">) {
-  if (variant === "desktop") {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        asChild
-        className={cn(
-          "h-auto px-2 py-1.5 text-sm",
-          isActive && "bg-elevated text-text-primary",
-          className,
-        )}
-      >
-        <Link {...rest} href={href} aria-current={isActive ? "page" : undefined}>
-          {label}
-        </Link>
-      </Button>
-    );
-  }
   return (
     <Link
       {...rest}
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "rounded-md px-3 py-2.5 text-base font-medium transition-colors",
+        "flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[15px] font-medium transition-colors",
         isActive
           ? "bg-elevated text-accent-hot"
           : "text-text-secondary hover:bg-elevated hover:text-text-primary",
         className,
       )}
     >
-      {label}
+      {children}
+      <span>{label}</span>
     </Link>
   );
 }
 
-// Desktop-only: a nav item whose children open in a dropdown (e.g. Transfers → Fee vs Value).
-function NavDropdown({
-  item,
-  pathname,
-}: {
-  item: { label: string; children: readonly { href: string; label: string }[] };
-  pathname: string;
-}) {
-  const isActive = item.children.some((c) => c.href === pathname);
+function SheetGroupLabel({ children }: { children: React.ReactNode }) {
   return (
-    // Non-modal: don't lock body scroll / strip the scrollbar (that's what shifts the page).
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-auto gap-1 px-2 py-1.5 text-sm",
-            isActive && "bg-elevated text-text-primary",
-          )}
-        >
-          {item.label}
-          <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        {item.children.map((c) => (
-          <DropdownMenuItem key={c.href} asChild>
-            <Link href={c.href} aria-current={pathname === c.href ? "page" : undefined}>
-              {c.label}
-            </Link>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function LeagueNavLink({
-  league,
-  variant,
-  isActive,
-  className,
-  ...rest
-}: {
-  league: LeagueNavItem;
-  variant: "sheet" | "strip";
-  isActive: boolean;
-} & Omit<ComponentProps<typeof Link>, "href">) {
-  const isSheet = variant === "sheet";
-  return (
-    <Link
-      {...rest}
-      href={league.href}
-      aria-current={isActive ? "page" : undefined}
-      className={cn(
-        "items-center rounded-md font-medium transition-colors",
-        isSheet ? "flex gap-2 px-3 py-2 text-sm" : "inline-flex shrink-0 gap-1.5 px-2 py-1 text-xs",
-        isActive
-          ? "bg-elevated text-text-primary"
-          : "text-text-secondary hover:bg-elevated hover:text-text-primary",
-        className,
-      )}
-    >
-      {league.logoUrl && (
-        <img
-          src={league.logoUrl}
-          alt=""
-          className={cn(
-            "rounded-sm bg-white/90 object-contain p-px",
-            isSheet ? "h-5 w-5" : "h-4 w-4",
-          )}
-        />
-      )}
-      <span>{league.name}</span>
-    </Link>
+    <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">
+      {children}
+    </p>
   );
 }
 
@@ -296,85 +248,87 @@ export function Header() {
     }
   };
 
+  const iconButton = "h-8 w-8 p-0 text-text-muted hover:text-text-primary";
+
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-black/90 backdrop-blur-xl">
-      <div className="page-container flex items-center justify-between gap-2 py-3 sm:py-4">
-        {/* Logo */}
+      <div className="page-container flex h-14 items-center gap-3 sm:gap-4">
         {/* shrink-0: without it flex squeezes the logo below its text width and
             "SquadStat" overflows into the first nav item. */}
         <Link href="/" className="group flex shrink-0 items-center gap-2">
           <Image
             src="/icon.png"
-            alt="SquadStat"
+            alt=""
             width={28}
             height={28}
             className="transition-opacity group-hover:opacity-80"
           />
-          <h1 className="text-lg font-pixel tracking-tight text-text-primary transition-opacity group-hover:opacity-80 sm:text-xl">
+          <span className="text-lg font-pixel tracking-tight text-text-primary transition-opacity group-hover:opacity-80 sm:text-xl">
             Squad<span className="text-accent-hot">Stat</span>
-          </h1>
+          </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-0.5 xl:flex">
-          {navItems
-            .filter((i) => !("desktopHidden" in i && i.desktopHidden))
-            .map((item) =>
-              "children" in item ? (
-                <NavDropdown key={item.label} item={item} pathname={pathname} />
-              ) : (
-                <MainNavLink
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  variant="desktop"
-                  isActive={pathname === item.href}
-                />
-              ),
-            )}
-        </nav>
+        {/* Desktop: three groups, a hairline, six crests. One row where there were
+            two, and it fits from a laptop width rather than only a monitor. */}
+        <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
+          <NavigationMenu delayDuration={80}>
+            <NavigationMenuList className="gap-0.5 space-x-0">
+              {NAV_GROUPS.map((g) => (
+                <NavGroup key={g.label} group={g} pathname={pathname} />
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+          <span aria-hidden="true" className="h-5 w-px bg-border-subtle" />
+          <nav aria-label="Leagues" className="flex items-center gap-1">
+            {LEAGUE_NAV.map((l) => (
+              <LeagueCrest key={l.slug} league={l} isActive={pathname === l.href} />
+            ))}
+          </nav>
+        </div>
 
-        {/* Right side */}
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           <PlayerSearch />
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="hidden h-auto p-2 text-text-muted hover:text-text-primary xl:inline-flex"
-          >
-            <Link href="/how-it-works" aria-label="How it works">
-              <HelpCircle className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button
-            onClick={handleBustCache}
-            disabled={isRevalidating}
-            aria-label={isRevalidating ? "Refreshing data" : "Refresh data"}
-            variant={isRevalidating ? "secondary" : "default"}
-            size="sm"
-            className="h-auto p-2 xl:px-4 xl:py-2"
-          >
-            {isRevalidating ? (
-              <>
-                <SpinnerIcon className="h-4 w-4" />
-                <span className="hidden xl:inline">Refreshing Data…</span>
-              </>
-            ) : (
-              <>
-                <RefreshIcon className="h-4 w-4" />
-                <span className="hidden xl:inline">Refresh Data</span>
-              </>
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className={cn(iconButton, "hidden lg:inline-flex")}
+              >
+                <Link href="/how-it-works" aria-label="How it works">
+                  <HelpCircle className="h-4 w-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>How it works</TooltipContent>
+          </Tooltip>
+          {/* A maintenance action, not a goal: it used to be the only filled
+              button on every page. Quiet icon now, spinning while it works. */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleBustCache}
+                disabled={isRevalidating}
+                aria-label={isRevalidating ? "Refreshing data" : "Refresh data"}
+                variant="ghost"
+                size="sm"
+                className={iconButton}
+              >
+                <RefreshCw className={cn("h-4 w-4", isRevalidating && "animate-spin")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              {isRevalidating ? "Refreshing…" : "Refresh data"}
+            </TooltipContent>
+          </Tooltip>
 
-          {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0 text-text-primary xl:hidden"
+                className="h-8 w-8 p-0 text-text-primary lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu className="h-5 w-5" />
@@ -385,47 +339,52 @@ export function Header() {
                 taller than a phone screen. */}
             <SheetContent
               side="right"
-              className="flex w-64 flex-col border-border-subtle bg-background"
+              className="flex w-72 flex-col border-border-subtle bg-background"
             >
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <div className="-mr-2 mt-8 min-h-0 flex-1 overflow-y-auto pr-2">
-                <nav className="flex flex-col gap-1">
-                  {[...mobileNavItems, { href: "/how-it-works", label: "How It Works" }].map(
-                    ({ href, label }) => (
-                      <SheetClose key={href} asChild>
-                        <MainNavLink
-                          href={href}
-                          label={label}
-                          variant="mobile"
-                          isActive={pathname === href}
+              <nav className="-mr-2 mt-2 min-h-0 flex-1 overflow-y-auto pr-2">
+                {NAV_GROUPS.map((g) => (
+                  <div key={g.label} className="mt-4 first:mt-0">
+                    <SheetGroupLabel>{g.label}</SheetGroupLabel>
+                    {g.items.map((item) => (
+                      <SheetClose key={item.href} asChild>
+                        <SheetLink
+                          href={item.href}
+                          label={item.label}
+                          isActive={pathname === item.href}
                         />
-                      </SheetClose>
-                    ),
-                  )}
-                </nav>
-                <div className="mt-6 border-t border-border-subtle pt-5">
-                  <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-                    Leagues
-                  </p>
-                  <div className="mt-2 flex flex-col gap-1">
-                    {LEAGUE_NAV.map((l) => (
-                      <SheetClose key={l.slug} asChild>
-                        <LeagueNavLink league={l} variant="sheet" isActive={pathname === l.href} />
                       </SheetClose>
                     ))}
                   </div>
+                ))}
+                <div className="mt-4">
+                  <SheetGroupLabel>Leagues</SheetGroupLabel>
+                  {LEAGUE_NAV.map((l) => (
+                    <SheetClose key={l.slug} asChild>
+                      <SheetLink href={l.href} label={l.name} isActive={pathname === l.href}>
+                        <img
+                          src={l.logoUrl}
+                          alt=""
+                          className="h-5 w-5 rounded-sm bg-white/90 object-contain p-px"
+                        />
+                      </SheetLink>
+                    </SheetClose>
+                  ))}
                 </div>
-              </div>
+                <div className="mt-4 border-t border-border-subtle pt-3">
+                  <SheetClose asChild>
+                    <SheetLink
+                      href="/how-it-works"
+                      label="How it works"
+                      isActive={pathname === "/how-it-works"}
+                    >
+                      <HelpCircle className="h-4 w-4 opacity-70" />
+                    </SheetLink>
+                  </SheetClose>
+                </div>
+              </nav>
             </SheetContent>
           </Sheet>
-        </div>
-      </div>
-
-      <div className="hidden border-t border-border-subtle xl:block">
-        <div className="page-container flex items-center gap-1 overflow-x-auto py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {LEAGUE_NAV.map((l) => (
-            <LeagueNavLink key={l.slug} league={l} variant="strip" isActive={pathname === l.href} />
-          ))}
         </div>
       </div>
     </header>

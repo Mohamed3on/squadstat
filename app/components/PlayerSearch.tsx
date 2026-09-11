@@ -194,11 +194,11 @@ export function PlayerSearch() {
         variant="ghost"
         size="sm"
         onClick={() => setOpen(true)}
-        className="h-auto p-2 text-text-muted hover:text-text-primary"
-        aria-label="Search players"
+        className="h-8 gap-1.5 px-2 text-text-muted hover:text-text-primary"
+        aria-label="Search"
       >
         <Search className="h-4 w-4" />
-        <kbd className="pointer-events-none ml-1.5 hidden h-5 items-center gap-0.5 rounded border border-border-subtle bg-elevated px-1.5 font-mono text-[10px] text-text-muted xl:inline-flex">
+        <kbd className="pointer-events-none hidden h-5 items-center gap-0.5 rounded border border-border-subtle bg-elevated px-1.5 font-mono text-[10px] text-text-muted lg:inline-flex">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
