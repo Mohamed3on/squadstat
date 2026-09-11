@@ -25,6 +25,7 @@ import { ComparisonItem } from "@/components/ComparisonItem";
 import { DetailDeck } from "@/components/DetailDeck";
 import { HeroMetric } from "@/components/HeroMetric";
 import { SectionPanel } from "@/components/SectionPanel";
+import { ChampionsLeagueBadge } from "./ChampionsLeagueBadge";
 import { ClubWindowBadges } from "./ClubWindowBadges";
 import { SquadValueBadge } from "./SquadValueBadge";
 import { SquadTab } from "./SquadTab";
@@ -298,6 +299,11 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <LeagueBadge league={league} />
+              {/* Streamed like the badges below: a cup entry should not hold up
+                  the crest and the name. */}
+              <Suspense>
+                <ChampionsLeagueBadge clubId={clubId} />
+              </Suspense>
               {teamForm && teamForm.deltaPts > 0 && (
                 <Badge className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
                   Overperforming
