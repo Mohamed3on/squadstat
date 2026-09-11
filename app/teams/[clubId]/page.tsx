@@ -410,8 +410,10 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
                       #{squadValuePlace.perPlayerRank} in the world
                     </Link>
                   )}
-                  {squadValuePlace && teamForm && " · "}
-                  {teamForm && `${ordinal(teamForm.marketValueRank)} in ${league}`}
+                  {squadValuePlace && " · "}
+                  {teamForm
+                    ? `${ordinal(teamForm.marketValueRank)} in ${league}`
+                    : `${ordinal(squadValuePlace!.leaguePerPlayerRank)} in ${squadValuePlace!.club.league}`}
                 </>
               }
               accentClass="text-accent-gold"

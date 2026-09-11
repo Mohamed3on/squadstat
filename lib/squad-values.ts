@@ -23,6 +23,10 @@ export interface SquadValuePlace {
    *  small squad of expensive players can average more than clubs the table
    *  never reached, so this is only "of the hundred". */
   perPlayerRank: number;
+  /** Place by value per player among the clubs from the same league that made
+   *  the hundred. For a league the site tracks the standings page gives an
+   *  exact rank; this one is for the leagues it doesn't. */
+  leaguePerPlayerRank: number;
   total: number;
 }
 
@@ -45,6 +49,9 @@ export async function getSquadValuePlace(clubId: string): Promise<SquadValuePlac
     club,
     rank: placeBy((c) => c.totalValue),
     perPlayerRank: placeBy((c) => c.averageValue),
+    leaguePerPlayerRank:
+      clubs.filter((c) => c.league === club.league && c.averageValue > club.averageValue).length +
+      1,
     total: clubs.length,
   };
 }
