@@ -391,26 +391,37 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
           )}
           {teamForm && (
             <HeroMetric
-              // Transfermarkt's ø market value, and a rank over that same
+              // Transfermarkt's ø market value, and ranks over that same
               // column: 12th here is 12th per player, not 12th by the squad's
-              // total (Brighton is 8th on the total and 12th per head).
+              // total (Brighton is 8th on the total and 12th per head). The
+              // world place is per player too, among the hundred most
+              // valuable squads; the link lands on that table.
               label="Value per player"
               value={teamForm.marketValue}
-              subline={`${ordinal(teamForm.marketValueRank)} highest in ${league}`}
+              subline={
+                <>
+                  {squadValuePlace && (
+                    <>
+                      <Link
+                        href={SQUAD_VALUES_PATH}
+                        className="hover:text-text-primary hover:underline"
+                      >
+                        #{squadValuePlace.perPlayerRank} in the world
+                      </Link>
+                      {" · "}
+                    </>
+                  )}
+                  {ordinal(teamForm.marketValueRank)} in {league}
+                </>
+              }
               accentClass="text-accent-gold"
             />
           )}
           {squadValuePlace && (
             <HeroMetric
-              // The world place is exact only because the table that picked
-              // the hundred is the same one ranked here; the link lands on it.
               label="Squad value"
               value={formatMarketValue(squadValuePlace.club.totalValue)}
-              subline={
-                <Link href={SQUAD_VALUES_PATH} className="hover:text-text-primary hover:underline">
-                  #{squadValuePlace.rank} in the world
-                </Link>
-              }
+              subline={`${squadValuePlace.club.squadSize} players`}
               accentClass="text-accent-gold"
             />
           )}
