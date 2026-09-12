@@ -36,13 +36,13 @@ const STRONGER: ModeSpec = {
   ...overall,
   ends: [
     {
-      title: "Came out ahead & stronger",
+      title: "Got more than they gave & stronger",
       tone: "under",
       side: "in",
       qualifies: (c) => surplus(c) > 0 && c.netValue > 0,
     },
     {
-      title: "Came out behind & weaker",
+      title: "Gave more than they got & weaker",
       tone: "over",
       side: "out",
       qualifies: (c) => surplus(c) < 0 && c.netValue < 0,

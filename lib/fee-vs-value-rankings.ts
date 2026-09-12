@@ -240,13 +240,13 @@ export const CLUB_MODES = {
     expand: "both",
     ends: [
       {
-        title: "Came out ahead",
+        title: "Got more than they gave",
         tone: "under",
         side: "in",
         qualifies: (c) => surplus(c) > 0,
       },
       {
-        title: "Came out behind",
+        title: "Gave more than they got",
         tone: "over",
         side: "out",
         qualifies: (c) => surplus(c) < 0,
