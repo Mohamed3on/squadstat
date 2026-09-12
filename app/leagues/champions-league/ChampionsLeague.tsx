@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import Link from "next/link";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { BASE_URL } from "@/lib/constants";
 import { formatMillions, getTeamDetailHref, ordinal } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
@@ -46,7 +47,7 @@ const Crest = ({ id }: { id: string }) => (
 );
 
 // The clubs with a /teams page (see getClubIdsWithPages). The rest — AEK, Bodø/Glimt
-// and the like — stay plain text rather than linking to a not-found page.
+// and the like — link out to Transfermarkt rather than to a not-found page.
 const LinkedClubs = createContext<ReadonlySet<string>>(new Set());
 
 export function LinkedClubsProvider({
@@ -74,7 +75,15 @@ function ClubLink({
       {children}
     </Link>
   ) : (
-    <span className={className}>{children}</span>
+    <a
+      href={`${BASE_URL}/x/startseite/verein/${id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="On Transfermarkt"
+      className={clsx("hover:underline", className)}
+    >
+      {children}
+    </a>
   );
 }
 
@@ -411,8 +420,12 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
   const measure = model.leaguePhaseComplete ? BY_PLACES : BY_POINTS;
   const played = model.rows.filter((r) => measure.of(r) !== null);
   const gap = (r: ClRow) => measure.of(r)!;
-  const best = played.reduce<ClRow | null>((a, r) => (!a || gap(r) > gap(a) ? r : a), null);
-  const worst = played.reduce<ClRow | null>((a, r) => (!a || gap(r) < gap(a) ? r : a), null);
+  const top = Math.max(...played.map(gap));
+  const bottom = Math.min(...played.map(gap));
+  // Early in the league phase several clubs share the biggest gap either way, so each
+  // card lists every one of them, most valuable first.
+  const levelOn = (g: number) =>
+    played.filter((r) => gap(r) === g).sort((a, b) => a.valueRank - b.valueRank);
 
   return (
     <div className="tourney page-container">
@@ -436,32 +449,56 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
         </p>
       </header>
 
-      {best && worst && (
+      {top > 0 && bottom < 0 && (
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
-            { row: best, word: "Punching above its value", cls: "over" },
-            { row: worst, word: "Falling short of its value", cls: "under" },
-          ].map(({ row, word, cls }) => (
-            <div
-              key={word}
-              className="rounded-2xl border border-[var(--tny-line)] bg-[var(--tny-panel)] p-4"
-            >
-              <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
-                {word}
+            { value: top, word: "Punching above its value", cls: "over" },
+            { value: bottom, word: "Falling short of its value", cls: "under" },
+          ].map(({ value, word, cls }) => {
+            const clubs = levelOn(value);
+            return (
+              <div
+                key={word}
+                className="rounded-2xl border border-[var(--tny-line)] bg-[var(--tny-panel)] p-4"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
+                    {word}
+                  </div>
+                  <span className={clsx("delta", cls)}>
+                    {value > 0 ? "▲" : "▼"} {Math.abs(value)}
+                    {measure === BY_POINTS ? " pts" : ""}
+                    {clubs.length > 1 ? " each" : ""}
+                  </span>
+                </div>
+                <table className="mt-3 w-full text-sm">
+                  <thead>
+                    <tr className="whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-[var(--tny-muted)]">
+                      {/* The club takes the slack, so both ranks sit together on the right. */}
+                      <th className="w-full pb-1 text-left font-normal">
+                        <span className="sr-only">Club</span>
+                      </th>
+                      <th className="pb-1 text-right font-normal">Table</th>
+                      <th className="pb-1 pl-4 text-right font-normal">Value rank</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--tny-line)]">
+                    {clubs.map((r) => (
+                      <tr key={r.club.id}>
+                        <td className="py-2">
+                          <div className="flex items-center gap-2 font-semibold">
+                            <ClubName club={r.club} />
+                          </div>
+                        </td>
+                        <td className="py-2 text-right font-value">{ordinal(r.pos)}</td>
+                        <td className="py-2 pl-4 text-right font-value">{ordinal(r.valueRank)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="mt-2 flex items-center gap-2 text-base font-bold">
-                <ClubName club={row.club} />
-              </div>
-              <div className="mt-1 text-sm text-[var(--tny-muted)]">
-                <span className="font-value">{ordinal(row.pos)}</span> in the table,{" "}
-                <span className="font-value">{ordinal(row.valueRank)}</span> by value per player{" "}
-                <span className={clsx("delta", cls)}>
-                  {gap(row) > 0 ? "▲" : "▼"} {Math.abs(gap(row))}
-                  {measure === BY_POINTS ? " pts" : ""}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
