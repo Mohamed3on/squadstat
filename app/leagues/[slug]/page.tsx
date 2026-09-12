@@ -6,7 +6,7 @@ import type { AnalysisResult, InjuredPlayer } from "@/app/types";
 import { Button } from "@/components/ui/button";
 import { DetailHero, DetailPageShell } from "@/components/DetailHero";
 import { HeroMetric } from "@/components/HeroMetric";
-import { InjuredPlayerCard } from "@/components/InjuredPlayerCard";
+import { InjuredPlayerRow } from "@/components/InjuredPlayerCard";
 import { StandingsTable, type FormLeader } from "./StandingsTable";
 import { MatchdayTable, matchdaySummary } from "./MatchdayTable";
 import { AggregatedFormCard } from "@/app/components/FormAnalysisUI";
@@ -373,12 +373,10 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
           />
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {topInjured.map((player, idx) => (
-              <InjuredPlayerCard
+              <InjuredPlayerRow
                 key={`${player.name}-${player.club}-${idx}`}
                 player={player}
                 rank={idx + 1}
-                index={idx}
-                showLeague={false}
               />
             ))}
           </div>

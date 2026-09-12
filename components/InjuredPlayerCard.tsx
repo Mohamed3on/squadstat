@@ -3,7 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LeagueBadge } from "@/components/LeagueBadge";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PlayerListRow } from "@/components/PlayerListRow";
 import { RankBadge } from "@/components/RankBadge";
+import { BASE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   extractClubIdFromLogoUrl,
@@ -134,5 +136,52 @@ export function InjuredPlayerCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** The same player condensed to one list row — injury and time out on the detail
+ *  line, value and expected return on the right — for summaries like a league page. */
+export function InjuredPlayerRow({ player, rank }: { player: InjuredPlayer; rank: number }) {
+  const returnInfo = formatReturnInfo(player.returnDate);
+  const duration = formatInjuryDuration(player.injurySince);
+  const playerId = getPlayerIdFromProfileUrl(player.profileUrl);
+
+  return (
+    <PlayerListRow
+      href={playerId ? getPlayerDetailHref(playerId) : `${BASE_URL}${player.profileUrl}`}
+      rank={rank}
+      name={player.name}
+      imageUrl={player.imageUrl}
+      detail={
+        <>
+          {player.clubLogoUrl && (
+            <img
+              src={player.clubLogoUrl}
+              alt={player.club}
+              title={player.club}
+              className="h-3.5 w-3.5 shrink-0 object-contain"
+            />
+          )}
+          <span className="truncate">
+            <span className="text-accent-cold-soft">{player.injury}</span>
+            {duration && ` · out ${duration}`}
+          </span>
+        </>
+      }
+    >
+      <div className="shrink-0 text-right">
+        <p className="text-sm font-value text-accent-hot">{formatValueStr(player.marketValue)}</p>
+        {returnInfo && (
+          <p
+            className={cn(
+              "text-[10px]",
+              returnInfo.imminent ? "text-emerald-400" : "text-text-muted",
+            )}
+          >
+            {returnInfo.label}
+          </p>
+        )}
+      </div>
+    </PlayerListRow>
   );
 }

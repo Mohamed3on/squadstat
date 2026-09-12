@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { NationalityFlag } from "@/components/NationalityFlag";
-import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PlayerListRow } from "@/components/PlayerListRow";
 import { getPlayerDetailHref } from "@/lib/format";
 import type { MinutesValuePlayer } from "@/app/types";
 import { npga } from "@/lib/stats-toggles";
@@ -38,25 +37,13 @@ function SquadPlayerRow({
   const penAttempts = penGoals + penMisses;
 
   return (
-    <Link
+    <PlayerListRow
       href={getPlayerDetailHref(player.playerId)}
-      className="flex items-center gap-2 rounded-xl border border-border-subtle bg-elevated p-2.5 transition-colors hover:border-border-medium hover:bg-card-hover sm:gap-3"
-    >
-      {/* At 320px the fixed furniture left the name and market value only 66px of the
-          254px row. The rank chip is the one piece the list's own order already tells
-          you, so it goes first on the narrowest screens. */}
-      <div className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-black/20 text-xs font-value text-text-muted sm:flex">
-        {rank}
-      </div>
-      <PlayerAvatar
-        imageUrl={player.imageUrl}
-        name={player.name}
-        size="sm"
-        className="border border-border-subtle"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-text-primary">{player.name}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-text-secondary">
+      rank={rank}
+      name={player.name}
+      imageUrl={player.imageUrl}
+      detail={
+        <>
           {showClub && player.clubLogoUrl && (
             <img
               src={player.clubLogoUrl}
@@ -70,8 +57,9 @@ function SquadPlayerRow({
             <span title={player.position}>{getShortPosition(player.position)}</span> · {player.age}y
             · {player.marketValueDisplay}
           </span>
-        </p>
-      </div>
+        </>
+      }
+    >
       <div className="hidden shrink-0 items-center gap-4 text-right sm:flex">
         <div>
           <p className="text-sm font-value text-accent-hot">{playerNpga}</p>
@@ -107,7 +95,7 @@ function SquadPlayerRow({
           {player.minutes.toLocaleString()}&apos;
         </span>
       </div>
-    </Link>
+    </PlayerListRow>
   );
 }
 
