@@ -58,20 +58,61 @@ export function MatchdayTable({ games }: { games: MatchdayGame[] }) {
   );
 }
 
+type Outcome = "won" | "lost" | "level";
+
+// A finished game's winner takes the brand green — a wash over its half of the row
+// and its goal tally — and its loser recedes; a draw stays even, with no green at all.
+const NAME: Record<Outcome, string> = {
+  won: "font-semibold text-text-primary",
+  lost: "text-text-secondary",
+  level: "text-text-primary",
+};
+const GOALS: Record<Outcome, string> = {
+  won: "text-accent-hot",
+  lost: "text-text-secondary",
+  level: "text-text-primary",
+};
+
 function GameRow({ game }: { game: MatchdayGame }) {
   const [home, away] = game.result.split(":").map(Number);
-  // A finished game dims its loser; a draw, or a game still to finish, leaves both lit.
-  const done = game.status === "finished";
+  const outcome = (scored: number, conceded: number): Outcome | null =>
+    game.status !== "finished"
+      ? null
+      : scored > conceded
+        ? "won"
+        : scored < conceded
+          ? "lost"
+          : "level";
+  const homeOutcome = outcome(home, away);
+  const awayOutcome = outcome(away, home);
   return (
     <TableRow>
-      <TableCell className="w-1/2 max-w-0">
-        <Club club={game.home} lost={done && home < away} className="flex-row-reverse" />
+      <TableCell
+        className={cn(
+          "w-1/2 max-w-0",
+          homeOutcome === "won" && "bg-gradient-to-l from-accent-hot/10 to-transparent",
+        )}
+      >
+        <Club club={game.home} outcome={homeOutcome} className="flex-row-reverse" />
       </TableCell>
       <TableCell className="whitespace-nowrap text-center">
-        <Result game={game} />
+        {homeOutcome && awayOutcome ? (
+          <span className="inline-flex rounded-md bg-card px-2 py-0.5 font-value">
+            <span className={GOALS[homeOutcome]}>{home}</span>
+            <span className="text-text-muted">:</span>
+            <span className={GOALS[awayOutcome]}>{away}</span>
+          </span>
+        ) : (
+          <Pending game={game} />
+        )}
       </TableCell>
-      <TableCell className="w-1/2 max-w-0">
-        <Club club={game.away} lost={done && away < home} />
+      <TableCell
+        className={cn(
+          "w-1/2 max-w-0",
+          awayOutcome === "won" && "bg-gradient-to-r from-accent-hot/10 to-transparent",
+        )}
+      >
+        <Club club={game.away} outcome={awayOutcome} />
       </TableCell>
     </TableRow>
   );
@@ -79,11 +120,11 @@ function GameRow({ game }: { game: MatchdayGame }) {
 
 function Club({
   club,
-  lost,
+  outcome,
   className,
 }: {
   club: MatchdayClub;
-  lost: boolean;
+  outcome: Outcome | null;
   className?: string;
 }) {
   return (
@@ -93,7 +134,7 @@ function Club({
         href={getTeamDetailHref(club.id)}
         className={cn(
           "truncate font-medium hover:underline",
-          lost ? "text-text-muted" : "text-text-primary",
+          outcome ? NAME[outcome] : "text-text-primary",
         )}
       >
         {club.name}
@@ -102,24 +143,15 @@ function Club({
   );
 }
 
-function Result({ game }: { game: MatchdayGame }) {
+/** A game not yet over: its running score while live, else TM's kickoff time. */
+function Pending({ game }: { game: MatchdayGame }) {
   if (game.status === "scheduled") {
     return <span className="font-value text-xs text-text-muted">{game.result}</span>;
   }
-  const live = game.status === "live";
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-value",
-        live ? "bg-accent-cold-faint text-accent-cold" : "bg-card text-text-primary",
-      )}
-    >
-      {live && (
-        <>
-          <span aria-hidden className="size-1.5 rounded-full bg-accent-cold" />
-          <span className="sr-only">Live:</span>
-        </>
-      )}
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-accent-cold-faint px-2 py-0.5 font-value text-accent-cold">
+      <span aria-hidden className="size-1.5 rounded-full bg-accent-cold" />
+      <span className="sr-only">Live:</span>
       {game.result}
     </span>
   );
