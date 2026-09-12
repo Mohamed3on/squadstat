@@ -9,9 +9,9 @@ import { ChampionsLeague } from "./ChampionsLeague";
 export const dynamic = "force-dynamic";
 
 export const metadata = createPageMetadata({
-  title: "Champions League Table vs Squad Value",
+  title: "Champions League Table vs Value per Player",
   description:
-    "All 36 Champions League league-phase clubs, ranked by league position against squad market value — who is punching above their money and who is falling short, with every fixture and the knockout bracket.",
+    "All 36 Champions League league-phase clubs, ranked by league position against market value per player — who is punching above their money and who is falling short, with every fixture and the knockout bracket.",
   path: "/leagues/champions-league",
   keywords: [
     "Champions League table",

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = createPageMetadata({
   title: "Expected Position vs Actual",
   description:
-    "Compare actual league standings with squad value rankings across Europe's top 5 leagues. Spot the biggest overperformers and underperformers relative to spending.",
+    "Compare actual league standings with value-per-player rankings across Europe's top 5 leagues. Spot the biggest overperformers and underperformers relative to spending.",
   path: "/expected-position",
   keywords: [
     "expected position football",

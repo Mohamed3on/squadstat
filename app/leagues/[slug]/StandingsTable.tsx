@@ -86,7 +86,7 @@ export function StandingsTable({
             label={
               <>
                 <span className="sm:hidden">Value</span>
-                <span className="hidden sm:inline">Market value</span>
+                <span className="hidden sm:inline">Value per player</span>
               </>
             }
             active={sort.key === "marketValue"}

@@ -254,17 +254,17 @@ export function TeamListsGrid({
               Overperformers
               <InfoTip>
                 <p>
-                  Teams earning <strong>more points</strong> than their squad market value would
+                  Teams earning <strong>more points</strong> than their value per player would
                   predict.
                 </p>
                 <p className="mt-1.5">
                   The &ldquo;points gap&rdquo; is calculated by ranking all teams in a league by
-                  squad value, then comparing each team&apos;s actual points to the points earned by
-                  the team sitting in that value-based position.
+                  value per player, then comparing each team&apos;s actual points to the points
+                  earned by the team sitting in that value-based position.
                 </p>
                 <p className="mt-1.5 text-text-muted">
-                  &ldquo;Squad ranked 3rd, 58pts expected&rdquo; means the team has the 3rd most
-                  valuable squad, and the team currently in 3rd has 58 points.
+                  &ldquo;3rd · 58pts by value&rdquo; means the team has the 3rd highest value per
+                  player, and the team currently in 3rd has 58 points.
                 </p>
               </InfoTip>
             </h2>
@@ -285,12 +285,11 @@ export function TeamListsGrid({
               Underperformers
               <InfoTip>
                 <p>
-                  Teams earning <strong>fewer points</strong> than their squad market value would
+                  Teams earning <strong>fewer points</strong> than their value per player would
                   predict.
                 </p>
                 <p className="mt-1.5">
-                  A negative points gap means the team is underdelivering relative to how much their
-                  squad costs.
+                  A negative points gap means fewer points than the team sitting at its value rank.
                 </p>
               </InfoTip>
             </h2>
@@ -337,7 +336,7 @@ export function TeamListsGrid({
               Overperformers
               <InfoTip>
                 <p>
-                  Teams earning <strong>more points</strong> than their squad market value would
+                  Teams earning <strong>more points</strong> than their value per player would
                   predict.
                 </p>
                 <p className="mt-1.5">
@@ -374,12 +373,11 @@ export function TeamListsGrid({
               Underperformers
               <InfoTip>
                 <p>
-                  Teams earning <strong>fewer points</strong> than their squad market value would
+                  Teams earning <strong>fewer points</strong> than their value per player would
                   predict.
                 </p>
                 <p className="mt-1.5">
-                  A negative points gap means the team is underdelivering relative to how much their
-                  squad costs.
+                  A negative points gap means fewer points than the team sitting at its value rank.
                 </p>
               </InfoTip>
             </h2>

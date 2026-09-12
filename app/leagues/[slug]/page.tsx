@@ -50,7 +50,7 @@ export async function generateMetadata({
   }
   return createPageMetadata({
     title: `${league.name} Table, Form, Player Stats & Injuries`,
-    description: `${league.name} standings and squad-value expectations, recent team form, top players by non-penalty goals plus assists, and the latest injury impact data.`,
+    description: `${league.name} standings against value per player, recent team form, top players by non-penalty goals plus assists, and the latest injury impact data.`,
     path: `/leagues/${slug}`,
     keywords: [
       league.name,
@@ -299,7 +299,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
         <section className="min-w-0">
           <SectionHeader
             title="Standings"
-            subtitle={`${league.name} table — sort by position, market value, or points gap vs squad-value expectation.`}
+            subtitle={`${league.name} table — sort by position, value per player, or points gap vs expected.`}
             linkHref="/expected-position"
             linkLabel="All top 5 leagues"
           />

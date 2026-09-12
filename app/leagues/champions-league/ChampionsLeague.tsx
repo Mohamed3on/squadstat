@@ -330,17 +330,14 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
     <div className="tourney page-container">
       <header className="t-hero">
         <div className="kicker">UEFA Champions League {model.label}</div>
-        <h1 className="t-title">Table vs Squad Value</h1>
+        <h1 className="t-title">Table vs Value per Player</h1>
         <p className="rule">
-          All 36 clubs in the league phase, ranked by where they actually sit and by what their
-          squad is worth.{" "}
+          All 36 clubs in the league phase, ranked by where they actually sit and by value per
+          player (squad value ÷ squad size).{" "}
           {measure === BY_POINTS ? (
             <>
-              <b>
-                Δ pts = a club&rsquo;s points − the points of whoever sits in the place its squad
-                value ranks it
-              </b>
-              , so ▲ 4 means four points clear of the club holding its slot.
+              <b>Δ pts = a club&rsquo;s points − the points of whoever sits at its value rank</b>,
+              so ▲ 4 means four points clear of the club holding its slot.
             </>
           ) : (
             <>
@@ -394,8 +391,8 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
         <>
           <p className="hint">
             {model.koDrawn
-              ? "Real ties where the draw has been made; the rest projected by squad value — the more valuable squad advances."
-              : "Projected from the final table under UEFA's seeding rules, with the more valuable squad winning every tie."}
+              ? "Real ties where the draw has been made; the rest projected, with the higher value per player advancing."
+              : "Projected from the final table under UEFA's seeding rules, with the higher value per player winning every tie."}
           </p>
           <Bracket model={model} />
         </>
@@ -412,7 +409,7 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
       ))}
 
       <div className="t-foot">
-        Squad values and results from Transfermarkt, refreshed through the day.
+        Market values and results from Transfermarkt, refreshed through the day.
       </div>
     </div>
   );

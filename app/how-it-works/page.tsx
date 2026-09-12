@@ -137,7 +137,7 @@ export default function HowItWorksPage() {
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>
               Whether teams are punching above or below their financial weight. A club with the 2nd
-              most expensive squad should, in theory, finish 2nd — but reality rarely matches.
+              highest value per player should, in theory, finish 2nd — but reality rarely matches.
             </p>
           </div>
 
@@ -147,8 +147,8 @@ export default function HowItWorksPage() {
             </h3>
             <ol className="mt-1.5 ml-4 list-decimal space-y-1">
               <li>
-                Rank all teams in a league by <Term>total squad market value</Term> (most expensive
-                = 1st).
+                Rank all teams in a league by <Term>value per player</Term> (squad market value ÷
+                squad size, highest = 1st).
               </li>
               <li>
                 For each team, look at which league position their value rank corresponds to and
@@ -165,16 +165,16 @@ export default function HowItWorksPage() {
             <h3 className="font-semibold text-text-primary mb-1">Reading the numbers</h3>
             <ul className="mt-1.5 ml-4 list-disc space-y-1">
               <li>
-                <Term>+8 points gap</Term> — the team has 8 more points than their squad value would
-                predict (overperforming)
+                <Term>+8 points gap</Term> — the team has 8 more points than expected
+                (overperforming)
               </li>
               <li>
                 <Term>-5 points gap</Term> — the team has 5 fewer points than expected
                 (underperforming)
               </li>
               <li>
-                <Term>&ldquo;Squad ranked 3rd, 58pts expected&rdquo;</Term> — this team has the 3rd
-                most valuable squad, and the team currently in 3rd place has 58 points
+                <Term>&ldquo;3rd · 58pts by value&rdquo;</Term> — this team has the 3rd highest
+                value per player, and the team currently in 3rd place has 58 points
               </li>
             </ul>
           </div>
