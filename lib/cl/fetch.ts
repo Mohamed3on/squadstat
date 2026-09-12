@@ -63,7 +63,7 @@ async function fetchClubs(): Promise<ClClub[]> {
       const tds = $(tr).find("td");
       if (tds.length < 6) return;
       const club = clubIn(tds.eq(1));
-      const euros = parseMarketValue(tds.eq(4).text().trim());
+      const euros = parseMarketValue(tds.eq(5).text().trim()); // ø per player, not the total
       if (!club || euros <= 0) return;
       clubs.push({
         id: club.id,

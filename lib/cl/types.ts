@@ -8,7 +8,7 @@ export type ClClub = {
   name: string; // full name ("Paris Saint-Germain")
   squad: number;
   avgAge: number;
-  mv: number; // squad market value in millions, like lib/wc/model.ts
+  mv: number; // market value per player (TM's ø) in millions — what the value rank runs on
 };
 
 /** One row of the 36-club league-phase table. */

@@ -29,7 +29,7 @@ const columnsFor = (m: Measure): SortColumn<ClRow, ColKey>[] => [
   { key: "pl", label: "Pl", numeric: true, value: (r) => r.pl, className: "hidden sm:table-cell" },
   { key: "gd", label: "GD", numeric: true, value: (r) => r.gd, className: "hidden sm:table-cell" },
   { key: "pts", label: "Pts", numeric: true, value: (r) => r.pts },
-  { key: "mv", label: "Squad value", numeric: true, value: (r) => r.club.mv },
+  { key: "mv", label: "Value per player", numeric: true, value: (r) => r.club.mv },
   { key: "valueRank", label: "Value rank", numeric: false, value: (r) => r.valueRank },
   { key: "delta", label: m.label, numeric: true, value: (r) => m.of(r) ?? 0 },
 ];
@@ -368,8 +368,8 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
                 <ClubName club={row.club} />
               </div>
               <div className="mt-1 text-sm text-[var(--tny-muted)]">
-                <span className="font-value">{ordinal(row.pos)}</span> in the table on the{" "}
-                <span className="font-value">{ordinal(row.valueRank)}</span> most valuable squad{" "}
+                <span className="font-value">{ordinal(row.pos)}</span> in the table,{" "}
+                <span className="font-value">{ordinal(row.valueRank)}</span> by value per player{" "}
                 <span className={clsx("delta", cls)}>
                   {gap(row) > 0 ? "▲" : "▼"} {Math.abs(gap(row))}
                   {measure === BY_POINTS ? " pts" : ""}
