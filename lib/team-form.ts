@@ -1,6 +1,7 @@
+import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
-import type { TeamFormEntry } from "@/app/types";
+import type { Matchday, MatchdayClub, MatchdayGame, TeamFormEntry } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { LEAGUES } from "./leagues";
 import { fetchPage } from "./fetch";
@@ -101,7 +102,73 @@ function parseStartseitePage($: cheerio.CheerioAPI): {
   return { standings, marketValues };
 }
 
-async function fetchLeagueData(league: (typeof LEAGUES)[number]): Promise<TeamFormEntry[]> {
+function matchdayClub(cell: cheerio.Cheerio<any>): MatchdayClub | null {
+  const link = cell.find(".vereinsname a").first();
+  const id = link.attr("href")?.match(/\/verein\/(\d+)/)?.[1];
+  return id ? { id, name: link.text().trim() } : null;
+}
+
+/**
+ * The matchday box under the table: the rounds TM tabs as last / current / next
+ * matchday, oldest first. A tab without a round number — TM's "Rearranged match"
+ * catch-up list — is skipped.
+ */
+export function parseMatchdays($: cheerio.CheerioAPI): Matchday[] {
+  const rounds: Matchday[] = [];
+  $("#wettbewerbSpieltagsbox [id^='spieltagtabs-']").each((_, tab) => {
+    const number = Number(
+      $(tab)
+        .find("a[href*='/spieltag/']")
+        .attr("href")
+        ?.match(/\/spieltag\/(\d+)/)?.[1],
+    );
+    if (!number) return;
+
+    const games: MatchdayGame[] = [];
+    let date = ""; // TM prints each date once, on the day's first game
+    $(tab)
+      .find("tr.begegnungZeile")
+      .each((_, tr) => {
+        const row = $(tr);
+        const href = row.find("td.zeit a[href*='/datum/']").attr("href");
+        date = href?.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? date;
+        const home = matchdayClub(row.find("td.verein-heim"));
+        const away = matchdayClub(row.find("td.verein-gast"));
+        const result = row.find("td.ergebnis .matchresult").first();
+        if (!home || !away || !result.length) return;
+        games.push({
+          date,
+          home,
+          away,
+          status: result.hasClass("finished")
+            ? "finished"
+            : result.hasClass("liveresult")
+              ? "live"
+              : "scheduled",
+          result: result.text().trim(),
+        });
+      });
+    if (games.length > 0) rounds.push({ number, games });
+  });
+  return rounds;
+}
+
+/** The round worth showing: the one with the most recently played game — so a
+ *  fixture brought forward from a later round doesn't pull the page ahead — or,
+ *  before a season's first game, the first one listed. */
+export function latestMatchday(rounds: Matchday[]): Matchday | null {
+  // ISO dates compare as strings; a round with nothing played yet scores "".
+  const lastPlayed = (r: Matchday) =>
+    r.games.reduce((d, g) => (g.status !== "scheduled" && g.date > d ? g.date : d), "");
+  return rounds.reduce<Matchday | null>(
+    (latest, r) => (latest && lastPlayed(latest) >= lastPlayed(r) ? latest : r),
+    null,
+  );
+}
+
+async function fetchLeagueData(
+  league: (typeof LEAGUES)[number],
+): Promise<{ teams: TeamFormEntry[]; rounds: Matchday[] }> {
   try {
     const url = `${BASE_URL}/${league.slug}/startseite/wettbewerb/${league.code}`;
     const html = await fetchPage(url);
@@ -149,7 +216,7 @@ async function fetchLeagueData(league: (typeof LEAGUES)[number]): Promise<TeamFo
       });
     }
 
-    return results;
+    return { teams: results, rounds: parseMatchdays($) };
   } catch (error) {
     console.error(`Failed to fetch ${league.name}:`, error);
     throw error;
@@ -169,10 +236,13 @@ export function splitPerformers(teams: TeamFormEntry[], limit?: number) {
   };
 }
 
-export const getTeamFormData = unstable_cache(
+// Each league's competition page carries both its table and its matchday box, so
+// one cached fetch per league feeds getTeamFormData and getLeagueMatchday.
+const fetchLeaguePages = unstable_cache(
   async () => {
     const MAX_ATTEMPTS = 3;
     const allTeams: TeamFormEntry[] = [];
+    const rounds: Record<string, Matchday[]> = {};
     let pending = [...LEAGUES];
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS && pending.length > 0; attempt++) {
@@ -181,7 +251,8 @@ export const getTeamFormData = unstable_cache(
 
       results.forEach((r, i) => {
         if (r.status === "fulfilled") {
-          allTeams.push(...r.value);
+          allTeams.push(...r.value.teams);
+          rounds[pending[i].name] = r.value.rounds;
         } else {
           nextPending.push(pending[i]);
         }
@@ -205,12 +276,23 @@ export const getTeamFormData = unstable_cache(
       );
     }
 
-    return {
-      success: true,
-      allTeams,
-      leagues: LEAGUES.map((l) => l.name),
-    };
+    return { allTeams, rounds };
   },
   ["team-form"],
   { revalidate: 7200, tags: ["team-form"] },
 );
+
+// A page calling both below shares one lookup, so a cold miss can't fetch every league twice.
+const getLeaguePages = cache(fetchLeaguePages);
+
+export async function getTeamFormData() {
+  const { allTeams } = await getLeaguePages();
+  return { success: true, allTeams, leagues: LEAGUES.map((l) => l.name) };
+}
+
+/** The round a league page shows — chosen per request, so a change to the
+ *  choice never waits out a stale cache entry. */
+export async function getLeagueMatchday(leagueName: string): Promise<Matchday | null> {
+  const { rounds } = await getLeaguePages();
+  return latestMatchday(rounds[leagueName] ?? []);
+}

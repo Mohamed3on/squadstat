@@ -8,6 +8,7 @@ import { DetailHero, DetailPageShell } from "@/components/DetailHero";
 import { HeroMetric } from "@/components/HeroMetric";
 import { InjuredPlayerCard } from "@/components/InjuredPlayerCard";
 import { StandingsTable, type FormLeader } from "./StandingsTable";
+import { MatchdayTable, matchdaySummary } from "./MatchdayTable";
 import { AggregatedFormCard } from "@/app/components/FormAnalysisUI";
 import { SquadTab } from "@/app/teams/[clubId]/SquadTab";
 import { createPageMetadata } from "@/lib/metadata";
@@ -18,7 +19,7 @@ import {
   getTransfermarktLeagueUrl,
   isSameLeague,
 } from "@/lib/leagues";
-import { getTeamFormData } from "@/lib/team-form";
+import { getLeagueMatchday, getTeamFormData } from "@/lib/team-form";
 import { getLeagueAnalysis } from "@/lib/form-analysis";
 import { getMinutesValueData, slimForClient } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
@@ -72,8 +73,8 @@ function SectionHeader({
 }: {
   title: string;
   subtitle: string;
-  linkHref: string;
-  linkLabel: string;
+  linkHref?: string;
+  linkLabel?: string;
 }) {
   return (
     <header className="mb-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
@@ -81,12 +82,14 @@ function SectionHeader({
         <h2 className="text-xl font-pixel font-bold text-text-primary sm:text-2xl">{title}</h2>
         <p className="mt-1 text-sm text-text-muted">{subtitle}</p>
       </div>
-      <Link
-        href={linkHref}
-        className="text-sm font-medium text-accent-blue hover:underline whitespace-nowrap"
-      >
-        {linkLabel} →
-      </Link>
+      {linkHref && (
+        <Link
+          href={linkHref}
+          className="text-sm font-medium text-accent-blue hover:underline whitespace-nowrap"
+        >
+          {linkLabel} →
+        </Link>
+      )}
     </header>
   );
 }
@@ -111,11 +114,12 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
     aggregatedBottom: [],
   };
   const emptyTeamForm = { success: false as const, allTeams: [], leagues: [] };
-  const [teamFormData, leagueAnalysis, allPlayers, injuredData] = await Promise.all([
+  const [teamFormData, leagueAnalysis, allPlayers, injuredData, matchday] = await Promise.all([
     getTeamFormData().catch(() => emptyTeamForm),
     getLeagueAnalysis(league.name).catch(() => emptyAnalysis),
     getMinutesValueData(),
     getInjuredPlayers().catch(() => ({ players: [] as InjuredPlayer[] })),
+    getLeagueMatchday(league.name).catch(() => null),
   ]);
 
   const inLeague = (name: string) => isSameLeague(name, league.name);
@@ -295,8 +299,10 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
         </nav>
       </DetailHero>
 
-      <div className="mt-14 grid gap-12 sm:mt-16 xl:grid-cols-[1.15fr_1fr] xl:gap-10">
-        <section className="min-w-0">
+      {/* xl: the table spans both rows of the left column; the matchday and top
+          players stack on the right, the 1fr row soaking up the table's extra height. */}
+      <div className="mt-14 grid gap-12 sm:mt-16 xl:grid-cols-[1.15fr_1fr] xl:grid-rows-[auto_1fr] xl:gap-10">
+        <section className="min-w-0 xl:row-span-2">
           <SectionHeader
             title="Standings"
             subtitle={`${league.name} table — sort by position, value per player, or points gap vs expected.`}
@@ -309,6 +315,16 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
             <EmptySection>No standings data available for this league yet.</EmptySection>
           )}
         </section>
+
+        {matchday && (
+          <section className="min-w-0">
+            <SectionHeader
+              title={`Matchday ${matchday.number}`}
+              subtitle={matchdaySummary(matchday.games)}
+            />
+            <MatchdayTable games={matchday.games} />
+          </section>
+        )}
 
         <section className="min-w-0">
           <SectionHeader

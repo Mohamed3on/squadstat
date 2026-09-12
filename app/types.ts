@@ -137,6 +137,29 @@ export interface TeamFormEntry {
   manager?: ManagerInfo | null;
 }
 
+/** A club as a league's matchday box names it: TM's short form ("Man City", "Nott'm Forest"). */
+export interface MatchdayClub {
+  id: string;
+  name: string;
+}
+
+export interface MatchdayGame {
+  /** ISO date ("2026-09-12"); "" while TM has none. */
+  date: string;
+  home: MatchdayClub;
+  away: MatchdayClub;
+  status: "finished" | "live" | "scheduled";
+  /** TM's result cell as printed: the score once the game kicks off ("2:1"),
+   *  before that its kickoff in German time ("3:00 PM"), "postponed" or "-". */
+  result: string;
+}
+
+/** One round of a league, off the matchday box on its competition page. */
+export interface Matchday {
+  number: number;
+  games: MatchdayGame[];
+}
+
 export interface PlayerStats {
   name: string;
   position: string;
