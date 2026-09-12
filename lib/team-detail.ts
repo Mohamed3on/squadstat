@@ -177,3 +177,14 @@ async function computeTeamDetailData(clubId: string): Promise<TeamDetailData | n
 }
 
 export const getTeamDetailData = cache(computeTeamDetailData);
+
+/** Clubs whose /teams page has something to show: any club a tracked player turns
+ *  out for. A top-5 side with no tracked player also gets a page, off its table row,
+ *  but leaving it out here only costs it a link — and spares callers a Transfermarkt
+ *  fetch for the standings. */
+export async function getClubIdsWithPages(): Promise<Set<string>> {
+  const players = await getMinutesValueData();
+  return new Set(
+    players.map((p) => extractClubIdFromLogoUrl(p.clubLogoUrl)).filter((id) => id !== null),
+  );
+}

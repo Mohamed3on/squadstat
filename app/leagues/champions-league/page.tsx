@@ -1,7 +1,8 @@
 import { createPageMetadata } from "@/lib/metadata";
 import { getClClubs, getClSeason } from "@/lib/cl/fetch";
 import { buildClModel } from "@/lib/cl/model";
-import { ChampionsLeague } from "./ChampionsLeague";
+import { getClubIdsWithPages } from "@/lib/team-detail";
+import { ChampionsLeague, LinkedClubsProvider } from "./ChampionsLeague";
 
 // Request-rendered like the other Transfermarkt-backed league pages: the data
 // layer underneath is unstable_cache'd, so a request render stays cheap, and a
@@ -24,11 +25,17 @@ export const metadata = createPageMetadata({
 });
 
 export default async function ChampionsLeaguePage() {
-  const [clubs, season] = await Promise.all([getClClubs(), getClSeason()]);
+  const [clubs, season, withPages] = await Promise.all([
+    getClClubs(),
+    getClSeason(),
+    getClubIdsWithPages(),
+  ]);
   const model = buildClModel(clubs, season);
   return (
     <div className="py-6 sm:py-10">
-      <ChampionsLeague model={model} />
+      <LinkedClubsProvider linked={clubs.map((c) => c.id).filter((id) => withPages.has(id))}>
+        <ChampionsLeague model={model} />
+      </LinkedClubsProvider>
     </div>
   );
 }

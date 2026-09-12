@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import Link from "next/link";
-import { useState } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { formatMillions, getTeamDetailHref, ordinal } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
@@ -45,16 +45,49 @@ const Crest = ({ id }: { id: string }) => (
   <img className="crest" src={crestUrl(id)} alt="" loading="lazy" />
 );
 
+// The clubs with a /teams page (see getClubIdsWithPages). The rest — AEK, Bodø/Glimt
+// and the like — stay plain text rather than linking to a not-found page.
+const LinkedClubs = createContext<ReadonlySet<string>>(new Set());
+
+export function LinkedClubsProvider({
+  linked,
+  children,
+}: {
+  linked: string[];
+  children: ReactNode;
+}) {
+  const value = useMemo(() => new Set(linked), [linked]);
+  return <LinkedClubs.Provider value={value}>{children}</LinkedClubs.Provider>;
+}
+
+function ClubLink({
+  id,
+  className,
+  children,
+}: {
+  id: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return useContext(LinkedClubs).has(id) ? (
+    <Link href={getTeamDetailHref(id)} className={clsx("hover:underline", className)}>
+      {children}
+    </Link>
+  ) : (
+    <span className={className}>{children}</span>
+  );
+}
+
 function ClubName({ club }: { club: ClubLite }) {
   return (
     <>
       <Crest id={club.id} />
-      <Link href={getTeamDetailHref(club.id)} className="hover:underline">
+      <ClubLink id={club.id}>
         {/* Transfermarkt's abbreviation on a phone, where "Paris Saint-Germain"
             wraps the row onto two lines; the full name once there's room. */}
         <span className="sm:hidden">{club.short}</span>
         <span className="hidden sm:inline">{club.name}</span>
-      </Link>
+      </ClubLink>
     </>
   );
 }
@@ -243,7 +276,9 @@ function FixtureRow({ f }: { f: ClFixture }) {
           home === "won" && "bg-gradient-to-l from-[color:var(--tny-win)]/15 to-transparent",
         )}
       >
-        <span className={clsx("truncate", home && NAME[home])}>{f.home}</span>
+        <ClubLink id={f.homeId} className={clsx("truncate", home && NAME[home])}>
+          {f.home}
+        </ClubLink>
         <Crest id={f.homeId} />
       </span>
       <span
@@ -269,7 +304,9 @@ function FixtureRow({ f }: { f: ClFixture }) {
         )}
       >
         <Crest id={f.awayId} />
-        <span className={clsx("truncate", away && NAME[away])}>{f.away}</span>
+        <ClubLink id={f.awayId} className={clsx("truncate", away && NAME[away])}>
+          {f.away}
+        </ClubLink>
       </span>
     </li>
   );
@@ -301,7 +338,13 @@ function Side({
       )}
     >
       {club ? <Crest id={club.id} /> : null}
-      <span className="bn">{club?.short ?? "—"}</span>
+      {club ? (
+        <ClubLink id={club.id} className="bn">
+          {club.short}
+        </ClubLink>
+      ) : (
+        <span className="bn">—</span>
+      )}
       {seed !== null && <span className="seedno">{ordinal(seed)}</span>}
       <span className="bv">{score ?? (club ? formatMillions(club.mv) : "")}</span>
     </div>
