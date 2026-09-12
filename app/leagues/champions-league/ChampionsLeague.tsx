@@ -199,34 +199,79 @@ function Matchday({ md, fixtures }: { md: number; fixtures: ClFixture[] }) {
             {fixtures
               .filter((f) => f.dayLabel === day)
               .map((f) => (
-                <li
-                  key={`${f.homeId}-${f.awayId}`}
-                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-2 text-sm sm:gap-4"
-                >
-                  <span className="flex min-w-0 items-center justify-end gap-2 text-right">
-                    <span className="truncate">{f.home}</span>
-                    <Crest id={f.homeId} />
-                  </span>
-                  <span
-                    className={clsx(
-                      "font-value w-20 shrink-0 rounded-md px-2 py-0.5 text-center text-xs sm:text-sm",
-                      f.played
-                        ? "bg-[var(--tny-panel)] text-[var(--tny-txt)]"
-                        : "text-[var(--tny-muted)]",
-                    )}
-                  >
-                    {f.played ? `${f.hs}:${f.as}` : f.timeLabel}
-                  </span>
-                  <span className="flex min-w-0 items-center gap-2">
-                    <Crest id={f.awayId} />
-                    <span className="truncate">{f.away}</span>
-                  </span>
-                </li>
+                <FixtureRow key={`${f.homeId}-${f.awayId}`} f={f} />
               ))}
           </ul>
         </div>
       ))}
     </div>
+  );
+}
+
+type Outcome = "won" | "lost" | "level";
+
+// A played game's winner takes the bracket's win green — a wash over its half of the
+// row and its goal tally — and its loser recedes; a draw stays even, with no green.
+const NAME: Record<Outcome, string> = {
+  won: "font-semibold",
+  lost: "text-[var(--tny-muted)]",
+  level: "",
+};
+const GOALS: Record<Outcome, string> = {
+  won: "text-[var(--tny-win)]",
+  lost: "text-[var(--tny-muted)]",
+  level: "",
+};
+
+function FixtureRow({ f }: { f: ClFixture }) {
+  const outcome = (scored: number | null, conceded: number | null): Outcome | null =>
+    scored === null || conceded === null
+      ? null
+      : scored > conceded
+        ? "won"
+        : scored < conceded
+          ? "lost"
+          : "level";
+  const home = outcome(f.hs, f.as);
+  const away = outcome(f.as, f.hs);
+
+  return (
+    <li className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2 text-sm sm:gap-4">
+      <span
+        className={clsx(
+          "flex min-w-0 items-center justify-end gap-2 py-2 text-right",
+          home === "won" && "bg-gradient-to-l from-[color:var(--tny-win)]/15 to-transparent",
+        )}
+      >
+        <span className={clsx("truncate", home && NAME[home])}>{f.home}</span>
+        <Crest id={f.homeId} />
+      </span>
+      <span
+        className={clsx(
+          "font-value w-20 shrink-0 self-center rounded-md px-2 py-0.5 text-center text-xs sm:text-sm",
+          f.played ? "bg-[var(--tny-panel)] text-[var(--tny-txt)]" : "text-[var(--tny-muted)]",
+        )}
+      >
+        {home && away ? (
+          <>
+            <span className={GOALS[home]}>{f.hs}</span>
+            <span className="text-[var(--tny-muted)]">:</span>
+            <span className={GOALS[away]}>{f.as}</span>
+          </>
+        ) : (
+          f.timeLabel
+        )}
+      </span>
+      <span
+        className={clsx(
+          "flex min-w-0 items-center gap-2 py-2",
+          away === "won" && "bg-gradient-to-r from-[color:var(--tny-win)]/15 to-transparent",
+        )}
+      >
+        <Crest id={f.awayId} />
+        <span className={clsx("truncate", away && NAME[away])}>{f.away}</span>
+      </span>
+    </li>
   );
 }
 
