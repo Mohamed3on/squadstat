@@ -1,0 +1,516 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-12T22:43:52.899Z",
+  "title": "Design System: SquadStat",
+  "extensions": {
+    "colorMeta": {
+      "bg-base": {
+        "role": "neutral",
+        "displayName": "Blue-Black",
+        "canonical": "oklch(14.3% 0.006 246.4)",
+        "tonalRamp": [
+          "#090b0d",
+          "#232528",
+          "#404245",
+          "#5f6264",
+          "#808386",
+          "#a2a5a8",
+          "#c6c9cd",
+          "#ebeff2"
+        ]
+      },
+      "bg-elevated": {
+        "role": "neutral",
+        "displayName": "Deep Navy-Charcoal",
+        "canonical": "oklch(17.6% 0.014 258.4)",
+        "tonalRamp": [
+          "#080b11",
+          "#21252c",
+          "#3d424a",
+          "#5c6269",
+          "#7d838b",
+          "#a0a5ae",
+          "#c4cad2",
+          "#e9eff8"
+        ]
+      },
+      "bg-card": {
+        "role": "neutral",
+        "displayName": "Slate Charcoal",
+        "canonical": "oklch(22.0% 0.016 256.8)",
+        "tonalRamp": [
+          "#070b12",
+          "#20252d",
+          "#3d424a",
+          "#5c626a",
+          "#7c838c",
+          "#9fa6af",
+          "#c3cad4",
+          "#e8eff9"
+        ]
+      },
+      "bg-card-hover": {
+        "role": "neutral",
+        "displayName": "Lifted Slate",
+        "canonical": "oklch(25.4% 0.022 257.3)",
+        "tonalRamp": [
+          "#060b14",
+          "#1e2630",
+          "#3b434e",
+          "#5a626e",
+          "#7a8390",
+          "#9da6b3",
+          "#c1cad7",
+          "#e6effd"
+        ]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Cool White",
+        "canonical": "oklch(97.0% 0.010 247.9)",
+        "tonalRamp": [
+          "#080c0f",
+          "#21262a",
+          "#3e4347",
+          "#5d6267",
+          "#7e8388",
+          "#a0a6ab",
+          "#c4cad0",
+          "#e9eff5"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Steel Grey",
+        "canonical": "oklch(66.2% 0.018 250.9)",
+        "tonalRamp": [
+          "#060c13",
+          "#1f262e",
+          "#3b434c",
+          "#5a626b",
+          "#7b838d",
+          "#9da6b0",
+          "#c1cad5",
+          "#e6f0fb"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Dim Grey",
+        "canonical": "oklch(56.3% 0.020 256.3)",
+        "tonalRamp": [
+          "#060b13",
+          "#1f262f",
+          "#3b434d",
+          "#5a626d",
+          "#7b838e",
+          "#9da6b2",
+          "#c1cad6",
+          "#e6effc"
+        ]
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(97.0% 0.010 247.9)",
+        "tonalRamp": [
+          "#080c0f",
+          "#21262a",
+          "#3e4347",
+          "#5d6267",
+          "#7e8388",
+          "#a0a6ab",
+          "#c4cad0",
+          "#e9eff5"
+        ]
+      },
+      "border-medium": {
+        "role": "neutral",
+        "displayName": "Firm Hairline",
+        "canonical": "oklch(97.0% 0.010 247.9)",
+        "tonalRamp": [
+          "#080c0f",
+          "#21262a",
+          "#3e4347",
+          "#5d6267",
+          "#7e8388",
+          "#a0a6ab",
+          "#c4cad0",
+          "#e9eff5"
+        ]
+      },
+      "accent-hot": {
+        "role": "primary",
+        "displayName": "Electric Spring Green",
+        "canonical": "oklch(87.6% 0.229 152.4)",
+        "tonalRamp": [
+          "#001004",
+          "#002e13",
+          "#005026",
+          "#00753b",
+          "#009c50",
+          "#00c567",
+          "#00f07e",
+          "#c6ffd4"
+        ]
+      },
+      "accent-hot-glow": {
+        "role": "primary",
+        "displayName": "Electric Spring Green · glow tint",
+        "canonical": "oklch(87.6% 0.229 152.4)",
+        "tonalRamp": [
+          "#001004",
+          "#002e13",
+          "#005026",
+          "#00753b",
+          "#009c50",
+          "#00c567",
+          "#00f07e",
+          "#c6ffd4"
+        ]
+      },
+      "accent-hot-border": {
+        "role": "primary",
+        "displayName": "Electric Spring Green · border tint",
+        "canonical": "oklch(87.6% 0.229 152.4)",
+        "tonalRamp": [
+          "#001004",
+          "#002e13",
+          "#005026",
+          "#00753b",
+          "#009c50",
+          "#00c567",
+          "#00f07e",
+          "#c6ffd4"
+        ]
+      },
+      "accent-cold": {
+        "role": "secondary",
+        "displayName": "Hot Coral Red",
+        "canonical": "oklch(66.9% 0.219 20.9)",
+        "tonalRamp": [
+          "#1f0002",
+          "#4d000c",
+          "#80001b",
+          "#b7002b",
+          "#e82d45",
+          "#ff7175",
+          "#ffb2b0",
+          "#ffe8e7"
+        ]
+      },
+      "accent-cold-soft": {
+        "role": "secondary",
+        "displayName": "Soft Coral",
+        "canonical": "oklch(71.5% 0.180 16.8)",
+        "tonalRamp": [
+          "#1f0003",
+          "#4c0011",
+          "#7f0023",
+          "#b01c3b",
+          "#d8475b",
+          "#ff707d",
+          "#ffb1b4",
+          "#ffe8e8"
+        ]
+      },
+      "accent-cold-glow": {
+        "role": "secondary",
+        "displayName": "Hot Coral Red · glow tint",
+        "canonical": "oklch(66.9% 0.219 20.9)",
+        "tonalRamp": [
+          "#1f0002",
+          "#4d000c",
+          "#80001b",
+          "#b7002b",
+          "#e82d45",
+          "#ff7175",
+          "#ffb2b0",
+          "#ffe8e7"
+        ]
+      },
+      "accent-cold-border": {
+        "role": "secondary",
+        "displayName": "Hot Coral Red · border tint",
+        "canonical": "oklch(66.9% 0.219 20.9)",
+        "tonalRamp": [
+          "#1f0002",
+          "#4d000c",
+          "#80001b",
+          "#b7002b",
+          "#e82d45",
+          "#ff7175",
+          "#ffb2b0",
+          "#ffe8e7"
+        ]
+      },
+      "accent-blue": {
+        "role": "tertiary",
+        "displayName": "Clear Sky Blue",
+        "canonical": "oklch(71.5% 0.152 253.3)",
+        "tonalRamp": [
+          "#000b1f",
+          "#00254c",
+          "#00427e",
+          "#0361b4",
+          "#3584da",
+          "#5ca8ff",
+          "#a3cdff",
+          "#e3f0ff"
+        ]
+      },
+      "accent-gold": {
+        "role": "tertiary",
+        "displayName": "Pure Gold",
+        "canonical": "oklch(88.7% 0.182 95.3)",
+        "tonalRamp": [
+          "#0f0b00",
+          "#2d2400",
+          "#4f4100",
+          "#736000",
+          "#9a8100",
+          "#c2a300",
+          "#ecc700",
+          "#ffefb0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The home headline only; Geist Pixel Square."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles and section heads; always Pixel."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Entity names: players, clubs, card titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "The workhorse at 14px; detail lines drop to 12px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "10px uppercase at 0.18em: table headers, metric labels, eyebrows."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Every number, via font-value: Geist Mono, tabular figures, never bold."
+      }
+    },
+    "shadows": [
+      {
+        "name": "action-glow",
+        "value": "0 0 40px rgba(0, 255, 135, 0.1)",
+        "purpose": "The primary button only."
+      },
+      {
+        "name": "hover-lift",
+        "value": "0 8px 30px rgba(0, 0, 0, 0.3)",
+        "purpose": "hover-lift cards on fine pointers, paired with a 2px rise."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Room-in slides, bar fills, count pops."
+      },
+      {
+        "name": "ease-out-soft",
+        "value": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        "purpose": "Slide-up and scale-in entrances."
+      },
+      {
+        "name": "duration-state",
+        "value": "150ms",
+        "purpose": "Hover and toggle colour changes."
+      },
+      {
+        "name": "duration-control",
+        "value": "200ms",
+        "purpose": "Buttons and nav crests."
+      },
+      {
+        "name": "duration-entrance",
+        "value": "250ms–350ms",
+        "purpose": "Fades, slides and the detail hero's blur-in; 30ms stagger steps."
+      },
+      {
+        "name": "duration-bar-fill",
+        "value": "600ms",
+        "purpose": "Bar charts filling in."
+      },
+      {
+        "name": "duration-shimmer",
+        "value": "1.5s",
+        "purpose": "Skeleton shimmer loop."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The page's one main action: green fill, dark text, soft green glow.",
+      "html": "<button class=\"ds-btn-primary\">Analyze Recent Form</button>",
+      "css": ".ds-btn-primary { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--accent-hot, #00ff87); color: var(--bg-base, #080a0c); font: 600 14px/1 var(--font-geist-sans, system-ui), -apple-system, sans-serif; box-shadow: 0 0 40px rgba(0, 255, 135, 0.1); cursor: pointer; transition: opacity 0.2s, box-shadow 0.2s; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-base, #080a0c), 0 0 0 4px var(--accent-hot, #00ff87); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions: transparent with a hairline, fills on hover.",
+      "html": "<button class=\"ds-btn-outline\">Scan Value Gaps <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-outline { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); border-radius: 8px; background: transparent; color: var(--text-primary, #f0f6fc); font: 600 14px/1 var(--font-geist-sans, system-ui), -apple-system, sans-serif; cursor: pointer; transition: background-color 0.2s; } .ds-btn-outline:hover { background: var(--bg-elevated, #0d1117); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-base, #080a0c), 0 0 0 4px var(--border-subtle, rgba(240, 246, 252, 0.1)); }"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Housekeeping controls such as refresh: a muted icon that brightens on hover.",
+      "html": "<button class=\"ds-btn-ghost\" aria-label=\"Refresh data\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\"/><path d=\"M8 16H3v5\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted, #6e7681); cursor: pointer; transition: background-color 0.2s, color 0.2s; } .ds-btn-ghost:hover { background: var(--bg-elevated, #0d1117); color: var(--text-primary, #f0f6fc); } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-base, #080a0c), 0 0 0 4px var(--accent-blue, #58a6ff); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Deep Navy-Charcoal field with a hairline; green focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search players\" />",
+      "css": ".ds-input { box-sizing: border-box; display: block; width: 100%; max-width: 20rem; height: 40px; padding: 8px 12px; border: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); border-radius: 8px; background: var(--bg-elevated, #0d1117); color: var(--text-primary, #f0f6fc); font: 400 14px/1.43 var(--font-geist-sans, system-ui), -apple-system, sans-serif; transition: box-shadow 0.15s; } .ds-input::placeholder { color: var(--text-muted, #6e7681); } .ds-input:focus, .ds-input:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-base, #080a0c), 0 0 0 4px var(--accent-hot, #00ff87); }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "custom",
+      "refersTo": "segment",
+      "description": "Sort keys as flush segments in one hairline group; the selected one fills.",
+      "html": "<div class=\"ds-segments\" role=\"group\" aria-label=\"Sort by\"><button class=\"ds-seg\">Value</button><button class=\"ds-seg\" aria-pressed=\"true\">npG+A <span class=\"ds-seg-dir\">▼</span></button><button class=\"ds-seg\">Mins</button><button class=\"ds-seg\">Games</button></div>",
+      "css": ".ds-segments { display: inline-flex; overflow: hidden; border: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); border-radius: 8px; } .ds-seg { box-sizing: border-box; display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 4px 10px; border: 0; background: transparent; color: var(--text-muted, #6e7681); font: 500 12px/1 var(--font-geist-sans, system-ui), -apple-system, sans-serif; letter-spacing: 0.025em; text-transform: uppercase; cursor: pointer; transition: color 0.15s, background-color 0.15s; } .ds-seg:hover { background: rgba(13, 17, 23, 0.7); color: var(--text-secondary, #8b949e); } .ds-seg:active { transform: scale(0.97); } .ds-seg[aria-pressed=\"true\"] { background: var(--bg-elevated, #0d1117); color: var(--text-primary, #f0f6fc); } .ds-seg:focus-visible { outline: 2px solid var(--accent-blue, #58a6ff); outline-offset: -2px; } .ds-seg-dir { font-size: 10px; }"
+    },
+    {
+      "name": "Signal Pill",
+      "kind": "chip",
+      "refersTo": "pill-hot",
+      "description": "Up/down markers: glow-tint fill with accent text, fully round.",
+      "html": "<span class=\"ds-pills\"><a class=\"ds-pill ds-pill-hot\" href=\"#\">↑ Best form</a><a class=\"ds-pill ds-pill-cold\" href=\"#\">↓ Worst form</a></span>",
+      "css": ".ds-pills { display: inline-flex; gap: 8px; } .ds-pill { display: inline-flex; align-items: center; gap: 2px; padding: 2px 6px; border-radius: 9999px; font: 600 12px/1.4 var(--font-geist-sans, system-ui), -apple-system, sans-serif; text-decoration: none; transition: filter 0.15s, transform 0.15s; } .ds-pill-hot { background: var(--accent-hot-glow, rgba(0, 255, 135, 0.15)); color: var(--accent-hot, #00ff87); } .ds-pill-cold { background: var(--accent-cold-glow, rgba(255, 71, 87, 0.15)); color: var(--accent-cold, #ff4757); } .ds-pill:hover { filter: brightness(1.25); transform: scale(1.05); } .ds-pill:focus-visible { outline: 2px solid var(--accent-blue, #58a6ff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ranked Row",
+      "kind": "card",
+      "refersTo": "list-row",
+      "description": "A player as one linked row: rank chip, headshot, name over detail, figure right.",
+      "html": "<a class=\"ds-row\" href=\"#\"><span class=\"ds-row-rank\">1</span><span class=\"ds-row-avatar\">VP</span><span class=\"ds-row-main\"><span class=\"ds-row-name\">Vangelis Pavlidis</span><span class=\"ds-row-detail\">Centre-Forward · Benfica · 27y</span></span><span class=\"ds-row-fig\">€28.00m</span></a>",
+      "css": ".ds-row { display: flex; align-items: center; gap: 12px; max-width: 32rem; padding: 10px; border: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); border-radius: 12px; background: var(--bg-elevated, #0d1117); color: var(--text-primary, #f0f6fc); text-decoration: none; transition: background-color 0.15s, border-color 0.15s; } .ds-row:hover { border-color: var(--border-medium, rgba(240, 246, 252, 0.15)); background: var(--bg-card-hover, #1c232d); } .ds-row:focus-visible { outline: 2px solid var(--accent-blue, #58a6ff); outline-offset: 2px; } .ds-row-rank { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: rgba(0, 0, 0, 0.2); color: var(--text-muted, #6e7681); font: 400 12px/1 var(--font-geist-mono, ui-monospace), monospace; font-feature-settings: \"tnum\" on, \"lnum\" on; } .ds-row-avatar { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); border-radius: 9999px; background: var(--bg-card, #161b22); color: var(--text-secondary, #8b949e); font: 600 11px/1 var(--font-geist-sans, system-ui), -apple-system, sans-serif; } .ds-row-main { display: flex; flex: 1; flex-direction: column; min-width: 0; } .ds-row-name { overflow: hidden; font: 600 14px/1.3 var(--font-geist-sans, system-ui), -apple-system, sans-serif; white-space: nowrap; text-overflow: ellipsis; } .ds-row-detail { margin-top: 2px; color: var(--text-secondary, #8b949e); font: 400 12px/1.4 var(--font-geist-sans, system-ui), -apple-system, sans-serif; } .ds-row-fig { color: var(--accent-blue, #58a6ff); font: 400 14px/1 var(--font-geist-mono, ui-monospace), monospace; letter-spacing: -0.02em; font-feature-settings: \"tnum\" on, \"lnum\" on; }"
+    },
+    {
+      "name": "Hero Metric Row",
+      "kind": "custom",
+      "refersTo": "hero-metric",
+      "description": "The terminal readout on league, club and player heroes: label, figure, sub-line.",
+      "html": "<div class=\"ds-metrics\"><div><p class=\"ds-metric-label\">League position</p><p class=\"ds-metric-value\">4th</p><p class=\"ds-metric-sub\">7 pts · expected 3rd</p></div><div><p class=\"ds-metric-label\">Points gap</p><p class=\"ds-metric-value ds-metric-cold\">-1</p><p class=\"ds-metric-sub\">below expected</p></div><div><p class=\"ds-metric-label\">Value per player</p><p class=\"ds-metric-value ds-metric-gold\">€39.88m</p><p class=\"ds-metric-sub\">#7 in the world</p></div></div>",
+      "css": ".ds-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; max-width: 36rem; } .ds-metric-label { margin: 0; color: var(--text-muted, #6e7681); font: 400 10px/1.5 var(--font-geist-sans, system-ui), -apple-system, sans-serif; letter-spacing: 0.18em; text-transform: uppercase; } .ds-metric-value { margin: 6px 0 0; color: var(--text-primary, #f0f6fc); font: 400 24px/1 var(--font-geist-mono, ui-monospace), monospace; letter-spacing: -0.02em; font-feature-settings: \"tnum\" on, \"lnum\" on; } .ds-metric-cold { color: var(--accent-cold, #ff4757); } .ds-metric-gold { color: var(--accent-gold, #ffd700); } .ds-metric-sub { margin: 6px 0 0; color: var(--text-secondary, #8b949e); font: 400 12px/1.4 var(--font-geist-sans, system-ui), -apple-system, sans-serif; }"
+    },
+    {
+      "name": "Header Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Sticky 56px bar: Pixel wordmark, three group triggers, league crests on white tiles.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-wordmark\" href=\"#\">Squad<span>Stat</span></a><button class=\"ds-nav-trigger ds-nav-current\">Teams <svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button><button class=\"ds-nav-trigger\">Players <svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button><button class=\"ds-nav-trigger\">Transfers <svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button><span class=\"ds-nav-divider\" aria-hidden=\"true\"></span><a class=\"ds-crest ds-crest-on\" href=\"#\" aria-label=\"Premier League\" aria-current=\"page\"><span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg></span></a><a class=\"ds-crest\" href=\"#\" aria-label=\"La Liga\"><span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg></span></a><a class=\"ds-crest\" href=\"#\" aria-label=\"Bundesliga\"><span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg></span></a><button class=\"ds-nav-icon\" aria-label=\"Search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg></button></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 16px; border-bottom: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(24px); } .ds-wordmark { margin-right: 12px; color: var(--text-primary, #f0f6fc); font: 400 20px/1 var(--font-geist-pixel-square, monospace), monospace; letter-spacing: -0.025em; text-decoration: none; } .ds-wordmark span { color: var(--accent-hot, #00ff87); } .ds-nav-trigger { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary, #8b949e); font: 500 14px/1 var(--font-geist-sans, system-ui), -apple-system, sans-serif; cursor: pointer; transition: background-color 0.15s, color 0.15s; } .ds-nav-trigger:hover, .ds-nav-trigger:focus-visible { outline: none; background: var(--bg-elevated, #0d1117); color: var(--text-primary, #f0f6fc); } .ds-nav-current { color: var(--text-primary, #f0f6fc); } .ds-nav-divider { width: 1px; height: 20px; margin: 0 8px; background: var(--border-subtle, rgba(240, 246, 252, 0.1)); } .ds-crest { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; opacity: 0.6; transition: opacity 0.2s, background-color 0.2s; } .ds-crest span { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 2px; background: rgba(255, 255, 255, 0.9); color: #38003c; } .ds-crest:hover { background: var(--bg-elevated, #0d1117); opacity: 1; } .ds-crest:focus-visible { outline: 2px solid var(--accent-blue, #58a6ff); outline-offset: 2px; opacity: 1; } .ds-crest-on { background: var(--bg-elevated, #0d1117); box-shadow: 0 0 0 1px var(--border-medium, rgba(240, 246, 252, 0.15)); opacity: 1; } .ds-nav-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin-left: auto; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted, #6e7681); cursor: pointer; } .ds-nav-icon:hover { background: var(--bg-elevated, #0d1117); color: var(--text-primary, #f0f6fc); } .ds-nav-icon:focus-visible { outline: 2px solid var(--accent-blue, #58a6ff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Standings Table",
+      "kind": "custom",
+      "refersTo": "table-header",
+      "description": "Hairline-boxed table: label-caps header, mono figures right, 4% good/bad row washes.",
+      "html": "<div class=\"ds-table-wrap\"><table class=\"ds-table\"><thead><tr><th>#</th><th>Team</th><th class=\"ds-num\">Pts</th><th class=\"ds-num\">Value per player</th><th class=\"ds-num\">Δ</th></tr></thead><tbody><tr class=\"ds-good\"><td class=\"ds-rank\">1</td><td>Arsenal FC <span class=\"ds-table-pill\">↑ form</span></td><td class=\"ds-num\">12</td><td class=\"ds-num\">€55.3M <small>2nd</small></td><td class=\"ds-num ds-up\">+3</td></tr><tr class=\"ds-bad\"><td class=\"ds-rank\">2</td><td>Manchester City</td><td class=\"ds-num\">9</td><td class=\"ds-num\">€57.4M <small>1st</small></td><td class=\"ds-num ds-down\">-3</td></tr><tr class=\"ds-good\"><td class=\"ds-rank\">3</td><td>Hull City</td><td class=\"ds-num\">8</td><td class=\"ds-num\">€7.6M <small>20th</small></td><td class=\"ds-num ds-up\">+8</td></tr></tbody></table></div>",
+      "css": ".ds-table-wrap { overflow-x: auto; max-width: 40rem; border: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); border-radius: 12px; } .ds-table { width: 100%; border-collapse: collapse; color: var(--text-primary, #f0f6fc); font: 400 14px/1.43 var(--font-geist-sans, system-ui), -apple-system, sans-serif; } .ds-table thead { border-bottom: 1px solid var(--border-subtle, rgba(240, 246, 252, 0.1)); background: rgba(0, 0, 0, 0.2); } .ds-table th { padding: 8px 12px; color: var(--text-muted, #6e7681); font: 400 10px/1.5 var(--font-geist-sans, system-ui), -apple-system, sans-serif; letter-spacing: 0.18em; text-align: left; text-transform: uppercase; } .ds-table td { padding: 10px 12px; } .ds-table tbody tr { border-bottom: 1px solid rgba(240, 246, 252, 0.05); transition: background-color 0.15s; } .ds-table tbody tr:last-child { border-bottom: 0; } .ds-table .ds-num { font-family: var(--font-geist-mono, ui-monospace), monospace; letter-spacing: -0.02em; text-align: right; font-feature-settings: \"tnum\" on, \"lnum\" on; } .ds-table small { color: var(--text-muted, #6e7681); font-size: 11px; } .ds-rank { color: var(--text-muted, #6e7681); font-family: var(--font-geist-mono, ui-monospace), monospace; } .ds-good { background: rgba(0, 255, 135, 0.04); } .ds-good:hover { background: rgba(0, 255, 135, 0.08); } .ds-bad { background: rgba(255, 71, 87, 0.04); } .ds-bad:hover { background: rgba(255, 71, 87, 0.08); } .ds-up { color: var(--accent-hot, #00ff87); } .ds-down { color: var(--accent-cold-soft, #ff6b7a); } .ds-table-pill { margin-left: 6px; padding: 2px 6px; border-radius: 9999px; background: var(--accent-hot-glow, rgba(0, 255, 135, 0.15)); color: var(--accent-hot, #00ff87); font: 500 10px/1 var(--font-geist-sans, system-ui), -apple-system, sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Analyst's Terminal",
+    "overview": " SquadStat looks like a data terminal laid over grid paper, after dark. A blue-black ground, a faint Clear Sky Blue grid under every page, four surfaces that step up in lightness, and hairline borders carry all the structure. The type comes in three voices from one family: Geist Pixel Square for headlines (the one piece of character), Geist Sans for reading, and Geist Mono with tabular digits for every figure. It is dense by default. Text at 10 to 14px does most of the work, and tables and ranked rows are the main forms.\n\nColour is signal, never decoration. Electric Spring Green means up, won, hot, and the page's one main action. Hot Coral Red means down, lost, cold. Clear Sky Blue marks links, focus, and neutral figures. Pure Gold marks the benchmark figure: the value everything else on the page is measured against. Everything else is greyscale. The controls stay quiet (outline segments, ghost icons, muted labels), so the numbers are the loudest thing on screen.\n\nHeroes are the one place atmosphere is allowed: soft radial washes of blue and green over a larger grid, a big Pixel headline, and a three-figure metric row. Even there the structure is still the terminal's: label, figure, sub-line. SquadStat must never look like a betting app, a sports-news portal, a corporate BI tool, or a generic SaaS template. ",
+    "keyCharacteristics": [
+      "Dark only. The root is hard-set to `dark` and there is no light theme.",
+      "Every number is Geist Mono with tabular digits, at regular weight.",
+      "Page and section headings use Geist Pixel Square.",
+      "Green and red carry meaning. Blue carries links and neutral figures. Gold carries the benchmark.",
+      "Flat. Depth comes from tonal surfaces and hairlines. A glow sits only on the main action.",
+      "Imagery is data: club crests, league logos, player headshots and flags. No illustration.",
+      "Motion is brief and functional, and all of it stops under `prefers-reduced-motion`."
+    ],
+    "rules": [
+      {
+        "name": "The Signal-Only Rule",
+        "body": "Colour means something or it isn't there. Green is up, won, or go. Red is down or lost. Blue is a link or a neutral figure. Gold is the benchmark. Anything else is greyscale.",
+        "section": "colors"
+      },
+      {
+        "name": "The Good-Is-Green Rule",
+        "body": "Green marks the better outcome and red the worse, whichever way the number runs. The fewest goals conceded takes the green. Within a page, the same direction is always the same colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Figures Rule",
+        "body": "Every number (money, percentages, counts, ranks, scores) is set in `font-value`, never bold. The mono face is the emphasis.",
+        "section": "typography"
+      },
+      {
+        "name": "The Pixel Heads Rule",
+        "body": "Page and section headings use Pixel. Large Geist Sans is never bold or semibold.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat at rest. A new layer is a lighter surface and a hairline, never a drop shadow. The glow belongs to the main action alone.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do set every number in `font-value` (Geist Mono, tabular digits) at regular weight.",
+      "Do set page and section headings in Geist Pixel Square.",
+      "Do build depth from the four surfaces and hairlines: `border-subtle` at rest, `border-medium` on hover.",
+      "Do give green to the better outcome and red to the worse, consistently within a page.",
+      "Do reserve the green fill and its glow for the page's main action. Housekeeping controls stay ghost.",
+      "Do put crests and league logos on white tiles at 90%, so every crest reads on dark.",
+      "Do stack to one column on phones, and let wide tables scroll inside their own rounded box."
+    ],
+    "donts": [
+      "Don't look like a betting app: no neon odds tables, casino urgency, or flashing calls to action.",
+      "Don't look like a sports-news portal: no ad slots, autoplay, or walls of headlines.",
+      "Don't look like a corporate BI tool: no enterprise-grey controls, cluttered charts, or heavy toolbars.",
+      "Don't look like a generic SaaS template: no pastel gradients, rounded blobs, or stock illustration.",
+      "Don't use drop shadows to show layering.",
+      "Don't bold numbers, or set large headings in bold Sans.",
+      "Don't add colour for decoration. If it doesn't signal up, down, a link or the benchmark, it stays greyscale."
+    ]
+  }
+}
