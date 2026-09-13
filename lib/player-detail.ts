@@ -150,8 +150,6 @@ export interface PlayerDetailData {
   form: PlayerFormSummary;
   comparisons: Record<ComparisonScope, ScopedComparison>;
   trend: PlayerTrend | null;
-  clubmates: MinutesValuePlayer[];
-  topClubmatesByNpga: MinutesValuePlayer[];
   minutesBenchmark: MinutesBenchmark;
   subgroupRankings: SubgroupRanking[];
   penaltyRank: { rank: number; total: number } | null;
@@ -401,14 +399,6 @@ async function computePlayerDetailData(playerId: string): Promise<PlayerDetailDa
     top5: buildScope(comparisonPlayers.filter((p) => TOP_5_LEAGUES.includes(p.league))),
   };
 
-  const topClubmatesByNpga = [...clubmates]
-    .sort((left, right) => {
-      const diff = seasonNpga(right) - seasonNpga(left);
-      if (diff !== 0) return diff;
-      return left.minutes - right.minutes || left.name.localeCompare(right.name);
-    })
-    .slice(0, 6);
-
   const buildMinutesBenchmarkLists = (valueFilter: MinutesValueFilter): MinutesBenchmarkLists => {
     const { playingLess, playingMore } = filterMinutesBenchmark(players, player, valueFilter);
     return {
@@ -461,8 +451,6 @@ async function computePlayerDetailData(playerId: string): Promise<PlayerDetailDa
     form: buildFormSummary(player),
     comparisons,
     trend: buildTrend(player.playerId, winners, losers),
-    clubmates: clubmates.map(stripRecentForm),
-    topClubmatesByNpga: topClubmatesByNpga.map(stripRecentForm),
     minutesBenchmark: {
       pricier: buildMinutesBenchmarkLists("pricier"),
       cheaper: buildMinutesBenchmarkLists("cheaper"),

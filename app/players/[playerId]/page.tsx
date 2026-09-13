@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight, Crown, Medal, TrendingDown, TrendingUp } from "lucide-react";
 import { DetailHero, DetailPageShell } from "@/components/DetailHero";
 import { createPageMetadata } from "@/lib/metadata";
-import { getLeistungsdatenUrl, getPlayerDetailHref } from "@/lib/format";
-import { getPlayerDetailData, seasonNpga, type PlayerRankings } from "@/lib/player-detail";
+import { getLeistungsdatenUrl } from "@/lib/format";
+import { getPlayerDetailData, type PlayerRankings } from "@/lib/player-detail";
 import { paramsToScope } from "@/lib/comparison-scope";
 import { enrichRecentMatches } from "@/lib/player-recent-matches";
 import { displayAvailable } from "@/lib/filter-players";
@@ -33,7 +33,7 @@ import { HeroMetric } from "@/components/HeroMetric";
 import { SectionPanel } from "@/components/SectionPanel";
 import { SignalBadge } from "@/components/SignalBadge";
 import { TeamLogo } from "@/components/TeamLogo";
-import type { MinutesValuePlayer, RecentGameStats } from "@/app/types";
+import type { RecentGameStats } from "@/app/types";
 import { POSITION_NAMES } from "@/lib/player-aggregation";
 import { PlayerInjuryBadge } from "./PlayerInjuryBadge";
 import { PlayerTransferBadges } from "./PlayerTransferBadges";
@@ -334,64 +334,6 @@ function RecentMatches({ matches }: { matches: RecentGameStats[] }) {
   );
 }
 
-function ClubContextItem({
-  player,
-  highlighted,
-  rank,
-}: {
-  player: MinutesValuePlayer;
-  highlighted: boolean;
-  rank: number;
-}) {
-  const npga = seasonNpga(player);
-
-  return (
-    <Link
-      href={getPlayerDetailHref(player.playerId)}
-      className={`hover-lift flex h-full flex-col justify-between gap-3 rounded-2xl border p-4 transition-colors ${
-        highlighted
-          ? "border-border-medium bg-card-hover"
-          : "border-border-subtle bg-[linear-gradient(180deg,rgba(22,27,34,0.92),rgba(13,17,23,0.95))] hover:border-border-medium hover:bg-card-hover"
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-black/20 text-sm font-value ${
-            highlighted ? "text-text-primary" : "text-text-muted"
-          }`}
-        >
-          {rank}
-        </div>
-        <PlayerAvatar
-          imageUrl={player.imageUrl}
-          name={player.name}
-          size="sm"
-          className="border border-border-subtle"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-text-primary">{player.name}</p>
-          <p className="mt-0.5 truncate text-[11px] font-value text-text-secondary">
-            {player.marketValueDisplay}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-border-subtle/80 bg-black/20 px-2.5 py-2">
-          <p className="text-[10px] uppercase tracking-[0.16em] text-text-muted">npG+A</p>
-          <p className="mt-0.5 text-lg font-value text-accent-hot">{npga}</p>
-        </div>
-        <div className="rounded-xl border border-border-subtle/80 bg-black/20 px-2.5 py-2">
-          <p className="text-[10px] uppercase tracking-[0.16em] text-text-muted">Minutes</p>
-          <p className="mt-0.5 text-lg font-value text-text-primary">
-            {player.minutes.toLocaleString()}
-          </p>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -476,8 +418,6 @@ export default async function PlayerDetailPage({
     trend,
     form,
     comparisons,
-    clubmates,
-    topClubmatesByNpga,
     minutesBenchmark,
     subgroupRankings,
     positionLabel,
@@ -998,59 +938,6 @@ export default async function PlayerDetailPage({
           playerId={player.playerId}
           playerName={player.name}
         />
-
-        <section className="grid gap-4 lg:grid-cols-[0.34fr_0.66fr]">
-          <SectionPanel title="Standing within the club">
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="rounded-[1.35rem] border border-border-subtle bg-black/20 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-text-muted">
-                  Tracked clubmates
-                </p>
-                <p className="mt-2 text-2xl font-value text-text-primary">{clubmates.length}</p>
-                <p className="mt-1 text-sm text-text-secondary">
-                  players currently in the stored club sample
-                </p>
-              </div>
-              <div className="rounded-[1.35rem] border border-border-subtle bg-black/20 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-text-muted">
-                  Club npG+A rank
-                </p>
-                <p
-                  className={`mt-2 text-2xl font-value ${rankColor(rankings.npgaClub, clubCount)}`}
-                >
-                  #{rankings.npgaClub}
-                </p>
-                <p className="mt-1 text-sm text-text-secondary">
-                  inside {player.club}&apos;s tracked stack
-                </p>
-              </div>
-              <div className="rounded-[1.35rem] border border-border-subtle bg-black/20 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-text-muted">
-                  Market value rank
-                </p>
-                <p
-                  className={`mt-2 text-2xl font-value ${rankColor(rankings.marketValueClub, clubCount)}`}
-                >
-                  #{rankings.marketValueClub}
-                </p>
-                <p className="mt-1 text-sm text-text-secondary">within the same club sample</p>
-              </div>
-            </div>
-          </SectionPanel>
-
-          <SectionPanel title={`Top performers at ${player.club}`}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {topClubmatesByNpga.map((clubmate, index) => (
-                <ClubContextItem
-                  key={clubmate.playerId}
-                  player={clubmate}
-                  rank={index + 1}
-                  highlighted={clubmate.playerId === player.playerId}
-                />
-              ))}
-            </div>
-          </SectionPanel>
-        </section>
       </DetailDeck>
 
       {player.fetchedAt && (
