@@ -66,10 +66,11 @@ function AggregatedTeamCard({
   return (
     <Card
       className={`p-3 sm:p-4 hover-lift animate-slide-up ${
+        // Flat by default: the leader earns a firmer tinted border, never a wash or glow.
         isLeader
           ? isTop
-            ? "bg-gradient-to-br from-[var(--accent-hot-glow)] to-[var(--bg-elevated)] border-accent-hot shadow-[0_0_30px_var(--accent-hot-glow)]"
-            : "bg-gradient-to-br from-[var(--accent-cold-glow)] to-[var(--bg-elevated)] border-accent-cold shadow-[0_0_30px_var(--accent-cold-glow)]"
+            ? "bg-elevated border-accent-hot/60"
+            : "bg-elevated border-accent-cold/60"
           : isTop
             ? "bg-elevated border-accent-hot/30"
             : "bg-elevated border-accent-cold/30"
@@ -283,7 +284,7 @@ export function AggregatedSection({
 function PeriodCard({ period, index }: { period: PeriodAnalysis; index: number }) {
   return (
     <Card
-      className={`rounded-2xl p-4 sm:p-6 hover-lift animate-slide-up ${period.hasMatch ? "shadow-[0_0_40px_rgba(0,255,135,0.1)]" : ""}`}
+      className={`rounded-2xl p-4 sm:p-6 hover-lift animate-slide-up ${period.hasMatch ? "border-accent-hot/40" : ""}`}
       style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
     >
       <div className="flex justify-between items-center mb-4 sm:mb-6">
@@ -417,7 +418,7 @@ function LeaderCard({
         className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 ${accentClass}`}
       >
         <span
-          className={`w-2 h-2 rounded-full ${isTop ? "bg-accent-hot shadow-[0_0_8px_var(--accent-hot)]" : "bg-accent-cold shadow-[0_0_8px_var(--accent-cold)]"}`}
+          className={`w-2 h-2 rounded-full ${isTop ? "bg-accent-hot" : "bg-accent-cold"}`}
           aria-hidden="true"
         />
         {isTop ? "Best In Class" : "Worst In Class"}

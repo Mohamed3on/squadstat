@@ -94,15 +94,11 @@ export function WcSchedule({ rows }: { rows: MatchupRow[] }) {
   return (
     <div ref={rootRef} className="mx-auto max-w-5xl px-4">
       <header>
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-          FIFA World Cup 2026 · Full Schedule
-        </div>
-        <h1 className="font-pixel mt-2 text-3xl font-bold tracking-tight">
-          Every match by squad value
-        </h1>
+        <h1 className="font-pixel text-3xl font-bold tracking-tight">Every match by squad value</h1>
         <p className="mt-2 max-w-prose text-sm text-text-secondary">
-          All {rows.length} matches — group fixtures and the knockout bracket — ranked by combined
-          squad market value, with every score final. Kickoffs in <b>CEST (UTC+2)</b>.
+          All {rows.length} matches of the 2026 World Cup — group fixtures and the knockout bracket
+          — ranked by combined squad market value, with every score final. Kickoffs in{" "}
+          <b>CEST (UTC+2)</b>.
         </p>
         <div className="mt-4 flex items-center gap-3">
           <span className="text-xs uppercase tracking-wider text-text-muted">Sort</span>

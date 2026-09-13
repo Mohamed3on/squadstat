@@ -5,9 +5,11 @@ interface RankBadgeProps {
   highlightClass?: string;
 }
 
+// A rank alone isn't good or bad (the priciest injury is #1 too), so the top three are
+// lifted in greyscale by default; callers that know the direction pass green or red.
 export function RankBadge({
   rank,
-  highlightClass = "bg-accent-hot text-background",
+  highlightClass = "bg-card-hover text-text-primary ring-1 ring-border-medium",
 }: RankBadgeProps) {
   return (
     <div

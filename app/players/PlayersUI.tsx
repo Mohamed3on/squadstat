@@ -663,7 +663,7 @@ export function PlayersUI({
     <>
       <div className="mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-pixel mb-1 sm:mb-2 text-text-primary">
-          Player <span className="text-accent-blue">Explorer</span>
+          Player <span className="text-text-secondary">Explorer</span>
         </h1>
         <p className="text-sm sm:text-base text-text-muted">
           The top 500 most valuable players in world football plus top scorers in Europe&apos;s top

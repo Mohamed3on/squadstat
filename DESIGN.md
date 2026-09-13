@@ -148,8 +148,8 @@ components:
     rounded: "{rounded.lg}"
     size: "32px"
   rank-chip-top:
-    backgroundColor: "{colors.accent-hot}"
-    textColor: "{colors.bg-base}"
+    backgroundColor: "{colors.bg-card-hover}"
+    textColor: "{colors.text-primary}"
     typography: "{typography.data}"
     rounded: "{rounded.lg}"
     size: "32px"
@@ -203,7 +203,7 @@ A near-black, blue-tinted greyscale with four signal accents, each with one job.
 
 - **Electric Spring Green** (`accent-hot`, #00ff87): up, won, hot form, positive gaps. Also used
   for the primary button (dark text on green), the current item in nav menus, "Stat" in the
-  wordmark, rank chips 1 to 3, and the winner's half of a result row. It comes with a tint
+  wordmark, and the winner's half of a result row. It comes with a tint
   ladder: `accent-hot-glow` (15%) fills pills and badges, and `accent-hot-border` (20%) draws a
   tinted hairline.
 
@@ -216,11 +216,11 @@ A near-black, blue-tinted greyscale with four signal accents, each with one job.
 ### Tertiary
 
 - **Clear Sky Blue** (`accent-blue`, #58a6ff): links, the global focus outline, text selection, and
-  the background grid (at 3 to 5% alpha). Also neutral figures such as market values in player
-  lists, and the second word of some page titles ("Player **Explorer**").
+  the background grid (at 3 to 5% alpha). Also neutral figures, such as market values in player
+  lists and the value sidelined by injury.
 - **Pure Gold** (`accent-gold`, #ffd700): the benchmark. Value per player on club heroes and in
-  the Most Valuable Squads table, the reference player in Over/Under, and accolades. It also
-  colours small Pixel-caps section eyebrows.
+  the Most Valuable Squads table, the reference player in Over/Under (with its "Benchmark Player"
+  heading), top-three ranks on a player's page, and accolades such as "Longest-serving since '92".
 
 ### Neutral
 
@@ -240,7 +240,10 @@ A near-black, blue-tinted greyscale with four signal accents, each with one job.
 ### Named Rules
 
 **The Signal-Only Rule.** Colour means something or it isn't there. Green is up, won, or go. Red is
-down or lost. Blue is a link or a neutral figure. Gold is the benchmark. Anything else is greyscale.
+down or lost. Blue is a link or a neutral figure. Gold is the benchmark. Anything else is greyscale:
+categories such as home and away, loan and new signing, or penalties and open play are told apart
+by a label, weight, tone or icon, never a hue. The one exception is a live match score, which
+shows in red with a dot, by broadcast convention.
 
 **The Good-Is-Green Rule.** Green marks the better outcome and red the worse, whichever way the
 number runs. The fewest goals conceded takes the green. Within a page, the same direction is always
@@ -248,8 +251,7 @@ the same colour.
 
 **The Tokens-Only Rule.** Every colour comes from a token in `globals.css`, with opacity
 modifiers for tints (`bg-accent-hot/10`). Raw Tailwind palette hues such as `emerald-400`,
-`red-500` or `amber-400` are not part of the system. The one left is violet on the home and How It
-Works section cards.
+`red-500` or `amber-400` are not part of the system.
 
 ## Typography
 
@@ -264,7 +266,8 @@ neutral for reading, and Mono turns every figure into aligned data.
 
 - **Display** (400, 36px → 48px → 60px by breakpoint, 1.25, -0.025em): the home headline only.
 - **Headline** (400, 24–36px by breakpoint, 1.2): page titles (30px → 36px) and section heads
-  (24px → 30px). Always Pixel. CLAUDE.md allows `font-bold` with it.
+  (24px → 30px). Always Pixel. CLAUDE.md allows `font-bold` with it. A two-part title runs
+  two-tone, Cool White then Steel Grey ("Player Explorer", "Over/Under"), as the home headline does.
 - **Title** (600, 14–16px): entity names, meaning players, clubs and card titles. This is the only
   place Sans goes heavy.
 - **Body** (400, 14px, 1.43): the workhorse. Detail lines drop to 12px, and hero intros rise to
@@ -324,8 +327,9 @@ hairline, never a drop shadow. The glow belongs to the main action alone.
   - 12px: cards, ranked rows, tables.
   - 16px: panels, empty notes, detail heroes.
   - Fully round: pills and avatars.
-- **Borders:** 1px hairlines everywhere. A dashed hairline means an empty state. A 2px accent left
-  border marks a highlight card.
+- **Borders:** 1px hairlines everywhere. A dashed hairline means an empty state. No card carries a
+  coloured edge; where a card signals (a form leader, the benchmark), its whole 1px border takes a
+  tint of the accent.
 - **Crests and league logos** sit on white tiles at 90% with a pixel of padding, so any crest reads
   on dark.
 - **Grid paper:** square grid lines in Clear Sky Blue, 60px on the page ground (3%) and 64 to 72px
@@ -359,8 +363,13 @@ never show, so set their offset colour to `background`, or a light band leaks th
 - **Signal pills:** fully round, glow-tint fill with accent text, 10 to 12px, medium weight.
   Examples: "↑ form", "2 rises", "Squad value this window". Inside table rows they shrink to a
   bare arrow below 640px.
-- **Context chips:** 6px corners with a hairline, sometimes accent-tinted. Examples: blue for a
-  manager, green or red for a points-per-game figure.
+- **Context chips:** 6px corners with a hairline, in greyscale for categories: contract, on loan,
+  new signing, current international. A chip takes a tint only when it signals, e.g. green or red
+  for the best or worst points-per-game figure, or blue when it links to a manager.
+- **Rank chips:** 28–32px squares with mono digits. The top three lift to Lifted Slate with Cool
+  White digits and a firm hairline, because a rank alone is neither good nor bad (the priciest
+  injury is #1 too). A list whose direction is known passes green or red instead, as the
+  over/under table does.
 
 ### Segmented controls
 
@@ -455,6 +464,7 @@ Skeletons shimmer between Slate Charcoal and Lifted Slate over 1.5s, with 6px co
 - **Do** build depth from the four surfaces and hairlines: `border-subtle` at rest,
   `border-medium` on hover.
 - **Do** give green to the better outcome and red to the worse, consistently within a page.
+- **Do** tell categories apart with a label, weight, greyscale tone or icon, never a hue.
 - **Do** reserve the green fill and its glow for the page's main action. Housekeeping controls stay
   ghost.
 - **Do** put crests and league logos on white tiles at 90%, so every crest reads on dark.

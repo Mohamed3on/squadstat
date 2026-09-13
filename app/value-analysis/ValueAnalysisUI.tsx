@@ -384,7 +384,8 @@ function DiscoveryListCard({
 }) {
   const isOverpriced = variant === "overpriced";
   const theme = isOverpriced ? CARD_THEMES.cold : CARD_THEMES.hot;
-  const countColor = "var(--accent-hot)";
+  // The count is evidence against an overpriced player and for a bargain.
+  const countColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-hot)";
   const countLabel = isOverpriced ? "cheaper & better" : "pricier & worse";
   const valueColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-hot)";
 
@@ -1145,7 +1146,7 @@ export function ValueAnalysisUI({ initialData, injuryMap, discovery }: ValueAnal
       {/* Title */}
       <div className="mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-pixel mb-1 sm:mb-2 text-text-primary">
-          Over/<span className="text-accent-gold">Under</span>
+          Over/<span className="text-text-secondary">Under</span>
         </h1>
         <p className="text-sm sm:text-base text-text-muted">
           {mode === "ga"

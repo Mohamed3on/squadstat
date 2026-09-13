@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Star } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface BenchmarkCardProps {
@@ -25,33 +26,13 @@ export function BenchmarkCard({
   footer,
 }: BenchmarkCardProps) {
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl p-4 sm:p-6 animate-scale-in"
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 165, 0, 0.04) 100%)",
-        border: "1px solid rgba(255, 215, 0, 0.3)",
-        boxShadow: "0 0 60px rgba(255, 215, 0, 0.08), inset 0 1px 0 rgba(255, 215, 0, 0.1)",
-      }}
-    >
-      <div
-        className="absolute top-0 right-0 w-32 h-32 opacity-20"
-        style={{
-          background:
-            "radial-gradient(circle at top right, rgba(255, 215, 0, 0.4), transparent 70%)",
-        }}
-      />
+    // The benchmark is gold because it is the yardstick, not because it glows: a flat
+    // card with a gold hairline, like every other surface on the site.
+    <div className="relative overflow-hidden rounded-2xl border border-accent-gold/30 bg-card p-4 sm:p-6 animate-scale-in">
       <div className="relative flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
         {/* Avatar + mobile name */}
         <div className="flex items-start gap-4 sm:block">
           <div className="relative shrink-0">
-            <div
-              className="absolute -inset-1 rounded-xl opacity-60"
-              style={{
-                background: "linear-gradient(135deg, #ffd700, #ff8c00)",
-                filter: "blur(4px)",
-              }}
-            />
             {imageUrl ? (
               <img
                 src={imageUrl}
@@ -63,16 +44,8 @@ export function BenchmarkCard({
                 {name.charAt(0)}
               </div>
             )}
-            <div
-              className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs"
-              style={{
-                background: "linear-gradient(135deg, #ffd700, #ff8c00)",
-                color: "#000",
-                fontWeight: 700,
-                boxShadow: "0 2px 8px rgba(255, 215, 0, 0.4)",
-              }}
-            >
-              ★
+            <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent-gold text-background sm:h-6 sm:w-6">
+              <Star className="h-3 w-3 fill-current" aria-hidden="true" />
             </div>
           </div>
           {/* Mobile name + subtitle */}

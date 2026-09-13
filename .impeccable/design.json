@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-13T07:23:46.293Z",
+  "generatedAt": "2026-09-13T08:32:28.031Z",
   "title": "Design System: SquadStat",
   "extensions": {
     "colorMeta": {
@@ -470,7 +470,7 @@
     "rules": [
       {
         "name": "The Signal-Only Rule",
-        "body": "Colour means something or it isn't there. Green is up, won, or go. Red is down or lost. Blue is a link or a neutral figure. Gold is the benchmark. Anything else is greyscale.",
+        "body": "Colour means something or it isn't there. Green is up, won, or go. Red is down or lost. Blue is a link or a neutral figure. Gold is the benchmark. Anything else is greyscale: categories such as home and away, loan and new signing, or penalties and open play are told apart by a label, weight, tone or icon, never a hue. The one exception is a live match score, which shows in red with a dot, by broadcast convention.",
         "section": "colors"
       },
       {
@@ -480,7 +480,7 @@
       },
       {
         "name": "The Tokens-Only Rule",
-        "body": "Every colour comes from a token in `globals.css`, with opacity modifiers for tints (`bg-accent-hot/10`). Raw Tailwind palette hues such as `emerald-400`, `red-500` or `amber-400` are not part of the system. The one left is violet on the home and How It Works section cards.",
+        "body": "Every colour comes from a token in `globals.css`, with opacity modifiers for tints (`bg-accent-hot/10`). Raw Tailwind palette hues such as `emerald-400`, `red-500` or `amber-400` are not part of the system.",
         "section": "colors"
       },
       {
@@ -509,6 +509,7 @@
       "Do set page and section headings in Geist Pixel Square.",
       "Do build depth from the four surfaces and hairlines: `border-subtle` at rest, `border-medium` on hover.",
       "Do give green to the better outcome and red to the worse, consistently within a page.",
+      "Do tell categories apart with a label, weight, greyscale tone or icon, never a hue.",
       "Do reserve the green fill and its glow for the page's main action. Housekeeping controls stay ghost.",
       "Do put crests and league logos on white tiles at 90%, so every crest reads on dark.",
       "Do stack to one column on phones, and let wide tables scroll inside their own rounded box."

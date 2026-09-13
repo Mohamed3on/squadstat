@@ -30,7 +30,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
     ? {
         Icon: Crown,
         label: "Longest-serving since '92",
-        pill: "border-accent-gold/30 bg-accent-gold/10 text-accent-gold shadow-[0_0_18px_rgba(255,215,0,0.16)]",
+        pill: "border-accent-gold/30 bg-accent-gold/10 text-accent-gold",
       }
     : isBest
       ? {
