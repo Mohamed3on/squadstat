@@ -29,7 +29,7 @@ export function Footer() {
               href="https://mohamed3on.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium transition-colors duration-150 hover:opacity-80 text-accent-hot"
+              className="font-medium transition-colors duration-150 hover:opacity-80 text-accent-blue"
             >
               Mohamed Oun
             </Link>

@@ -194,12 +194,9 @@ export function AggregatedFormCard({
   deltaMap?: Record<string, number>;
   children?: React.ReactNode;
 }) {
+  // Holds best and worst form alike, so the panel stays neutral; each half carries its tone.
   return (
-    <div className="rounded-2xl p-4 sm:p-6 animate-scale-in relative overflow-hidden border border-accent-hot bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-elevated)] shadow-[var(--shadow-glow-hot)]">
-      <div
-        className="absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-20 bg-accent-hot"
-        aria-hidden="true"
-      />
+    <div className="rounded-2xl p-4 sm:p-6 animate-scale-in relative overflow-hidden border border-border-subtle bg-card">
       <div className="relative">
         {children}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
@@ -470,7 +467,10 @@ export function FormAnalysisUI({
           deltaMap={deltaMap}
         >
           <div className="flex items-center gap-3 mb-4 sm:mb-6">
-            <span className="text-2xl sm:text-3xl font-pixel text-accent-hot" aria-hidden="true">
+            <span
+              className="text-2xl sm:text-3xl font-pixel text-text-secondary"
+              aria-hidden="true"
+            >
               ✓
             </span>
             <div>
@@ -499,8 +499,8 @@ export function FormAnalysisUI({
           </div>
         </AggregatedFormCard>
       ) : (
-        <Card className="rounded-2xl p-4 sm:p-6 text-center animate-scale-in border-accent-cold">
-          <h2 className="text-lg sm:text-xl font-pixel mb-2 text-accent-cold">
+        <Card className="rounded-2xl p-4 sm:p-6 text-center animate-scale-in">
+          <h2 className="text-lg sm:text-xl font-pixel mb-2 text-text-primary">
             No Clear Form Leader
           </h2>
           <p className="text-sm sm:text-base text-text-secondary">
@@ -520,7 +520,7 @@ export function FormAnalysisUI({
               periodsOpen ? "Collapse per-period breakdown" : "Expand per-period breakdown"
             }
           >
-            <span className="w-1 h-6 rounded-full bg-accent-blue" aria-hidden="true" />
+            <span className="w-1 h-6 rounded-full bg-text-muted" aria-hidden="true" />
             <span className="text-lg font-pixel">By Number of Matches</span>
             <ChevronDown
               className={`w-5 h-5 transition-transform duration-200 ease-out ${periodsOpen ? "rotate-180" : ""}`}

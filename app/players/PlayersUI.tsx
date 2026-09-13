@@ -263,7 +263,7 @@ function PlayerCard({
   const statusBadge = player.isOnLoan ? (
     <AvatarBadge
       position={injuryInfo ? "top-right" : "bottom-right"}
-      bgClass="bg-accent-gold/90"
+      bgClass="bg-text-secondary"
       tooltip="On loan"
       icon={
         <svg
@@ -284,7 +284,7 @@ function PlayerCard({
   ) : player.isNewSigning ? (
     <AvatarBadge
       position={injuryInfo ? "top-right" : "bottom-right"}
-      bgClass="bg-accent-hot/85"
+      bgClass="bg-text-secondary"
       tooltip="New signing"
       icon={
         <svg
@@ -335,7 +335,7 @@ function PlayerCard({
       style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
     >
       <div className="flex items-center gap-2.5 sm:gap-3">
-        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0 text-accent-blue bg-accent-blue/15">
+        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0 text-text-muted bg-elevated">
           {index + 1}
         </div>
 
@@ -673,7 +673,7 @@ export function PlayersUI({
 
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-1 h-5 rounded-full shrink-0 bg-accent-blue" />
+          <div className="w-1 h-5 rounded-full shrink-0 bg-text-muted" />
           <h2 className="text-xs font-pixel font-bold uppercase tracking-widest shrink-0 text-text-secondary">
             All Players
           </h2>

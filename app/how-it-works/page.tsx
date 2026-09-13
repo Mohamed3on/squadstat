@@ -15,13 +15,11 @@ function Section({
   icon: Icon,
   title,
   href,
-  iconColor,
   children,
 }: {
   icon: typeof Activity;
   title: string;
   href: string;
-  iconColor: string;
   children: React.ReactNode;
 }) {
   return (
@@ -31,7 +29,7 @@ function Section({
           <span
             className={`inline-flex h-10 w-10 items-center justify-center rounded-lg bg-elevated`}
           >
-            <Icon className={`h-5 w-5 ${iconColor}`} />
+            <Icon className="h-5 w-5 text-text-secondary" />
           </span>
           <div>
             <CardTitle className="text-xl text-text-primary">{title}</CardTitle>
@@ -68,7 +66,7 @@ export default function HowItWorksPage() {
 
       <div className="space-y-6">
         {/* Recent Form */}
-        <Section icon={Activity} title="Recent Form" href="/form" iconColor="text-accent-hot">
+        <Section icon={Activity} title="Recent Form" href="/form">
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>
@@ -127,12 +125,7 @@ export default function HowItWorksPage() {
         </Section>
 
         {/* Value vs Table */}
-        <Section
-          icon={Scale}
-          title="Value vs Table"
-          href="/expected-position"
-          iconColor="text-accent-blue"
-        >
+        <Section icon={Scale} title="Value vs Table" href="/expected-position">
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>
@@ -181,7 +174,7 @@ export default function HowItWorksPage() {
         </Section>
 
         {/* Player Explorer */}
-        <Section icon={Clock} title="Player Explorer" href="/players" iconColor="text-accent-gold">
+        <Section icon={Clock} title="Player Explorer" href="/players">
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>
@@ -214,12 +207,7 @@ export default function HowItWorksPage() {
         </Section>
 
         {/* Over/Under */}
-        <Section
-          icon={TrendingUp}
-          title="Over/Under"
-          href="/value-analysis"
-          iconColor="text-accent-hot"
-        >
+        <Section icon={TrendingUp} title="Over/Under" href="/value-analysis">
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>
@@ -265,12 +253,7 @@ export default function HowItWorksPage() {
         </Section>
 
         {/* Injury Impact */}
-        <Section
-          icon={HeartPulse}
-          title="Injury Impact"
-          href="/injured"
-          iconColor="text-accent-cold"
-        >
+        <Section icon={HeartPulse} title="Injury Impact" href="/injured">
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>
@@ -290,12 +273,7 @@ export default function HowItWorksPage() {
         </Section>
 
         {/* Biggest Movers */}
-        <Section
-          icon={ArrowUpDown}
-          title="Biggest Movers"
-          href="/biggest-movers"
-          iconColor="text-violet-400"
-        >
+        <Section icon={ArrowUpDown} title="Biggest Movers" href="/biggest-movers">
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
             <p>

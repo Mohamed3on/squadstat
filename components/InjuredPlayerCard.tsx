@@ -72,7 +72,7 @@ export function InjuredPlayerCard({
                 )}
                 <p className="text-xs sm:text-sm text-text-muted">{player.position}</p>
               </div>
-              <span className="text-sm sm:text-lg font-medium shrink-0 text-accent-hot font-value">
+              <span className="text-sm sm:text-lg font-medium shrink-0 text-accent-blue font-value">
                 {formatValueStr(player.marketValue)}
               </span>
             </div>
@@ -169,7 +169,7 @@ export function InjuredPlayerRow({ player, rank }: { player: InjuredPlayer; rank
       }
     >
       <div className="shrink-0 text-right">
-        <p className="text-sm font-value text-accent-hot">{formatValueStr(player.marketValue)}</p>
+        <p className="text-sm font-value text-accent-blue">{formatValueStr(player.marketValue)}</p>
         {returnInfo && (
           <p
             className={cn(

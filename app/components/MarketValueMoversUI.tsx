@@ -71,7 +71,7 @@ function RepeatMoverCard({
             <div className="flex items-center gap-1.5">
               <Link
                 href={getPlayerDetailHref(latest.playerId)}
-                className="text-base sm:text-lg font-pixel text-text-primary hover:text-accent-hot transition-colors"
+                className="text-base sm:text-lg font-pixel text-text-primary hover:underline"
               >
                 {latest.name}
               </Link>
@@ -171,7 +171,7 @@ function PeriodPlayerRow({
           <Link
             href={getPlayerDetailHref(player.playerId)}
             className={cn(
-              "text-sm font-semibold truncate transition-colors hover:text-accent-hot",
+              "text-sm font-semibold truncate hover:underline",
               isRepeat ? cfg.color : "text-text-primary",
             )}
           >

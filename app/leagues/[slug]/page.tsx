@@ -268,7 +268,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
             label="Injured value"
             value={leagueInjured.length > 0 ? formatMarketValue(totalInjuredValue) : "—"}
             subline={`${leagueInjured.length} ${leagueInjured.length === 1 ? "player" : "players"} sidelined`}
-            accentClass="text-accent-hot"
+            accentClass="text-accent-blue"
           />
         </div>
 

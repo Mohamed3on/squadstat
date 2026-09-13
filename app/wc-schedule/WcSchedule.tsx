@@ -94,7 +94,7 @@ export function WcSchedule({ rows }: { rows: MatchupRow[] }) {
   return (
     <div ref={rootRef} className="mx-auto max-w-5xl px-4">
       <header>
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-gold">
+        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
           FIFA World Cup 2026 · Full Schedule
         </div>
         <h1 className="font-pixel mt-2 text-3xl font-bold tracking-tight">
@@ -207,7 +207,7 @@ function TeamName({
           target="_blank"
           rel="noopener noreferrer"
           title={`${t.name} on Transfermarkt`}
-          className={clsx("hover:text-accent-gold hover:underline", out && "line-through")}
+          className={clsx("hover:text-text-primary hover:underline", out && "line-through")}
         >
           {t.short}
         </a>
@@ -324,7 +324,6 @@ function MatchCard({
   status: Status;
   cardRef?: Ref<HTMLDivElement>;
 }) {
-  const accent = "text-accent-gold";
   const winner = row.winner;
   // A knockout tie with a settled result: one side advanced, the other is out.
   const decided = row.stage !== "group" && row.played && winner != null;
@@ -348,7 +347,7 @@ function MatchCard({
     <span className="px-1 text-xs italic text-text-muted">v</span>
   );
   const nextUp = status === "next" && (
-    <span className="rounded-full border border-accent-gold/40 bg-accent-gold/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-accent-gold">
+    <span className="rounded-full border border-border-medium bg-card px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-text-primary">
       Next up
     </span>
   );
@@ -361,7 +360,7 @@ function MatchCard({
         status === "live"
           ? "border-accent-cold/50 bg-accent-cold-faint"
           : status === "next"
-            ? "border-accent-gold/50 bg-accent-gold/5"
+            ? "border-border-medium bg-card"
             : "border-border-subtle bg-elevated hover:border-text-muted/50",
       )}
       data-mid={row.id}
@@ -378,7 +377,12 @@ function MatchCard({
             LIVE
           </span>
         ) : (
-          <span className={clsx("font-value text-xs", row.played ? "text-text-muted" : accent)}>
+          <span
+            className={clsx(
+              "font-value text-xs",
+              row.played ? "text-text-muted" : "text-text-secondary",
+            )}
+          >
             {row.played ? "FT" : row.timeLabel}
           </span>
         )}
@@ -430,7 +434,7 @@ function MatchCard({
       )}
 
       <div className="flex flex-col items-start gap-0.5 sm:items-end">
-        <span className={clsx("font-value text-xl", accent)}>{fmt(row.sum)}</span>
+        <span className="font-value text-xl text-accent-gold">{fmt(row.sum)}</span>
         <span className="text-[11px] text-text-muted">
           #{row.vrank} of {total} by value
         </span>

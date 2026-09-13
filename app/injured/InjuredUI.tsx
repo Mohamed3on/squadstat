@@ -127,7 +127,7 @@ function TeamInjuryCard({
                 <LeagueBadge league={team.league} />
               </div>
               <div className="text-right shrink-0">
-                <div className="text-sm sm:text-lg font-medium text-accent-hot font-value">
+                <div className="text-sm sm:text-lg font-medium text-accent-blue font-value">
                   {formatMarketValue(team.totalValue)}
                 </div>
                 <div className="text-[10px] sm:text-xs text-text-muted">
@@ -162,7 +162,7 @@ function TeamInjuryCard({
                     <span className="text-xs font-semibold text-text-primary truncate">
                       {player.name}
                     </span>
-                    <span className="text-xs font-medium text-accent-hot font-value shrink-0">
+                    <span className="text-xs font-medium text-accent-blue font-value shrink-0">
                       {player.marketValue}
                     </span>
                   </div>
@@ -235,7 +235,7 @@ function TeamInjuryCard({
                     {ri.label}
                   </span>
                 )}
-                <span className="text-sm font-medium text-accent-hot font-value shrink-0 w-16 text-right">
+                <span className="text-sm font-medium text-accent-blue font-value shrink-0 w-16 text-right">
                   {player.marketValue}
                 </span>
               </Link>
@@ -277,7 +277,7 @@ function InjuryCategoryCard({
               <span className="text-[10px] sm:text-xs text-text-muted font-value">
                 {group.count} {group.count === 1 ? "player" : "players"}
               </span>
-              <span className="text-xs sm:text-sm font-medium text-accent-hot font-value">
+              <span className="text-xs sm:text-sm font-medium text-accent-blue font-value">
                 {formatMarketValue(group.totalValue)}
               </span>
             </div>
@@ -285,7 +285,7 @@ function InjuryCategoryCard({
           <div className="mt-1.5 flex items-center gap-2">
             <div className="flex-1 h-1.5 rounded-full bg-elevated overflow-hidden">
               <div
-                className="h-full rounded-full bg-accent-hot/60 animate-bar-fill"
+                className="h-full rounded-full bg-accent-blue/60 animate-bar-fill"
                 style={{ "--bar-width": `${Math.max(pct, 1)}%` } as React.CSSProperties}
               />
             </div>
@@ -358,7 +358,7 @@ function InjuryPlayerChip({ player }: { player: InjuredPlayer }) {
       )}
       <span className="text-text-primary">{player.name}</span>
       <span className="text-text-secondary">{player.club}</span>
-      <span className="text-accent-hot font-medium font-value">{player.marketValue}</span>
+      <span className="text-accent-blue font-medium font-value">{player.marketValue}</span>
       {dur && (
         <span className="text-text-muted" suppressHydrationWarning>
           out {dur}
@@ -392,13 +392,13 @@ function InjurySubTypeRow({
           <span className="text-xs sm:text-sm text-text-secondary">{group.injury}</span>
           <div className="hidden sm:block flex-1 max-w-24 h-1 rounded-full bg-elevated overflow-hidden">
             <div
-              className="h-full rounded-full bg-accent-hot/30 animate-bar-fill"
+              className="h-full rounded-full bg-accent-blue/30 animate-bar-fill"
               style={{ "--bar-width": `${Math.max(pct, 3)}%` } as React.CSSProperties}
             />
           </div>
         </div>
         <span className="text-[10px] sm:text-xs text-text-muted font-value">{group.count}</span>
-        <span className="text-xs font-medium text-accent-hot font-value">
+        <span className="text-xs font-medium text-accent-blue font-value">
           {formatMarketValue(group.totalValue)}
         </span>
         <CollapsibleChevron className="w-3.5 h-3.5" />
@@ -489,7 +489,7 @@ function StatsHighlights({
                 />
               </>
             );
-            const cls = "p-3 sm:p-4 flex items-start gap-2 border-l-2 border-l-accent-cold/50";
+            const cls = "p-3 sm:p-4 flex items-start gap-2";
             return cid ? (
               <Link
                 href={getTeamDetailHref(cid)}
@@ -521,7 +521,7 @@ function StatsHighlights({
                 />
               </>
             );
-            const cls = "p-3 sm:p-4 flex items-start gap-2 border-l-2 border-l-accent-gold/50";
+            const cls = "p-3 sm:p-4 flex items-start gap-2";
             return cid ? (
               <Link
                 href={getTeamDetailHref(cid)}
@@ -535,7 +535,7 @@ function StatsHighlights({
           })()}
 
         {topInjury && (
-          <div className="p-3 sm:p-4 border-l-2 border-l-accent-blue/50">
+          <div className="p-3 sm:p-4">
             <StatCell
               label="Most Common Injury"
               value={topInjury.injury}
@@ -733,7 +733,7 @@ function SortToggle({ value, onChange }: { value: GroupSort; onChange: (v: Group
         className={cn(
           "px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer",
           value === "value"
-            ? "bg-accent-hot/15 text-accent-hot"
+            ? "bg-elevated text-text-primary"
             : "text-text-muted hover:text-text-secondary",
         )}
       >
@@ -745,7 +745,7 @@ function SortToggle({ value, onChange }: { value: GroupSort; onChange: (v: Group
         className={cn(
           "px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer",
           value === "count"
-            ? "bg-accent-hot/15 text-accent-hot"
+            ? "bg-elevated text-text-primary"
             : "text-text-muted hover:text-text-secondary",
         )}
       >

@@ -19,22 +19,11 @@ const mult = (x: number) => (x >= 10 ? `${Math.round(x)}×` : `${x.toFixed(1)}×
 type Kind = "tight" | "mismatch" | "shock";
 type Card = { kind: Kind; row: MatchupRow };
 
-const META: Record<Kind, { label: string; accent: string; card: string }> = {
-  tight: {
-    label: "Tightest on paper",
-    accent: "text-accent-blue",
-    card: "border-accent-blue/30 bg-accent-blue/5",
-  },
-  mismatch: {
-    label: "Biggest mismatch",
-    accent: "text-accent-gold",
-    card: "border-accent-gold/30 bg-accent-gold/5",
-  },
-  shock: {
-    label: "Biggest shock so far",
-    accent: "text-accent-cold",
-    card: "border-accent-cold/40 bg-accent-cold-faint",
-  },
+// The storyline is the label's job; every card wears the same neutral hairline.
+const LABEL: Record<Kind, string> = {
+  tight: "Tightest on paper",
+  mismatch: "Biggest mismatch",
+  shock: "Biggest shock so far",
 };
 
 const STAGE_LABEL: Record<Exclude<Stage, "group">, string> = {
@@ -122,7 +111,6 @@ function Side({ t, bold, mute }: { t: MatchupTeam; bold?: boolean; mute?: boolea
 }
 
 function HighlightCard({ kind, row }: Card) {
-  const m = META[kind];
   const homeHigh = row.home.mv >= row.away.mv;
   const winHome = row.winner === "home";
 
@@ -201,10 +189,10 @@ function HighlightCard({ kind, row }: Card) {
   const context = row.stage === "group" ? `Group ${row.group}` : STAGE_LABEL[row.stage];
 
   return (
-    <div className={clsx("flex flex-col gap-2 rounded-xl border p-3", m.card)}>
+    <div className="flex flex-col gap-2 rounded-xl border border-border-subtle bg-elevated p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className={clsx("text-[11px] font-semibold uppercase tracking-wider", m.accent)}>
-          {m.label}
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+          {LABEL[kind]}
         </span>
         <span className="text-[11px] text-text-muted">{context}</span>
       </div>
@@ -214,7 +202,7 @@ function HighlightCard({ kind, row }: Card) {
         <Side t={row.away} bold={bold.away} mute={mute.away} />
       </div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className={clsx("text-sm", m.accent)}>{stat.primary}</span>
+        <span className="text-sm text-text-primary">{stat.primary}</span>
         <span className="text-xs text-text-muted">{stat.secondary}</span>
       </div>
     </div>

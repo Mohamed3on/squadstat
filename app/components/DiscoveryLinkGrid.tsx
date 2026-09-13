@@ -57,7 +57,7 @@ export function DiscoveryLinkGrid({
 
       {(section || maxItems) && (
         <div className="mt-3">
-          <Link href="/discover" className="text-sm text-accent-hot hover:underline">
+          <Link href="/discover" className="text-sm text-accent-blue hover:underline">
             View all quick views
           </Link>
         </div>

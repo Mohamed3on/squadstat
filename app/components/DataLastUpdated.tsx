@@ -30,7 +30,7 @@ export async function DataLastUpdated({ file = "updated-at.txt" }: { file?: stri
 
   return (
     <div className="flex items-center justify-center gap-2 py-6 text-xs tracking-wide uppercase text-text-muted">
-      <span className="inline-block size-1.5 rounded-full bg-accent-hot" />
+      <span className="inline-block size-1.5 rounded-full bg-text-muted" />
       <span>
         Updated {formatted}
         <span className="ml-1.5 text-text-secondary">({timeAgo(updatedAt)})</span>

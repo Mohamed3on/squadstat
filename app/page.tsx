@@ -65,17 +65,10 @@ const MIN_VALUE_ANALYSIS_MINUTES = 260;
 
 type SnapshotTone = "red" | "green";
 
-const SNAPSHOT_TONE_STYLES = {
-  red: {
-    border: "border-l-accent-cold/50",
-    label: "text-accent-cold-soft",
-    link: "text-accent-cold-soft",
-  },
-  green: {
-    border: "border-l-accent-hot/50",
-    label: "text-accent-hot",
-    link: "text-accent-hot",
-  },
+// A row's tone colours its label and nothing else: no coloured edge, and links stay blue.
+const SNAPSHOT_TONE_LABEL = {
+  red: "text-accent-cold-soft",
+  green: "text-accent-hot",
 } as const;
 
 interface SnapshotItem {
@@ -185,17 +178,15 @@ function SnapshotItemRow({
 }) {
   const isHero = variant === "hero";
   const Tag = isHero ? "div" : "article";
-  const toneStyles = item.tone ? SNAPSHOT_TONE_STYLES[item.tone] : null;
+  const toneLabel = item.tone ? SNAPSHOT_TONE_LABEL[item.tone] : "text-text-muted";
   return (
     <Tag
       className={
-        // Hero rows are lines of one readout, divided by the list's hairlines:
-        // no card per row and no coloured edge. The label alone carries the tone.
+        // Hero rows are lines of one readout, divided by the list's hairlines: no
+        // card per row. Section rows are cards, but plain ones.
         isHero
           ? "px-4 py-3"
-          : `rounded-lg border border-border-subtle bg-elevated px-3 py-2 transition-all duration-200 hover:-translate-y-px hover:bg-card-hover hover:border-border-medium ${
-              toneStyles ? `border-l-2 ${toneStyles.border}` : ""
-            }`
+          : "rounded-lg border border-border-subtle bg-elevated px-3 py-2 transition-all duration-200 hover:-translate-y-px hover:bg-card-hover hover:border-border-medium"
       }
     >
       <div className="flex items-center gap-3">
@@ -219,11 +210,7 @@ function SnapshotItemRow({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
-            <p
-              className={`text-[11px] uppercase tracking-[0.12em] ${toneStyles ? toneStyles.label : "text-text-muted"}`}
-            >
-              {item.label}
-            </p>
+            <p className={`text-[11px] uppercase tracking-[0.12em] ${toneLabel}`}>{item.label}</p>
             {isHero && (
               <Link
                 href={item.href}
@@ -287,7 +274,7 @@ function SnapshotItemRow({
           {!isHero && (
             <Link
               href={item.href}
-              className={`group/link mt-1.5 inline-flex items-center gap-1 text-xs font-semibold transition-colors hover:text-text-primary ${toneStyles ? toneStyles.link : "text-accent-blue"}`}
+              className="group/link mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-accent-blue transition-colors hover:text-text-primary"
             >
               Explore
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
@@ -383,15 +370,6 @@ function playerItem(
   };
 }
 
-type FeatureTone = {
-  card: string;
-  iconWrap: string;
-  icon: string;
-  tag: string;
-  bullet: string;
-  link: string;
-};
-
 type Feature = {
   title: string;
   href: string;
@@ -399,7 +377,6 @@ type Feature = {
   description: string;
   highlights: readonly [string, string, string];
   icon: LucideIcon;
-  tone: FeatureTone;
 };
 
 const features: readonly Feature[] = [
@@ -414,14 +391,6 @@ const features: readonly Feature[] = [
       "Manager points-per-game ranking for context",
     ],
     icon: Activity,
-    tone: {
-      card: "hover:border-accent-hot-border",
-      iconWrap: "bg-accent-hot-glow",
-      icon: "text-accent-hot",
-      tag: "border-accent-hot-border text-accent-hot",
-      bullet: "bg-accent-hot",
-      link: "text-accent-hot",
-    },
   },
   {
     title: "Value vs Table",
@@ -435,14 +404,6 @@ const features: readonly Feature[] = [
       "Manager record shown alongside each team",
     ],
     icon: Scale,
-    tone: {
-      card: "hover:border-accent-blue/35",
-      iconWrap: "bg-accent-blue/15",
-      icon: "text-accent-blue",
-      tag: "border-accent-blue/35 text-accent-blue",
-      bullet: "bg-accent-blue",
-      link: "text-accent-blue",
-    },
   },
   {
     title: "Player Explorer",
@@ -455,14 +416,6 @@ const features: readonly Feature[] = [
       "See who's injured and who's scoring from penalties",
     ],
     icon: Clock,
-    tone: {
-      card: "hover:border-accent-gold/30",
-      iconWrap: "bg-accent-gold/15",
-      icon: "text-accent-gold",
-      tag: "border-accent-gold/30 text-accent-gold",
-      bullet: "bg-accent-gold",
-      link: "text-accent-gold",
-    },
   },
   {
     title: "Over/Under",
@@ -476,14 +429,6 @@ const features: readonly Feature[] = [
       "Filter out injured players for a fairer comparison",
     ],
     icon: TrendingUp,
-    tone: {
-      card: "hover:border-accent-hot/40",
-      iconWrap: "bg-accent-hot/15",
-      icon: "text-accent-hot",
-      tag: "border-accent-hot/40 text-accent-hot",
-      bullet: "bg-accent-hot",
-      link: "text-accent-hot",
-    },
   },
   {
     title: "Injury Impact",
@@ -496,14 +441,6 @@ const features: readonly Feature[] = [
       "Expected return dates and time already missed",
     ],
     icon: HeartPulse,
-    tone: {
-      card: "hover:border-accent-cold-border",
-      iconWrap: "bg-accent-cold-glow",
-      icon: "text-accent-cold",
-      tag: "border-accent-cold-border text-accent-cold",
-      bullet: "bg-accent-cold",
-      link: "text-accent-cold",
-    },
   },
   {
     title: "Biggest Movers",
@@ -516,24 +453,14 @@ const features: readonly Feature[] = [
       "See exactly how much changed at each update date",
     ],
     icon: ArrowUpDown,
-    tone: {
-      card: "hover:border-violet-500/40",
-      iconWrap: "bg-violet-500/15",
-      icon: "text-violet-400",
-      tag: "border-violet-500/40 text-violet-400",
-      bullet: "bg-violet-400",
-      link: "text-violet-400",
-    },
   },
 ] as const;
 
 function SectionHeading({
-  eyebrow,
   title,
   description,
   action,
 }: {
-  eyebrow: string;
   title: string;
   description: string;
   action?: { href: string; label: string };
@@ -541,10 +468,7 @@ function SectionHeading({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-          {eyebrow}
-        </p>
-        <h2 className="mt-1 text-2xl font-pixel text-text-primary sm:text-3xl">{title}</h2>
+        <h2 className="text-2xl font-pixel text-text-primary sm:text-3xl">{title}</h2>
         <p className="mt-2 max-w-3xl text-sm text-text-muted sm:text-base">{description}</p>
       </div>
       {action && (
@@ -564,20 +488,13 @@ function FeatureCard({ feature }: { feature: Feature }) {
   const Icon = feature.icon;
 
   return (
-    <Card
-      className={`group h-full border-border-subtle bg-card transition-all duration-200 hover:-translate-y-0.5 hover:bg-card-hover ${feature.tone.card}`}
-    >
+    <Card className="group h-full border-border-subtle bg-card transition-all duration-200 hover:-translate-y-0.5 hover:border-border-medium hover:bg-card-hover">
       <CardHeader>
         <div className="mb-3 flex items-center justify-between">
-          <span
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${feature.tone.iconWrap}`}
-          >
-            <Icon className={`h-5 w-5 ${feature.tone.icon}`} />
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-elevated">
+            <Icon className="h-5 w-5 text-text-secondary" />
           </span>
-          <Badge
-            variant="outline"
-            className={`border text-[10px] uppercase tracking-[0.16em] ${feature.tone.tag}`}
-          >
+          <Badge variant="outline" className="text-[10px] uppercase tracking-[0.16em]">
             {feature.tag}
           </Badge>
         </div>
@@ -590,16 +507,14 @@ function FeatureCard({ feature }: { feature: Feature }) {
         <ul className="space-y-2">
           {feature.highlights.map((highlight) => (
             <li key={highlight} className="flex items-start gap-2 text-sm text-text-secondary">
-              <span
-                className={`mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${feature.tone.bullet}`}
-              />
+              <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-text-muted" />
               <span>{highlight}</span>
             </li>
           ))}
         </ul>
         <Link
           href={feature.href}
-          className={`group/link mt-5 inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:text-text-primary ${feature.tone.link}`}
+          className="group/link mt-5 inline-flex items-center gap-2 text-sm font-semibold text-accent-blue transition-colors hover:text-text-primary"
         >
           Open {feature.title}
           <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-0.5" />
@@ -1267,7 +1182,6 @@ export default function Home() {
 
       <section className="pt-12 sm:pt-16">
         <SectionHeading
-          eyebrow="Live data"
           title="Latest Standouts"
           description="The best and worst from each section — open the full view for more."
         />
@@ -1279,7 +1193,6 @@ export default function Home() {
 
       <section className="pt-12 sm:pt-16">
         <SectionHeading
-          eyebrow="Explore"
           title="Explore"
           description="Six sections covering form, squad value, player stats, injuries, and market trends."
           action={{ href: "/value-analysis", label: "Open Over/Under" }}

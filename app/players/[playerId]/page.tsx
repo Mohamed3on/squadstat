@@ -41,13 +41,13 @@ import { effectivePosition, getBroadPositionFilter } from "@/lib/positions";
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl } from "@/lib/site-config";
 
+// Gold is the top-3 accolade; below the podium a rank only gets brighter or dimmer.
 function rankColor(rank: number, total: number): string {
   const pct = rank / total;
   if (rank <= 3) return "text-accent-gold";
-  if (pct <= 0.05) return "text-accent-hot";
-  if (pct <= 0.15) return "text-accent-blue";
-  if (pct <= 0.4) return "text-text-primary";
-  return "text-text-secondary";
+  if (pct <= 0.15) return "text-text-primary";
+  if (pct <= 0.4) return "text-text-secondary";
+  return "text-text-muted";
 }
 
 function RankBadge({
@@ -74,7 +74,7 @@ function GoalBreakdown({ goals, penaltyGoals }: { goals: number; penaltyGoals: n
     <>
       {openPlay > 0 && <span className="text-accent-hot">{openPlay}</span>}
       {penaltyGoals > 0 && (
-        <span className="text-accent-gold">
+        <span className="text-text-secondary">
           {openPlay > 0 ? "+" : ""}
           {penaltyGoals}P
         </span>
@@ -259,11 +259,7 @@ function RecentMatchCard({ match }: { match: RecentGameStats }) {
               )}
             </p>
             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text-secondary">
-              {venueLabel && (
-                <span className={match.venue === "home" ? "text-accent-gold" : "text-accent-blue"}>
-                  {venueLabel}
-                </span>
-              )}
+              {venueLabel && <span>{venueLabel}</span>}
               {venueLabel && <span className="opacity-40">·</span>}
               <span
                 className={`font-value ${match.minutes >= 70 ? "text-accent-hot" : match.minutes >= 45 ? "text-text-primary" : "text-text-secondary"}`}
@@ -354,14 +350,14 @@ function ClubContextItem({
       href={getPlayerDetailHref(player.playerId)}
       className={`hover-lift flex h-full flex-col justify-between gap-3 rounded-2xl border p-4 transition-colors ${
         highlighted
-          ? "border-accent-blue/25 bg-[linear-gradient(180deg,rgba(88,166,255,0.12),rgba(13,17,23,0.95))]"
+          ? "border-border-medium bg-card-hover"
           : "border-border-subtle bg-[linear-gradient(180deg,rgba(22,27,34,0.92),rgba(13,17,23,0.95))] hover:border-border-medium hover:bg-card-hover"
       }`}
     >
       <div className="flex items-center gap-3">
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-value ${
-            highlighted ? "bg-accent-blue/20 text-accent-blue" : "bg-black/20 text-text-muted"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-black/20 text-sm font-value ${
+            highlighted ? "text-text-primary" : "text-text-muted"
           }`}
         >
           {rank}
@@ -381,13 +377,7 @@ function ClubContextItem({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <div
-          className={`rounded-xl border px-2.5 py-2 ${
-            highlighted
-              ? "border-accent-blue/20 bg-accent-blue/10"
-              : "border-border-subtle/80 bg-black/20"
-          }`}
-        >
+        <div className="rounded-xl border border-border-subtle/80 bg-black/20 px-2.5 py-2">
           <p className="text-[10px] uppercase tracking-[0.16em] text-text-muted">npG+A</p>
           <p className="mt-0.5 text-lg font-value text-accent-hot">{npga}</p>
         </div>
@@ -574,18 +564,19 @@ export default async function PlayerDetailPage({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <LeagueBadge league={player.league} />
+              {/* Status is context, not signal: neutral chips. Only the trend pill is coloured. */}
               {player.isOnLoan && (
-                <SignalBadge className="border-accent-gold/25 bg-accent-gold/10 text-accent-gold">
+                <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
                   On loan
                 </SignalBadge>
               )}
               {!player.isOnLoan && player.isNewSigning && (
-                <SignalBadge className="border-accent-blue/25 bg-accent-blue/10 text-accent-blue">
+                <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
                   New signing
                 </SignalBadge>
               )}
               {player.isCurrentIntl && (
-                <SignalBadge className="border-accent-hot/25 bg-accent-hot/10 text-accent-hot">
+                <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
                   Current international
                 </SignalBadge>
               )}
@@ -806,13 +797,19 @@ export default async function PlayerDetailPage({
                       <TableBody>
                         <TableRow>
                           <TableCell className="text-text-secondary">Rank</TableCell>
-                          <TableCell className="text-right font-value text-accent-hot">
+                          <TableCell
+                            className={`text-right font-value ${rankColor(group.npgaRank, group.total)}`}
+                          >
                             #{group.npgaRank}
                           </TableCell>
-                          <TableCell className="text-right font-value text-accent-gold">
+                          <TableCell
+                            className={`text-right font-value ${rankColor(group.marketValueRank, group.total)}`}
+                          >
                             #{group.marketValueRank}
                           </TableCell>
-                          <TableCell className="text-right font-value text-accent-blue">
+                          <TableCell
+                            className={`text-right font-value ${rankColor(group.minutesRank, group.total)}`}
+                          >
                             #{group.minutesRank}
                           </TableCell>
                         </TableRow>
@@ -885,7 +882,7 @@ export default async function PlayerDetailPage({
                   className="mt-2.5 block text-sm text-text-secondary transition-colors hover:text-text-primary"
                 >
                   Penalties:{" "}
-                  <span className="font-value text-accent-gold">
+                  <span className="font-value text-text-primary">
                     {form.penaltyGoals}/{form.penaltyAttempts}
                   </span>{" "}
                   scored
@@ -894,7 +891,7 @@ export default async function PlayerDetailPage({
                       {" "}
                       (
                       <span
-                        className={`font-value ${form.penaltyConversion >= 80 ? "text-accent-hot" : form.penaltyConversion >= 60 ? "text-accent-gold" : "text-accent-cold-soft"}`}
+                        className={`font-value ${form.penaltyConversion >= 80 ? "text-accent-hot" : form.penaltyConversion >= 60 ? "text-text-primary" : "text-accent-cold-soft"}`}
                       >
                         {form.penaltyConversion}%
                       </span>
@@ -971,7 +968,7 @@ export default async function PlayerDetailPage({
                     <span className="sm:hidden">OP</span>
                   </span>
                   <span className="flex items-center gap-1 whitespace-nowrap">
-                    <span className="inline-block h-2 w-2 rounded-full bg-accent-gold" />
+                    <span className="inline-block h-2 w-2 rounded-full border border-text-secondary" />
                     <span className="hidden sm:inline">Penalty</span>
                     <span className="sm:hidden">Pen</span>
                   </span>
@@ -1018,7 +1015,11 @@ export default async function PlayerDetailPage({
                 <p className="text-[10px] uppercase tracking-[0.18em] text-text-muted">
                   Club npG+A rank
                 </p>
-                <p className="mt-2 text-2xl font-value text-accent-gold">#{rankings.npgaClub}</p>
+                <p
+                  className={`mt-2 text-2xl font-value ${rankColor(rankings.npgaClub, clubCount)}`}
+                >
+                  #{rankings.npgaClub}
+                </p>
                 <p className="mt-1 text-sm text-text-secondary">
                   inside {player.club}&apos;s tracked stack
                 </p>
@@ -1027,7 +1028,9 @@ export default async function PlayerDetailPage({
                 <p className="text-[10px] uppercase tracking-[0.18em] text-text-muted">
                   Market value rank
                 </p>
-                <p className="mt-2 text-2xl font-value text-text-primary">
+                <p
+                  className={`mt-2 text-2xl font-value ${rankColor(rankings.marketValueClub, clubCount)}`}
+                >
                   #{rankings.marketValueClub}
                 </p>
                 <p className="mt-1 text-sm text-text-secondary">within the same club sample</p>

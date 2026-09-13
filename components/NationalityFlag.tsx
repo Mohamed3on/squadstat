@@ -5,7 +5,7 @@ export function NationalityFlag({
 }: {
   url?: string;
   name?: string;
-  /** Player is currently called up to this national team; adds a subtle green presence dot. */
+  /** Player is currently called up to this national team; adds a subtle presence dot. */
   calledUp?: boolean;
 }) {
   if (!url) return null;
@@ -27,7 +27,7 @@ export function NationalityFlag({
       <span
         role="img"
         aria-label={name ? `Currently called up to ${name}` : "Currently called up"}
-        className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-accent-hot ring-2 ring-[var(--bg-card)]"
+        className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-text-primary ring-2 ring-[var(--bg-card)]"
       />
     </span>
   );

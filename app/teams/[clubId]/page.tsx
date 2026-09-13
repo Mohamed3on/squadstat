@@ -86,7 +86,7 @@ function InjuredPlayerRow({ player }: { player: InjuredPlayer }) {
         </p>
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-sm font-value text-accent-hot">{player.marketValue}</p>
+        <p className="text-sm font-value text-accent-blue">{player.marketValue}</p>
         {returnInfo && (
           <p
             className={`text-[11px] ${returnInfo.imminent ? "text-accent-hot font-medium" : "text-text-muted"}`}
