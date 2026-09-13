@@ -188,19 +188,19 @@ function SnapshotItemRow({
   const toneStyles = item.tone ? SNAPSHOT_TONE_STYLES[item.tone] : null;
   return (
     <Tag
-      className={`rounded-lg border px-3 py-2 ${
-        toneStyles ? `border-l-2 ${toneStyles.border}` : ""
-      } ${
+      className={
+        // Hero rows are lines of one readout, divided by the list's hairlines:
+        // no card per row and no coloured edge. The label alone carries the tone.
         isHero
-          ? "border-border-subtle bg-card"
-          : "border-border-subtle bg-elevated transition-all duration-200 hover:-translate-y-px hover:bg-card-hover hover:border-border-medium"
-      }`}
+          ? "px-4 py-3"
+          : `rounded-lg border border-border-subtle bg-elevated px-3 py-2 transition-all duration-200 hover:-translate-y-px hover:bg-card-hover hover:border-border-medium ${
+              toneStyles ? `border-l-2 ${toneStyles.border}` : ""
+            }`
+      }
     >
       <div className="flex items-center gap-3">
         <div className="relative shrink-0">
-          <Avatar
-            className={`h-10 w-10 border border-border-subtle ${isHero ? "bg-elevated" : "bg-card"}`}
-          >
+          <Avatar className="h-10 w-10 border border-border-subtle bg-card">
             {item.imageUrl ? (
               <AvatarImage
                 src={item.imageUrl}
@@ -218,11 +218,22 @@ function SnapshotItemRow({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p
-            className={`text-[11px] uppercase tracking-[0.12em] ${toneStyles ? toneStyles.label : "text-text-muted"}`}
-          >
-            {item.label}
-          </p>
+          <div className="flex items-baseline justify-between gap-3">
+            <p
+              className={`text-[11px] uppercase tracking-[0.12em] ${toneStyles ? toneStyles.label : "text-text-muted"}`}
+            >
+              {item.label}
+            </p>
+            {isHero && (
+              <Link
+                href={item.href}
+                className="group/link inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-blue transition-colors hover:text-text-primary"
+              >
+                Explore
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+              </Link>
+            )}
+          </div>
           {item.playerId ? (
             <Link
               href={getPlayerDetailHref(item.playerId)}
@@ -265,9 +276,7 @@ function SnapshotItemRow({
               {item.metrics.map((metric) => (
                 <span
                   key={metric}
-                  className={`rounded-md border border-border-subtle px-1.5 py-0.5 text-[10px] font-medium text-text-secondary ${
-                    isHero ? "bg-elevated" : "bg-card"
-                  }`}
+                  className="rounded-md border border-border-subtle bg-card px-1.5 py-0.5 text-[10px] font-medium text-text-secondary"
                 >
                   {metric}
                 </span>
@@ -275,13 +284,15 @@ function SnapshotItemRow({
             </div>
           )}
           {item.manager && <ManagerSnapshotBadges manager={item.manager} />}
-          <Link
-            href={item.href}
-            className={`group/link mt-1.5 inline-flex items-center gap-1 text-xs font-semibold transition-colors hover:text-text-primary ${toneStyles ? toneStyles.link : "text-accent-blue"}`}
-          >
-            Explore
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
-          </Link>
+          {!isHero && (
+            <Link
+              href={item.href}
+              className={`group/link mt-1.5 inline-flex items-center gap-1 text-xs font-semibold transition-colors hover:text-text-primary ${toneStyles ? toneStyles.link : "text-accent-blue"}`}
+            >
+              Explore
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+            </Link>
+          )}
         </div>
       </div>
     </Tag>
@@ -1126,35 +1137,32 @@ type HomeData = Awaited<ReturnType<typeof fetchHomeData>>;
 
 async function HeroCard({ dataPromise }: { dataPromise: Promise<HomeData> }) {
   const { heroSnapshots } = await dataPromise;
+  // One flat readout, not a card of cards: a header line, then hairline-divided rows.
   return (
-    <Card className="border-border-medium bg-black/85 backdrop-blur-sm transition-colors duration-200 hover:border-accent-blue/30">
-      <CardHeader className="!pb-0">
-        <Badge
-          variant="outline"
-          className="w-fit border-accent-blue/40 bg-accent-blue/10 text-accent-blue"
-        >
-          Live snapshots
-        </Badge>
-        <CardTitle className="text-xl text-text-primary">Latest Highlights</CardTitle>
-        <CardDescription className="text-sm text-text-secondary">
-          Key names across form, value, output, and injuries.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="!pt-0">
-        <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Latest Feed</p>
-        <div className="mt-3 space-y-2">
-          {heroSnapshots.length > 0 ? (
-            heroSnapshots.map((item) => (
-              <SnapshotItemRow key={`${item.label}-${item.value}`} item={item} variant="hero" />
-            ))
-          ) : (
-            <div className="rounded-lg border border-border-subtle bg-card px-3 py-2 text-sm text-text-muted">
-              Snapshot data is temporarily unavailable. Open a section below for full tables.
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <section
+      aria-labelledby="hero-highlights"
+      className="overflow-hidden rounded-xl border border-border-subtle bg-elevated"
+    >
+      <h2
+        id="hero-highlights"
+        className="border-b border-border-subtle px-4 py-3 text-sm font-semibold text-text-primary"
+      >
+        Latest Highlights
+      </h2>
+      {heroSnapshots.length > 0 ? (
+        <ul className="divide-y divide-border-subtle">
+          {heroSnapshots.map((item) => (
+            <li key={`${item.label}-${item.value}`}>
+              <SnapshotItemRow item={item} variant="hero" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="px-4 py-6 text-sm text-text-secondary">
+          Snapshot data is temporarily unavailable. Open a section below for full tables.
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -1211,29 +1219,25 @@ export default function Home() {
 
   return (
     <div className="pb-16 sm:pb-20">
-      <section className="full-bleed relative overflow-hidden border-b border-border-subtle bg-[radial-gradient(circle_at_14%_10%,rgba(0,255,135,0.16),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(88,166,255,0.15),transparent_40%),linear-gradient(180deg,var(--bg-base),var(--bg-elevated))]">
+      {/* Grid paper and nothing else: no colour washes and no gradient type. The
+          headline carries itself in two tones, leaving colour to the data. */}
+      <section className="full-bleed relative overflow-hidden border-b border-border-subtle bg-background">
         <div
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(88,166,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(88,166,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px]"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(88,166,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(88,166,255,0.05)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:linear-gradient(to_bottom,black_55%,transparent)]"
           aria-hidden="true"
         />
 
         <div className="page-container relative py-12 sm:py-16 lg:py-20">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
             <div>
-              <Badge className="mb-5 border-accent-hot-border bg-accent-hot-glow px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-accent-hot">
-                Football Analytics Across Europe&apos;s Top 5 Leagues
-              </Badge>
-
-              <h1 className="max-w-4xl text-4xl font-pixel leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
-                See what the table misses:
-                <span className="ml-2 bg-gradient-to-r from-accent-hot via-accent-blue to-accent-gold bg-clip-text text-transparent">
-                  form, value, and injuries.
-                </span>
+              <h1 className="max-w-4xl text-balance text-4xl font-pixel leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
+                See what the table misses:{" "}
+                <span className="text-text-secondary">form, value, and injuries.</span>
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm text-text-secondary sm:text-lg">
-                SquadStat surfaces the biggest swings fast: hot and cold teams, overpriced players,
-                undervalued performers, and injury cost.
+                SquadStat surfaces the biggest swings in Europe&apos;s top 5 leagues fast: hot and
+                cold teams, overpriced players, undervalued performers, and injury cost.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center gap-3">

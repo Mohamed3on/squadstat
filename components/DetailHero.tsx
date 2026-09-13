@@ -17,8 +17,10 @@ export function BackLink({ href, label }: { href: string; label: string }) {
 
 export function DetailHero({ children }: { children: ReactNode }) {
   return (
-    <section className="relative overflow-hidden rounded-[1.75rem] border border-border-subtle bg-[radial-gradient(circle_at_top_left,rgba(88,166,255,0.16),transparent_38%),radial-gradient(circle_at_80%_12%,rgba(0,255,135,0.14),transparent_30%),linear-gradient(180deg,var(--bg-card),var(--bg-elevated))] p-5 animate-blur-in motion-reduce:animate-none sm:p-7 lg:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(88,166,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(88,166,255,0.05)_1px,transparent_1px)] bg-[size:64px_64px]" />
+    // A flat Slate Charcoal panel on grid paper: the colour on these pages lives in
+    // the metric figures, so the surface itself carries none.
+    <section className="relative overflow-hidden rounded-2xl border border-border-subtle bg-card p-5 animate-blur-in motion-reduce:animate-none sm:p-7 lg:p-8">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(88,166,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(88,166,255,0.05)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
       <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
         {children}
       </div>
@@ -28,7 +30,7 @@ export function DetailHero({ children }: { children: ReactNode }) {
 
 export function DetailHeroSkeleton({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-[1.75rem] border border-border-subtle bg-card p-5 sm:p-7 lg:p-8">
+    <div className="rounded-2xl border border-border-subtle bg-card p-5 sm:p-7 lg:p-8">
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">{children}</div>
     </div>
   );
