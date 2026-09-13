@@ -312,7 +312,7 @@ function PlayerCard({
     injuryBadge = (
       <AvatarBadge
         position="bottom-right"
-        bgClass="bg-rose-500/90"
+        bgClass="bg-accent-cold/90"
         tooltip={tip}
         icon={
           <svg

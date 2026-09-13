@@ -22,13 +22,13 @@ type Card = { kind: Kind; row: MatchupRow };
 const META: Record<Kind, { label: string; accent: string; card: string }> = {
   tight: {
     label: "Tightest on paper",
-    accent: "text-sky-400",
-    card: "border-sky-500/30 bg-sky-500/5",
+    accent: "text-accent-blue",
+    card: "border-accent-blue/30 bg-accent-blue/5",
   },
   mismatch: {
     label: "Biggest mismatch",
-    accent: "text-amber-400",
-    card: "border-amber-500/30 bg-amber-400/5",
+    accent: "text-accent-gold",
+    card: "border-accent-gold/30 bg-accent-gold/5",
   },
   shock: {
     label: "Biggest shock so far",

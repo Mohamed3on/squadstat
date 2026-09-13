@@ -15,10 +15,10 @@ type Variant = "losers" | "winners";
 
 const VARIANT_CONFIG = {
   losers: {
-    color: "text-red-400",
-    barBg: "bg-red-500/20",
-    highlightBg: "bg-red-500/5",
-    highlightRing: "ring-red-500/20",
+    color: "text-accent-cold-soft",
+    barBg: "bg-accent-cold/20",
+    highlightBg: "bg-accent-cold/5",
+    highlightRing: "ring-accent-cold/20",
     prefix: "-",
     sectionTitle: "In Freefall",
     sectionSubtitle: "Consistently lost value across recent updates",
@@ -27,10 +27,10 @@ const VARIANT_CONFIG = {
     sign: "-",
   },
   winners: {
-    color: "text-emerald-400",
-    barBg: "bg-emerald-500/20",
-    highlightBg: "bg-emerald-500/5",
-    highlightRing: "ring-emerald-500/20",
+    color: "text-accent-hot",
+    barBg: "bg-accent-hot/20",
+    highlightBg: "bg-accent-hot/5",
+    highlightRing: "ring-accent-hot/20",
     prefix: "+",
     sectionTitle: "On the Rise",
     sectionSubtitle: "Consistently gained value across recent updates",

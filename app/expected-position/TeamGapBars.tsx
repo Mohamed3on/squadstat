@@ -24,7 +24,7 @@ function GapBarRow({ team, formLeader, manager, managerLoading }: GapBarRowProps
     <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 hover:bg-card-hover transition-colors">
       {/* Points gap — pixel scoreboard, the hero of the row */}
       <div
-        className={`w-12 sm:w-14 shrink-0 text-right font-pixel text-2xl sm:text-3xl leading-none ${over ? "text-green-500" : "text-red-500"}`}
+        className={`w-12 sm:w-14 shrink-0 text-right font-pixel text-2xl sm:text-3xl leading-none ${over ? "text-accent-hot" : "text-accent-cold"}`}
       >
         {over ? "+" : "−"}
         {Math.abs(team.deltaPts)}
@@ -92,7 +92,7 @@ function PerformerColumn({
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <h2
-          className={`text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 ${over ? "text-green-600" : "text-red-600"}`}
+          className={`text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 ${over ? "text-accent-hot" : "text-accent-cold"}`}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             {over ? (
@@ -112,12 +112,12 @@ function PerformerColumn({
           {over ? "Overperformers" : "Underperformers"}
         </h2>
         <span
-          className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${over ? "bg-green-600/10 text-green-600/70" : "bg-red-600/10 text-red-600/70"}`}
+          className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${over ? "bg-accent-hot/10 text-accent-hot/70" : "bg-accent-cold/10 text-accent-cold/70"}`}
         >
           {teams.length}
         </span>
         <div
-          className={`flex-1 h-px bg-gradient-to-r ${over ? "from-green-600/30" : "from-red-600/30"}`}
+          className={`flex-1 h-px bg-gradient-to-r ${over ? "from-accent-hot/30" : "from-accent-cold/30"}`}
         />
       </div>
 

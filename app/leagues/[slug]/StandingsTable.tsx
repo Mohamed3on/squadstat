@@ -150,12 +150,16 @@ function SortHeader({
 function StandingsRow({ team, formLeader }: { team: TeamFormEntry; formLeader?: FormLeader }) {
   const tint =
     team.deltaPts > 0
-      ? "bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]"
+      ? "bg-accent-hot/[0.04] hover:bg-accent-hot/[0.08]"
       : team.deltaPts < 0
-        ? "bg-red-500/[0.04] hover:bg-red-500/[0.08]"
+        ? "bg-accent-cold/[0.04] hover:bg-accent-cold/[0.08]"
         : "hover:bg-card-hover";
   const deltaColor =
-    team.deltaPts > 0 ? "text-emerald-400" : team.deltaPts < 0 ? "text-red-400" : "text-text-muted";
+    team.deltaPts > 0
+      ? "text-accent-hot"
+      : team.deltaPts < 0
+        ? "text-accent-cold-soft"
+        : "text-text-muted";
 
   return (
     <TableRow className={cn("transition-colors", tint)}>

@@ -76,7 +76,7 @@ function InjuredPlayerRow({ player }: { player: InjuredPlayer }) {
         <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-text-secondary">
           <span>{player.position}</span>
           <span className="opacity-40">·</span>
-          <span className="text-red-400">{player.injury}</span>
+          <span className="text-accent-cold-soft">{player.injury}</span>
           {duration && (
             <>
               <span className="opacity-40">·</span>
@@ -89,7 +89,7 @@ function InjuredPlayerRow({ player }: { player: InjuredPlayer }) {
         <p className="text-sm font-value text-accent-hot">{player.marketValue}</p>
         {returnInfo && (
           <p
-            className={`text-[11px] ${returnInfo.imminent ? "text-emerald-400 font-medium" : "text-text-muted"}`}
+            className={`text-[11px] ${returnInfo.imminent ? "text-accent-hot font-medium" : "text-text-muted"}`}
           >
             {returnInfo.label}
           </p>
@@ -378,9 +378,9 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
               subline={deltaLabel ?? ""}
               accentClass={
                 teamForm.deltaPts > 0
-                  ? "text-emerald-400"
+                  ? "text-accent-hot"
                   : teamForm.deltaPts < 0
-                    ? "text-red-400"
+                    ? "text-accent-cold-soft"
                     : "text-text-primary"
               }
             />
@@ -524,16 +524,18 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
                       const ppg = games > 0 ? (stats.points / games).toFixed(2) : "—";
                       const cellHighlight = (key: string) => {
                         if (!formHighlights.has(`${period}:${key}`)) return "";
-                        return formExtremeType === "best" ? "bg-emerald-500/10" : "bg-red-500/10";
+                        return formExtremeType === "best"
+                          ? "bg-accent-hot/10"
+                          : "bg-accent-cold/10";
                       };
                       const rankLabel = (r: number) => {
                         const fromBottom = totalTeams - r + 1;
                         const isTop = r <= 3;
                         const isBottom = fromBottom <= 3;
                         const color = isTop
-                          ? "text-emerald-400"
+                          ? "text-accent-hot"
                           : isBottom
-                            ? "text-red-400"
+                            ? "text-accent-cold-soft"
                             : "text-text-secondary";
                         const label =
                           r === 1
@@ -587,7 +589,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
                             {rankLabel(ranks.goalsConceded)}
                           </td>
                           <td
-                            className={`px-3 py-2.5 text-right font-value whitespace-nowrap transition-colors ${stats.goalDiff > 0 ? "text-emerald-400" : stats.goalDiff < 0 ? "text-red-400" : "text-text-primary"} ${cellHighlight("goalDiff")}`}
+                            className={`px-3 py-2.5 text-right font-value whitespace-nowrap transition-colors ${stats.goalDiff > 0 ? "text-accent-hot" : stats.goalDiff < 0 ? "text-accent-cold-soft" : "text-text-primary"} ${cellHighlight("goalDiff")}`}
                           >
                             {stats.goalDiff > 0 ? "+" : ""}
                             {stats.goalDiff}

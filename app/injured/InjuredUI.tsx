@@ -182,7 +182,7 @@ function TeamInjuryCard({
                         <span className="opacity-40">·</span>
                         <span
                           suppressHydrationWarning
-                          className={ri.imminent ? "text-emerald-500 font-medium" : ""}
+                          className={ri.imminent ? "text-accent-hot font-medium" : ""}
                         >
                           {ri.label}
                         </span>
@@ -229,7 +229,7 @@ function TeamInjuryCard({
                     suppressHydrationWarning
                     className={cn(
                       "text-xs shrink-0",
-                      ri.imminent ? "text-emerald-500 font-medium" : "text-text-muted",
+                      ri.imminent ? "text-accent-hot font-medium" : "text-text-muted",
                     )}
                   >
                     {ri.label}
@@ -367,7 +367,7 @@ function InjuryPlayerChip({ player }: { player: InjuredPlayer }) {
       {ri && (
         <span
           suppressHydrationWarning
-          className={cn("font-medium", ri.imminent ? "text-emerald-500" : "text-text-muted")}
+          className={cn("font-medium", ri.imminent ? "text-accent-hot" : "text-text-muted")}
         >
           {ri.label}
         </span>
@@ -489,7 +489,7 @@ function StatsHighlights({
                 />
               </>
             );
-            const cls = "p-3 sm:p-4 flex items-start gap-2 border-l-2 border-l-red-500/50";
+            const cls = "p-3 sm:p-4 flex items-start gap-2 border-l-2 border-l-accent-cold/50";
             return cid ? (
               <Link
                 href={getTeamDetailHref(cid)}
@@ -521,7 +521,7 @@ function StatsHighlights({
                 />
               </>
             );
-            const cls = "p-3 sm:p-4 flex items-start gap-2 border-l-2 border-l-amber-500/50";
+            const cls = "p-3 sm:p-4 flex items-start gap-2 border-l-2 border-l-accent-gold/50";
             return cid ? (
               <Link
                 href={getTeamDetailHref(cid)}

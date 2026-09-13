@@ -36,13 +36,13 @@ export function ManagerClient({ clubId }: { clubId: string }) {
       ? {
           Icon: Trophy,
           label: "Best PPG since '92",
-          pill: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+          pill: "border-accent-hot/30 bg-accent-hot/10 text-accent-hot",
         }
       : isWorst
         ? {
             Icon: TriangleAlert,
             label: "Worst PPG since '92",
-            pill: "border-red-500/30 bg-red-500/10 text-red-400",
+            pill: "border-accent-cold/30 bg-accent-cold/10 text-accent-cold-soft",
           }
         : null;
   const DistinctionIcon = distinction?.Icon;
@@ -63,7 +63,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
           {manager.name}
         </a>
         {!manager.isCurrentManager && (
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-500 border border-red-500/30">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-accent-cold/15 text-accent-cold border border-accent-cold/30">
             Sacked
           </span>
         )}
@@ -122,7 +122,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
               href={manager.bestManager.profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-emerald-400 hover:underline font-medium"
+              className="text-accent-hot hover:underline font-medium"
             >
               {manager.bestManager.name}
             </a>
@@ -137,7 +137,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
               href={manager.worstManager.profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-red-400 hover:underline font-medium"
+              className="text-accent-cold-soft hover:underline font-medium"
             >
               {manager.worstManager.name}
             </a>

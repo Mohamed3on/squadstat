@@ -67,14 +67,14 @@ type SnapshotTone = "red" | "green";
 
 const SNAPSHOT_TONE_STYLES = {
   red: {
-    border: "border-l-red-500/50",
-    label: "text-red-400",
-    link: "text-red-400",
+    border: "border-l-accent-cold/50",
+    label: "text-accent-cold-soft",
+    link: "text-accent-cold-soft",
   },
   green: {
-    border: "border-l-emerald-500/50",
-    label: "text-emerald-400",
-    link: "text-emerald-400",
+    border: "border-l-accent-hot/50",
+    label: "text-accent-hot",
+    link: "text-accent-hot",
   },
 } as const;
 
@@ -136,11 +136,11 @@ function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
     hasRanking && manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
 
   const ppgClassName = isBest
-    ? "border-emerald-500/35 bg-emerald-500/12 text-emerald-300"
+    ? "border-accent-hot/35 bg-accent-hot/12 text-accent-hot"
     : isWorst
-      ? "border-rose-500/35 bg-rose-500/12 text-rose-300"
+      ? "border-accent-cold/35 bg-accent-cold/12 text-accent-cold-soft"
       : isOnly
-        ? "border-sky-500/35 bg-sky-500/12 text-sky-300"
+        ? "border-accent-blue/35 bg-accent-blue/12 text-accent-blue"
         : "border-border-subtle bg-card text-text-secondary";
 
   const ppgText =
@@ -168,7 +168,7 @@ function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
         {ppgText}
       </span>
       {!manager.isCurrentManager && (
-        <span className="inline-flex items-center rounded-md border border-rose-500/35 bg-rose-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-rose-300">
+        <span className="inline-flex items-center rounded-md border border-accent-cold/35 bg-accent-cold/12 px-1.5 py-0.5 text-[10px] font-semibold text-accent-cold-soft">
           Sacked
         </span>
       )}
@@ -466,12 +466,12 @@ const features: readonly Feature[] = [
     ],
     icon: TrendingUp,
     tone: {
-      card: "hover:border-emerald-500/40",
-      iconWrap: "bg-emerald-500/15",
-      icon: "text-emerald-400",
-      tag: "border-emerald-500/40 text-emerald-400",
-      bullet: "bg-emerald-400",
-      link: "text-emerald-400",
+      card: "hover:border-accent-hot/40",
+      iconWrap: "bg-accent-hot/15",
+      icon: "text-accent-hot",
+      tag: "border-accent-hot/40 text-accent-hot",
+      bullet: "bg-accent-hot",
+      link: "text-accent-hot",
     },
   },
   {

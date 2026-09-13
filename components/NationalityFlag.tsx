@@ -27,7 +27,7 @@ export function NationalityFlag({
       <span
         role="img"
         aria-label={name ? `Currently called up to ${name}` : "Currently called up"}
-        className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-400 ring-2 ring-[var(--bg-card)]"
+        className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-accent-hot ring-2 ring-[var(--bg-card)]"
       />
     </span>
   );

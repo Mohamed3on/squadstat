@@ -218,7 +218,7 @@ export default function HowItWorksPage() {
           icon={TrendingUp}
           title="Over/Under"
           href="/value-analysis"
-          iconColor="text-emerald-400"
+          iconColor="text-accent-hot"
         >
           <div>
             <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>

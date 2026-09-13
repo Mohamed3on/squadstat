@@ -112,7 +112,9 @@ function TeamCard({
           <div className="flex items-center gap-3 sm:gap-4">
             <RankBadge
               rank={rank}
-              highlightClass={isOver ? "bg-green-600 text-white" : "bg-red-600 text-white"}
+              highlightClass={
+                isOver ? "bg-accent-hot text-background" : "bg-accent-cold text-white"
+              }
             />
 
             {/* Club Logo */}
@@ -142,7 +144,7 @@ function TeamCard({
           {/* Stats Row — actual vs expected, color-coded */}
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5 text-xs sm:text-sm">
             <span
-              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-value ${isOver ? "bg-green-600/10 text-green-500" : "bg-red-600/10 text-red-500"}`}
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-value ${isOver ? "bg-accent-hot/10 text-accent-hot" : "bg-accent-cold/10 text-accent-cold"}`}
             >
               {ordinal(team.leaguePosition)} · {team.points}pts
             </span>
@@ -176,15 +178,15 @@ function TeamCard({
 
         {/* Delta strip */}
         <div
-          className={`w-16 sm:w-20 flex flex-col items-center justify-center shrink-0 border-l ${isOver ? "border-l-green-600/20 bg-green-600/[0.06]" : "border-l-red-600/20 bg-red-600/[0.06]"}`}
+          className={`w-16 sm:w-20 flex flex-col items-center justify-center shrink-0 border-l ${isOver ? "border-l-accent-hot/20 bg-accent-hot/[0.06]" : "border-l-accent-cold/20 bg-accent-cold/[0.06]"}`}
         >
           <span
-            className={`text-xl sm:text-2xl font-pixel ${isOver ? "text-green-600" : "text-red-600"}`}
+            className={`text-xl sm:text-2xl font-pixel ${isOver ? "text-accent-hot" : "text-accent-cold"}`}
           >
             {team.deltaPts > 0 ? `+${team.deltaPts}` : team.deltaPts}
           </span>
           <span
-            className={`text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 text-center leading-tight ${isOver ? "text-green-600/60" : "text-red-600/60"}`}
+            className={`text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 text-center leading-tight ${isOver ? "text-accent-hot/60" : "text-accent-cold/60"}`}
           >
             points
             <br />
@@ -243,7 +245,7 @@ export function TeamListsGrid({
         {/* Headers */}
         <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 text-green-600">
+            <h2 className="text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 text-accent-hot">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -268,13 +270,13 @@ export function TeamListsGrid({
                 </p>
               </InfoTip>
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-green-600/10 text-green-600/70">
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-accent-hot/10 text-accent-hot/70">
               {overperformers.length}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-green-600/30" />
+            <div className="flex-1 h-px bg-gradient-to-r from-accent-hot/30" />
           </div>
           <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 text-red-600">
+            <h2 className="text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 text-accent-cold">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -293,10 +295,10 @@ export function TeamListsGrid({
                 </p>
               </InfoTip>
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-red-600/10 text-red-600/70">
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-accent-cold/10 text-accent-cold/70">
               {underperformers.length}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-red-600/30" />
+            <div className="flex-1 h-px bg-gradient-to-r from-accent-cold/30" />
           </div>
         </div>
 
@@ -325,7 +327,7 @@ export function TeamListsGrid({
         {/* Overperformers */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-lg font-pixel flex items-center gap-2 shrink-0 text-green-600">
+            <h2 className="text-lg font-pixel flex items-center gap-2 shrink-0 text-accent-hot">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -345,10 +347,10 @@ export function TeamListsGrid({
                 </p>
               </InfoTip>
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-green-600/10 text-green-600/70">
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-accent-hot/10 text-accent-hot/70">
               {overperformers.length}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-green-600/30" />
+            <div className="flex-1 h-px bg-gradient-to-r from-accent-hot/30" />
           </div>
           <div className="space-y-3">
             {overperformers.map((team, idx) => (
@@ -362,7 +364,7 @@ export function TeamListsGrid({
         {/* Underperformers */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-lg font-pixel flex items-center gap-2 shrink-0 text-red-600">
+            <h2 className="text-lg font-pixel flex items-center gap-2 shrink-0 text-accent-cold">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -381,10 +383,10 @@ export function TeamListsGrid({
                 </p>
               </InfoTip>
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-red-600/10 text-red-600/70">
+            <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-accent-cold/10 text-accent-cold/70">
               {underperformers.length}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-red-600/30" />
+            <div className="flex-1 h-px bg-gradient-to-r from-accent-cold/30" />
           </div>
           <div className="space-y-3">
             {underperformers.map((team, idx) => (

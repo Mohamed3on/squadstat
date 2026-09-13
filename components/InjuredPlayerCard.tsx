@@ -123,8 +123,7 @@ export function InjuredPlayerCard({
                   variant="secondary"
                   className={cn(
                     "text-[10px] sm:text-xs",
-                    returnInfo.imminent &&
-                      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                    returnInfo.imminent && "bg-accent-hot/10 text-accent-hot",
                   )}
                   suppressHydrationWarning
                 >
@@ -175,7 +174,7 @@ export function InjuredPlayerRow({ player, rank }: { player: InjuredPlayer; rank
           <p
             className={cn(
               "text-[10px]",
-              returnInfo.imminent ? "text-emerald-400" : "text-text-muted",
+              returnInfo.imminent ? "text-accent-hot" : "text-text-muted",
             )}
           >
             {returnInfo.label}

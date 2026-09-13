@@ -43,9 +43,9 @@ import { absoluteUrl } from "@/lib/site-config";
 
 function rankColor(rank: number, total: number): string {
   const pct = rank / total;
-  if (rank <= 3) return "text-amber-400";
-  if (pct <= 0.05) return "text-emerald-400";
-  if (pct <= 0.15) return "text-sky-400";
+  if (rank <= 3) return "text-accent-gold";
+  if (pct <= 0.05) return "text-accent-hot";
+  if (pct <= 0.15) return "text-accent-blue";
   if (pct <= 0.4) return "text-text-primary";
   return "text-text-secondary";
 }
@@ -72,9 +72,9 @@ function GoalBreakdown({ goals, penaltyGoals }: { goals: number; penaltyGoals: n
   if (goals === 0) return <span className="text-text-muted">0</span>;
   return (
     <>
-      {openPlay > 0 && <span className="text-emerald-400">{openPlay}</span>}
+      {openPlay > 0 && <span className="text-accent-hot">{openPlay}</span>}
       {penaltyGoals > 0 && (
-        <span className="text-amber-400">
+        <span className="text-accent-gold">
           {openPlay > 0 ? "+" : ""}
           {penaltyGoals}P
         </span>
@@ -260,13 +260,13 @@ function RecentMatchCard({ match }: { match: RecentGameStats }) {
             </p>
             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text-secondary">
               {venueLabel && (
-                <span className={match.venue === "home" ? "text-amber-400" : "text-sky-400"}>
+                <span className={match.venue === "home" ? "text-accent-gold" : "text-accent-blue"}>
                   {venueLabel}
                 </span>
               )}
               {venueLabel && <span className="opacity-40">·</span>}
               <span
-                className={`font-value ${match.minutes >= 70 ? "text-emerald-400" : match.minutes >= 45 ? "text-text-primary" : "text-text-secondary"}`}
+                className={`font-value ${match.minutes >= 70 ? "text-accent-hot" : match.minutes >= 45 ? "text-text-primary" : "text-text-secondary"}`}
               >
                 {match.minutes}&apos;
               </span>
@@ -292,7 +292,7 @@ function RecentMatchCard({ match }: { match: RecentGameStats }) {
           <div className="rounded-lg border border-border-subtle/80 bg-black/20 px-2 py-1.5 text-center">
             <p className="text-[9px] uppercase tracking-[0.16em] text-text-muted">Assists</p>
             <p
-              className={`mt-0.5 font-value text-base ${match.assists > 0 ? "text-emerald-400" : "text-text-muted"}`}
+              className={`mt-0.5 font-value text-base ${match.assists > 0 ? "text-accent-hot" : "text-text-muted"}`}
             >
               {match.assists}
             </p>
@@ -585,7 +585,7 @@ export default async function PlayerDetailPage({
                 </SignalBadge>
               )}
               {player.isCurrentIntl && (
-                <SignalBadge className="border-emerald-500/25 bg-emerald-500/10 text-emerald-400">
+                <SignalBadge className="border-accent-hot/25 bg-accent-hot/10 text-accent-hot">
                   Current international
                 </SignalBadge>
               )}
@@ -666,7 +666,7 @@ export default async function PlayerDetailPage({
             label="G+A"
             value={String(form.seasonGa)}
             subline={`${form.seasonGoals}G · ${form.seasonAssists}A`}
-            accentClass="text-emerald-400"
+            accentClass="text-accent-hot"
           />
           <HeroMetric
             label="Minutes"
@@ -885,7 +885,7 @@ export default async function PlayerDetailPage({
                   className="mt-2.5 block text-sm text-text-secondary transition-colors hover:text-text-primary"
                 >
                   Penalties:{" "}
-                  <span className="font-value text-amber-400">
+                  <span className="font-value text-accent-gold">
                     {form.penaltyGoals}/{form.penaltyAttempts}
                   </span>{" "}
                   scored
@@ -894,7 +894,7 @@ export default async function PlayerDetailPage({
                       {" "}
                       (
                       <span
-                        className={`font-value ${form.penaltyConversion >= 80 ? "text-emerald-400" : form.penaltyConversion >= 60 ? "text-amber-400" : "text-red-400"}`}
+                        className={`font-value ${form.penaltyConversion >= 80 ? "text-accent-hot" : form.penaltyConversion >= 60 ? "text-accent-gold" : "text-accent-cold-soft"}`}
                       >
                         {form.penaltyConversion}%
                       </span>
@@ -966,12 +966,12 @@ export default async function PlayerDetailPage({
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-[11px] text-text-muted">
                   <span className="flex items-center gap-1 whitespace-nowrap">
-                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
+                    <span className="inline-block h-2 w-2 rounded-full bg-accent-hot" />
                     <span className="hidden sm:inline">Open play</span>
                     <span className="sm:hidden">OP</span>
                   </span>
                   <span className="flex items-center gap-1 whitespace-nowrap">
-                    <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
+                    <span className="inline-block h-2 w-2 rounded-full bg-accent-gold" />
                     <span className="hidden sm:inline">Penalty</span>
                     <span className="sm:hidden">Pen</span>
                   </span>

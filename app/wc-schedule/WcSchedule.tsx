@@ -94,7 +94,7 @@ export function WcSchedule({ rows }: { rows: MatchupRow[] }) {
   return (
     <div ref={rootRef} className="mx-auto max-w-5xl px-4">
       <header>
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-400">
+        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-gold">
           FIFA World Cup 2026 · Full Schedule
         </div>
         <h1 className="font-pixel mt-2 text-3xl font-bold tracking-tight">
@@ -119,7 +119,7 @@ export function WcSchedule({ rows }: { rows: MatchupRow[] }) {
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-muted">
           <span className="inline-flex items-center gap-1.5">
-            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-400">
+            <span className="rounded-full border border-accent-hot/40 bg-accent-hot/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent-hot">
               ✓ Confirmed
             </span>
             qualified into the slot
@@ -127,7 +127,7 @@ export function WcSchedule({ rows }: { rows: MatchupRow[] }) {
           {anyDecided && (
             <>
               <span className="inline-flex items-center gap-1.5">
-                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-400">
+                <span className="rounded-full border border-accent-hot/40 bg-accent-hot/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent-hot">
                   ✓ Advanced
                 </span>
                 won its tie — through to the next round
@@ -207,7 +207,7 @@ function TeamName({
           target="_blank"
           rel="noopener noreferrer"
           title={`${t.name} on Transfermarkt`}
-          className={clsx("hover:text-amber-400 hover:underline", out && "line-through")}
+          className={clsx("hover:text-accent-gold hover:underline", out && "line-through")}
         >
           {t.short}
         </a>
@@ -215,7 +215,7 @@ function TeamName({
         <span className={clsx(out && "line-through")}>{t.short}</span>
       )}
       {fav && (
-        <span title="Projected to win on squad value" className="text-xs text-amber-400">
+        <span title="Projected to win on squad value" className="text-xs text-accent-gold">
           ▸
         </span>
       )}
@@ -238,8 +238,8 @@ function SourceChip({ source, confirmed }: { source: string | null; confirmed: b
       className={clsx(
         "w-fit rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
         confirmed
-          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-          : "border-dashed border-amber-500/40 bg-amber-500/10 text-amber-400",
+          ? "border-accent-hot/40 bg-accent-hot/10 text-accent-hot"
+          : "border-dashed border-accent-gold/40 bg-accent-gold/10 text-accent-gold",
       )}
     >
       {confirmed ? (source ? `✓ ${source}` : "✓ Confirmed") : source ? `Proj · ${source}` : "Proj"}
@@ -268,8 +268,8 @@ function OutcomeChip({ outcome, stage }: { outcome: "through" | "out"; stage: St
         "w-fit rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
         through
           ? final
-            ? "border-amber-400/50 bg-amber-400/10 text-amber-300"
-            : "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+            ? "border-accent-gold/50 bg-accent-gold/10 text-accent-gold"
+            : "border-accent-hot/40 bg-accent-hot/10 text-accent-hot"
           : final
             ? "border-border-subtle bg-card text-text-secondary"
             : "border-accent-cold/40 bg-accent-cold/10 text-accent-cold",
@@ -324,7 +324,7 @@ function MatchCard({
   status: Status;
   cardRef?: Ref<HTMLDivElement>;
 }) {
-  const accent = "text-amber-400";
+  const accent = "text-accent-gold";
   const winner = row.winner;
   // A knockout tie with a settled result: one side advanced, the other is out.
   const decided = row.stage !== "group" && row.played && winner != null;
@@ -348,7 +348,7 @@ function MatchCard({
     <span className="px-1 text-xs italic text-text-muted">v</span>
   );
   const nextUp = status === "next" && (
-    <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-amber-400">
+    <span className="rounded-full border border-accent-gold/40 bg-accent-gold/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-accent-gold">
       Next up
     </span>
   );
@@ -361,7 +361,7 @@ function MatchCard({
         status === "live"
           ? "border-accent-cold/50 bg-accent-cold-faint"
           : status === "next"
-            ? "border-amber-500/50 bg-amber-400/5"
+            ? "border-accent-gold/50 bg-accent-gold/5"
             : "border-border-subtle bg-elevated hover:border-text-muted/50",
       )}
       data-mid={row.id}
@@ -436,7 +436,7 @@ function MatchCard({
         </span>
         <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-border-subtle sm:w-32">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400"
+            className="h-full rounded-full bg-gradient-to-r from-accent-gold/60 to-accent-gold"
             style={{ width: `${((row.sum / max) * 100).toFixed(1)}%` }}
           />
         </div>

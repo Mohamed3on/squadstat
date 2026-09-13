@@ -13,7 +13,7 @@ interface ManagerPPGBadgeProps {
 export function ManagerSackedBadge({ manager }: ManagerPPGBadgeProps) {
   if (manager.isCurrentManager) return null;
   return (
-    <span className="shrink-0 rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] sm:text-xs font-medium text-red-500">
+    <span className="shrink-0 rounded bg-accent-cold/10 px-1.5 py-0.5 text-[10px] sm:text-xs font-medium text-accent-cold">
       Sacked
     </span>
   );
@@ -83,9 +83,9 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
   // Quiet, uniform token by default; a low-chroma tint flags only the best/worst.
   // The row's own ▲/▼ delta stays the loud signal — this is a secondary annotation.
   const tone = isBest
-    ? "bg-green-600/10 text-green-500"
+    ? "bg-accent-hot/10 text-accent-hot"
     : isWorst
-      ? "bg-red-600/10 text-red-500"
+      ? "bg-accent-cold/10 text-accent-cold"
       : "bg-elevated text-text-secondary";
 
   const badge = (
@@ -149,7 +149,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
                 href={manager.worstManager.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-red-500 hover:underline"
+                className="font-medium text-accent-cold hover:underline"
               >
                 {manager.worstManager.name}
               </a>
