@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-13T07:18:22.354Z",
+  "generatedAt": "2026-09-13T07:23:46.293Z",
   "title": "Design System: SquadStat",
   "extensions": {
     "colorMeta": {
@@ -457,7 +457,7 @@
   ],
   "narrative": {
     "northStar": "The Analyst's Terminal",
-    "overview": " SquadStat looks like a data terminal laid over grid paper, after dark. A blue-black ground, a faint Clear Sky Blue grid under every page, four surfaces that step up in lightness, and hairline borders carry all the structure. The type comes in three voices from one family: Geist Pixel Square for headlines (the one piece of character), Geist Sans for reading, and Geist Mono with tabular digits for every figure. It is dense by default. Text at 10 to 14px does most of the work, and tables and ranked rows are the main forms.\n\nColour is signal, never decoration. Electric Spring Green means up, won, hot, and the page's one main action. Hot Coral Red means down, lost, cold. Clear Sky Blue marks links, focus, and neutral figures. Pure Gold marks the benchmark figure: the value everything else on the page is measured against. Everything else is greyscale. The controls stay quiet (outline segments, ghost icons, muted labels), so the numbers are the loudest thing on screen.\n\nHeroes follow the same rules as everything else: grid paper, a big Pixel headline and, on league, club and player pages, a three-figure metric row (label, figure, sub-line). The colour stays in the figures. SquadStat must never look like a betting app, a sports-news portal, a corporate BI tool, or a generic SaaS template.\n\n**Flagged to change:** the shipped heroes still carry atmosphere this system rejects. The home headline has green-to-gold gradient text over radial colour washes, with an eyebrow badge above it, and its feed is a card of cards with coloured left edges. The league, club and player heroes sit on radial washes with 28px corners. The replacement is flat grid paper fading out downward, a two-tone Pixel headline (Cool White, then Steel Grey), one hairline-divided feed panel, and 16px corners. ",
+    "overview": " SquadStat looks like a data terminal laid over grid paper, after dark. A blue-black ground, a faint Clear Sky Blue grid under every page, four surfaces that step up in lightness, and hairline borders carry all the structure. The type comes in three voices from one family: Geist Pixel Square for headlines (the one piece of character), Geist Sans for reading, and Geist Mono with tabular digits for every figure. It is dense by default. Text at 10 to 14px does most of the work, and tables and ranked rows are the main forms.\n\nColour is signal, never decoration. Electric Spring Green means up, won, hot, and the page's one main action. Hot Coral Red means down, lost, cold. Clear Sky Blue marks links, focus, and neutral figures. Pure Gold marks the benchmark figure: the value everything else on the page is measured against. Everything else is greyscale. The controls stay quiet (outline segments, ghost icons, muted labels), so the numbers are the loudest thing on screen.\n\nHeroes follow the same rules as everything else. The home hero is grid paper fading out downward, a two-tone Pixel headline (Cool White, then Steel Grey), the one green action, and a single flat feed panel. League, club and player pages open on a flat Slate Charcoal panel with a three-figure metric row (label, figure, sub-line). The colour stays in the figures. SquadStat must never look like a betting app, a sports-news portal, a corporate BI tool, or a generic SaaS template. ",
     "keyCharacteristics": [
       "Dark only. The root is hard-set to `dark` and there is no light theme.",
       "Every number is Geist Mono with tabular digits, at regular weight.",
@@ -518,7 +518,7 @@
       "Don't look like a sports-news portal: no ad slots, autoplay, or walls of headlines.",
       "Don't look like a corporate BI tool: no enterprise-grey controls, cluttered charts, or heavy toolbars.",
       "Don't look like a generic SaaS template: no pastel gradients, rounded blobs, or stock illustration.",
-      "Don't use gradient text, radial colour washes, or an eyebrow label above a heading. The shipped heroes still do, and they are flagged to change.",
+      "Don't use gradient text, radial colour washes, or an eyebrow label above a heading.",
       "Don't reach for raw Tailwind palette hues. Every colour is a token.",
       "Don't use drop shadows to show layering.",
       "Don't bold numbers, or set large headings in bold Sans.",

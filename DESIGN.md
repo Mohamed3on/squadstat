@@ -60,7 +60,6 @@ rounded:
   lg: "8px"
   xl: "12px"
   2xl: "16px"
-  hero: "28px"
   full: "9999px"
 spacing:
   "1": "4px"
@@ -180,16 +179,11 @@ figures. Pure Gold marks the benchmark figure: the value everything else on the 
 against. Everything else is greyscale. The controls stay quiet (outline segments, ghost icons,
 muted labels), so the numbers are the loudest thing on screen.
 
-Heroes follow the same rules as everything else: grid paper, a big Pixel headline and, on league,
-club and player pages, a three-figure metric row (label, figure, sub-line). The colour stays in the
-figures. SquadStat must never look like a betting app, a sports-news portal, a corporate BI tool,
-or a generic SaaS template.
-
-**Flagged to change:** the shipped heroes still carry atmosphere this system rejects. The home
-headline has green-to-gold gradient text over radial colour washes, with an eyebrow badge above it,
-and its feed is a card of cards with coloured left edges. The league, club and player heroes sit on
-radial washes with 28px corners. The replacement is flat grid paper fading out downward, a two-tone
-Pixel headline (Cool White, then Steel Grey), one hairline-divided feed panel, and 16px corners.
+Heroes follow the same rules as everything else. The home hero is grid paper fading out downward,
+a two-tone Pixel headline (Cool White, then Steel Grey), the one green action, and a single flat
+feed panel. League, club and player pages open on a flat Slate Charcoal panel with a three-figure
+metric row (label, figure, sub-line). The colour stays in the figures. SquadStat must never look
+like a betting app, a sports-news portal, a corporate BI tool, or a generic SaaS template.
 
 **Key Characteristics:**
 
@@ -328,15 +322,14 @@ hairline, never a drop shadow. The glow belongs to the main action alone.
   - 6px: badges, tab triggers, crest links.
   - 8px: buttons, inputs, segments, rank chips, tab rails. This is the workhorse.
   - 12px: cards, ranked rows, tables.
-  - 16px: panels, empty notes.
-  - 28px: detail heroes.
+  - 16px: panels, empty notes, detail heroes.
   - Fully round: pills and avatars.
 - **Borders:** 1px hairlines everywhere. A dashed hairline means an empty state. A 2px accent left
   border marks a highlight card.
 - **Crests and league logos** sit on white tiles at 90% with a pixel of padding, so any crest reads
   on dark.
 - **Grid paper:** square grid lines in Clear Sky Blue, 60px on the page ground (3%) and 64 to 72px
-  in heroes (4 to 5%).
+  in heroes (5%), where a mask fades the grid out toward the bottom.
 
 ## Components
 
@@ -368,8 +361,6 @@ never show, so set their offset colour to `background`, or a light band leaks th
   bare arrow below 640px.
 - **Context chips:** 6px corners with a hairline, sometimes accent-tinted. Examples: blue for a
   manager, green or red for a points-per-game figure.
-- **Eyebrow badge:** 10px uppercase at 0.2em with a green hairline and glow fill. Used on the home
-  hero, and flagged to change (see Overview).
 
 ### Segmented controls
 
@@ -386,7 +377,7 @@ never show, so set their offset colour to `background`, or a light band leaks th
 
 ### Cards / Containers
 
-- **Corner Style:** 12px for cards, 16px for panels, 28px for detail heroes.
+- **Corner Style:** 12px for cards, 16px for panels and detail heroes.
 - **Background:** Slate Charcoal, or Deep Navy-Charcoal for rows and empty notes.
 - **Shadow Strategy:** none at rest (see Elevation & Depth).
 - **Border:** 1px Hairline.
@@ -427,13 +418,17 @@ every league, club and player page.
 
 ### Detail hero (signature)
 
-28px corners, a hairline border, and a Slate Charcoal to Deep Navy-Charcoal gradient. Radial washes
-of blue (top left, 16%) and green (top right, 14%) sit under a 64px blue grid at 5%. Inside: the
-crest on a white tile, the Pixel name, outline actions, and the metric row on the right. It
-enters with a 0.3s blur-in, switched off under reduced motion.
+16px corners, a hairline border and a flat Slate Charcoal fill, under a 64px blue grid at 5% that
+fades out downward. Inside: the crest on a white tile, the Pixel name, outline actions, and the
+metric row on the right. It enters with a 0.3s blur-in, switched off under reduced motion.
 
-Flagged to change (see Overview): the washes and 28px corners give way to a flat Slate Charcoal
-panel with 16px corners, with the grid fading out downward.
+### Feed panel (signature)
+
+One Deep Navy-Charcoal panel with 12px corners and a hairline border. It opens with a 14px
+semibold title line, then rows divided by hairlines, with no card per row and no coloured edge.
+Each row holds a crest or headshot, an 11px caps label carrying the tone (green or red), the name,
+and a detail line. "Explore" sits in Clear Sky Blue on the label's line. The home page's Latest
+Highlights uses it.
 
 ### Ranked row (signature)
 
@@ -474,8 +469,7 @@ Skeletons shimmer between Slate Charcoal and Lifted Slate over 1.5s, with 6px co
   toolbars.
 - **Don't** look like a generic SaaS template: no pastel gradients, rounded blobs, or stock
   illustration.
-- **Don't** use gradient text, radial colour washes, or an eyebrow label above a heading. The
-  shipped heroes still do, and they are flagged to change.
+- **Don't** use gradient text, radial colour washes, or an eyebrow label above a heading.
 - **Don't** reach for raw Tailwind palette hues. Every colour is a token.
 - **Don't** use drop shadows to show layering.
 - **Don't** bold numbers, or set large headings in bold Sans.
