@@ -180,10 +180,16 @@ figures. Pure Gold marks the benchmark figure: the value everything else on the 
 against. Everything else is greyscale. The controls stay quiet (outline segments, ghost icons,
 muted labels), so the numbers are the loudest thing on screen.
 
-Heroes are the one place atmosphere is allowed: soft radial washes of blue and green over a larger
-grid, a big Pixel headline, and a three-figure metric row. Even there the structure is still the
-terminal's: label, figure, sub-line. SquadStat must never look like a betting app, a sports-news
-portal, a corporate BI tool, or a generic SaaS template.
+Heroes follow the same rules as everything else: grid paper, a big Pixel headline and, on league,
+club and player pages, a three-figure metric row (label, figure, sub-line). The colour stays in the
+figures. SquadStat must never look like a betting app, a sports-news portal, a corporate BI tool,
+or a generic SaaS template.
+
+**Flagged to change:** the shipped heroes still carry atmosphere this system rejects. The home
+headline has green-to-gold gradient text over radial colour washes, with an eyebrow badge above it,
+and its feed is a card of cards with coloured left edges. The league, club and player heroes sit on
+radial washes with 28px corners. The replacement is flat grid paper fading out downward, a two-tone
+Pixel headline (Cool White, then Steel Grey), one hairline-divided feed panel, and 16px corners.
 
 **Key Characteristics:**
 
@@ -215,7 +221,7 @@ A near-black, blue-tinted greyscale with four signal accents, each with one job.
 
 ### Tertiary
 
-- **Clear Sky Blue** (`accent-blue`, #58a6ff): links, the global focus ring, text selection, and
+- **Clear Sky Blue** (`accent-blue`, #58a6ff): links, the global focus outline, text selection, and
   the background grid (at 3 to 5% alpha). Also neutral figures such as market values in player
   lists, and the second word of some page titles ("Player **Explorer**").
 - **Pure Gold** (`accent-gold`, #ffd700): the benchmark. Value per player on club heroes and in
@@ -224,7 +230,8 @@ A near-black, blue-tinted greyscale with four signal accents, each with one job.
 
 ### Neutral
 
-- **Blue-Black** (`bg-base`, #080a0c): the page ground, and the text colour on green fills.
+- **Blue-Black** (`bg-base`, #080a0c): the page ground, and the text colour on solid green and red
+  fills.
 - **Deep Navy-Charcoal** (`bg-elevated`, #0d1117): the first raised layer. Used for inputs,
   ranked rows, tab rails, empty notes and selected segments.
 - **Slate Charcoal** (`bg-card`, #161b22): cards, panels, the active tab.
@@ -245,9 +252,10 @@ down or lost. Blue is a link or a neutral figure. Gold is the benchmark. Anythin
 number runs. The fewest goals conceded takes the green. Within a page, the same direction is always
 the same colour.
 
-Raw Tailwind hues (`emerald-400`, `red-400`/`500`, `amber-400`) appear in about 100 places for
-deltas and row tints, and they read as near-duplicates of the tokens. New work should reach for
-the tokens first.
+**The Tokens-Only Rule.** Every colour comes from a token in `globals.css`, with opacity
+modifiers for tints (`bg-accent-hot/10`). Raw Tailwind palette hues such as `emerald-400`,
+`red-500` or `amber-400` are not part of the system. The one left is violet on the home and How It
+Works section cards.
 
 ## Typography
 
@@ -335,14 +343,19 @@ hairline, never a drop shadow. The glow belongs to the main action alone.
 Quiet controls, loud numbers. The controls recede into outlines, while the figures and the single
 green action carry the page.
 
+**The One Focus Rule.** Keyboard focus looks the same everywhere: a 2px Clear Sky Blue outline, 2px
+out, drawn by the global `:focus-visible` rule in `globals.css`. That rule sits outside Tailwind's
+CSS layers, so no `outline-none` utility can remove it. Component focus rings sit underneath it and
+never show, so set their offset colour to `background`, or a light band leaks through.
+
 ### Buttons
 
 - **Shape:** gently rounded (8px).
 - **Primary:** Electric Spring Green fill, Blue-Black text, 14px at 600 weight. It is 40px tall
   (48px `lg`, 32px `sm`) with 16px side padding and the action glow. Green fill is reserved for
   the page's main action.
-- **Hover / Focus:** hover drops to 90% opacity. Focus shows a 2px ring in the variant's colour
-  with a 2px offset. Transitions last 200ms.
+- **Hover / Focus:** hover drops to 90% opacity. Focus is the global blue outline (see The One
+  Focus Rule). Transitions last 200ms.
 - **Outline:** transparent with a hairline border and Cool White text. Hover fills Deep
   Navy-Charcoal.
 - **Ghost:** Dim Grey icon or text with no border, brightening on a Deep Navy-Charcoal hover. Header
@@ -356,7 +369,7 @@ green action carry the page.
 - **Context chips:** 6px corners with a hairline, sometimes accent-tinted. Examples: blue for a
   manager, green or red for a points-per-game figure.
 - **Eyebrow badge:** 10px uppercase at 0.2em with a green hairline and glow fill. Used on the home
-  hero.
+  hero, and flagged to change (see Overview).
 
 ### Segmented controls
 
@@ -383,8 +396,7 @@ green action carry the page.
 
 - **Style:** Deep Navy-Charcoal fill, hairline border, 8px corners, 40px tall, 14px text, Dim Grey
   placeholder.
-- **Focus:** a 2px Electric Spring Green ring with a 2px offset. Everything else uses the global
-  2px Clear Sky Blue focus outline.
+- **Focus:** the global blue outline, like every other control (see The One Focus Rule).
 - **Search:** opens a ⌘K command palette covering players and every page.
 
 ### Navigation
@@ -419,6 +431,9 @@ every league, club and player page.
 of blue (top left, 16%) and green (top right, 14%) sit under a 64px blue grid at 5%. Inside: the
 crest on a white tile, the Pixel name, outline actions, and the metric row on the right. It
 enters with a 0.3s blur-in, switched off under reduced motion.
+
+Flagged to change (see Overview): the washes and 28px corners give way to a flat Slate Charcoal
+panel with 16px corners, with the grid fading out downward.
 
 ### Ranked row (signature)
 
@@ -459,6 +474,9 @@ Skeletons shimmer between Slate Charcoal and Lifted Slate over 1.5s, with 6px co
   toolbars.
 - **Don't** look like a generic SaaS template: no pastel gradients, rounded blobs, or stock
   illustration.
+- **Don't** use gradient text, radial colour washes, or an eyebrow label above a heading. The
+  shipped heroes still do, and they are flagged to change.
+- **Don't** reach for raw Tailwind palette hues. Every colour is a token.
 - **Don't** use drop shadows to show layering.
 - **Don't** bold numbers, or set large headings in bold Sans.
 - **Don't** add colour for decoration. If it doesn't signal up, down, a link or the benchmark, it
