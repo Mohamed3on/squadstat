@@ -169,26 +169,12 @@ function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
   );
 }
 
-function SnapshotItemRow({
-  item,
-  variant = "section",
-}: {
-  item: SnapshotItem;
-  variant?: "hero" | "section";
-}) {
-  const isHero = variant === "hero";
-  const Tag = isHero ? "div" : "article";
+// One line of a feed panel: the list's hairlines divide it from its neighbours, the tone
+// colours the label alone, and "Explore" sits on the label's line.
+function SnapshotItemRow({ item }: { item: SnapshotItem }) {
   const toneLabel = item.tone ? SNAPSHOT_TONE_LABEL[item.tone] : "text-text-muted";
   return (
-    <Tag
-      className={
-        // Hero rows are lines of one readout, divided by the list's hairlines: no
-        // card per row. Section rows are cards, but plain ones.
-        isHero
-          ? "px-4 py-3"
-          : "rounded-lg border border-border-subtle bg-elevated px-3 py-2 transition-all duration-200 hover:-translate-y-px hover:bg-card-hover hover:border-border-medium"
-      }
-    >
+    <div className="px-4 py-3">
       <div className="flex items-center gap-3">
         <div className="relative shrink-0">
           <Avatar className="h-10 w-10 border border-border-subtle bg-card">
@@ -211,27 +197,25 @@ function SnapshotItemRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
             <p className={`text-[11px] uppercase tracking-[0.12em] ${toneLabel}`}>{item.label}</p>
-            {isHero && (
-              <Link
-                href={item.href}
-                className="group/link inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-blue transition-colors hover:text-text-primary"
-              >
-                Explore
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
-              </Link>
-            )}
+            <Link
+              href={item.href}
+              className="group/link inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-blue transition-colors hover:text-text-primary"
+            >
+              Explore
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+            </Link>
           </div>
           {item.playerId ? (
             <Link
               href={getPlayerDetailHref(item.playerId)}
-              className={`truncate font-semibold leading-tight text-text-primary hover:underline ${!isHero ? "mt-0.5 text-sm" : ""} block`}
+              className="block truncate font-semibold leading-tight text-text-primary hover:underline"
             >
               {item.value}
             </Link>
           ) : item.clubId ? (
             <Link
               href={getTeamDetailHref(item.clubId)}
-              className={`truncate font-semibold leading-tight text-text-primary hover:underline ${!isHero ? "mt-0.5 text-sm" : ""} block`}
+              className="block truncate font-semibold leading-tight text-text-primary hover:underline"
             >
               {item.value}
             </Link>
@@ -244,20 +228,14 @@ function SnapshotItemRow({
               }
               target="_blank"
               rel="noopener noreferrer"
-              className={`truncate font-semibold leading-tight text-text-primary hover:underline ${!isHero ? "mt-0.5 text-sm" : ""} block`}
+              className="block truncate font-semibold leading-tight text-text-primary hover:underline"
             >
               {item.value}
             </a>
           ) : (
-            <p
-              className={`truncate font-semibold leading-tight text-text-primary ${!isHero ? "mt-0.5 text-sm" : ""}`}
-            >
-              {item.value}
-            </p>
+            <p className="truncate font-semibold leading-tight text-text-primary">{item.value}</p>
           )}
-          <p className={`text-xs leading-tight text-text-secondary ${!isHero ? "mt-0.5" : ""}`}>
-            {item.detail}
-          </p>
+          <p className="text-xs leading-tight text-text-secondary">{item.detail}</p>
           {item.metrics && item.metrics.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {item.metrics.map((metric) => (
@@ -271,18 +249,66 @@ function SnapshotItemRow({
             </div>
           )}
           {item.manager && <ManagerSnapshotBadges manager={item.manager} />}
-          {!isHero && (
-            <Link
-              href={item.href}
-              className="group/link mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-accent-blue transition-colors hover:text-text-primary"
-            >
-              Explore
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
-            </Link>
-          )}
         </div>
       </div>
-    </Tag>
+    </div>
+  );
+}
+
+// The feed panel (DESIGN.md): one flat panel, a title line, then hairline-divided rows,
+// never a card per row. The hero's Latest Highlights and every Latest Standouts group use it.
+function FeedPanel({
+  title,
+  as: Heading = "h3",
+  description,
+  href,
+  items,
+  emptyText,
+  className = "",
+}: {
+  title: string;
+  as?: "h2" | "h3";
+  description?: string;
+  href?: string;
+  items: SnapshotItem[];
+  emptyText?: string;
+  className?: string;
+}) {
+  const headingId = `feed-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  return (
+    <section
+      aria-labelledby={headingId}
+      className={`overflow-hidden rounded-xl border border-border-subtle bg-elevated ${className}`}
+    >
+      <div className="flex items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="min-w-0">
+          <Heading id={headingId} className="text-sm font-semibold text-text-primary">
+            {title}
+          </Heading>
+          {description && <p className="mt-0.5 text-xs text-text-secondary">{description}</p>}
+        </div>
+        {href && (
+          <Link
+            href={href}
+            className="group/link inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-blue transition-colors hover:text-text-primary"
+          >
+            Open
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+          </Link>
+        )}
+      </div>
+      {items.length > 0 ? (
+        <ul className="divide-y divide-border-subtle">
+          {items.map((item) => (
+            <li key={`${item.label}-${item.value}`}>
+              <SnapshotItemRow item={item} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="px-4 py-6 text-sm text-text-secondary">{emptyText}</p>
+      )}
+    </section>
   );
 }
 
@@ -1052,32 +1078,13 @@ type HomeData = Awaited<ReturnType<typeof fetchHomeData>>;
 
 async function HeroCard({ dataPromise }: { dataPromise: Promise<HomeData> }) {
   const { heroSnapshots } = await dataPromise;
-  // One flat readout, not a card of cards: a header line, then hairline-divided rows.
   return (
-    <section
-      aria-labelledby="hero-highlights"
-      className="overflow-hidden rounded-xl border border-border-subtle bg-elevated"
-    >
-      <h2
-        id="hero-highlights"
-        className="border-b border-border-subtle px-4 py-3 text-sm font-semibold text-text-primary"
-      >
-        Latest Highlights
-      </h2>
-      {heroSnapshots.length > 0 ? (
-        <ul className="divide-y divide-border-subtle">
-          {heroSnapshots.map((item) => (
-            <li key={`${item.label}-${item.value}`}>
-              <SnapshotItemRow item={item} variant="hero" />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="px-4 py-6 text-sm text-text-secondary">
-          Snapshot data is temporarily unavailable. Open a section below for full tables.
-        </p>
-      )}
-    </section>
+    <FeedPanel
+      as="h2"
+      title="Latest Highlights"
+      items={heroSnapshots}
+      emptyText="Snapshot data is temporarily unavailable. Open a section below for full tables."
+    />
   );
 }
 
@@ -1093,37 +1100,14 @@ async function StandoutsGrid({ dataPromise }: { dataPromise: Promise<HomeData> }
   return (
     <div className="columns-1 gap-4 lg:columns-2">
       {snapshotGroups.map((group) => (
-        <Card
+        <FeedPanel
           key={group.title}
-          className="mb-4 break-inside-avoid border-border-subtle bg-card transition-colors duration-200 hover:border-border-medium"
-        >
-          <CardHeader className="pb-0 sm:pb-0">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <CardTitle className="text-lg text-text-primary">{group.title}</CardTitle>
-                <CardDescription className="mt-1 text-sm text-text-secondary">
-                  {group.description}
-                </CardDescription>
-              </div>
-              <Link
-                href={group.href}
-                className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-accent-blue transition-colors hover:text-text-primary"
-              >
-                Open
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {group.items.map((item) => (
-              <SnapshotItemRow
-                key={`${group.title}-${item.label}-${item.value}`}
-                item={item}
-                variant="section"
-              />
-            ))}
-          </CardContent>
-        </Card>
+          title={group.title}
+          description={group.description}
+          href={group.href}
+          items={group.items}
+          className="mb-4 break-inside-avoid"
+        />
       ))}
     </div>
   );

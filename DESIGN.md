@@ -434,10 +434,11 @@ metric row on the right. It enters with a 0.3s blur-in, switched off under reduc
 ### Feed panel (signature)
 
 One Deep Navy-Charcoal panel with 12px corners and a hairline border. It opens with a 14px
-semibold title line, then rows divided by hairlines, with no card per row and no coloured edge.
-Each row holds a crest or headshot, an 11px caps label carrying the tone (green or red), the name,
-and a detail line. "Explore" sits in Clear Sky Blue on the label's line. The home page's Latest
-Highlights uses it.
+semibold title line, optionally with a 12px Steel Grey description and an "Open" link on the right.
+Rows follow, divided by hairlines, with no card per row and no coloured edge. Each row holds a
+crest or headshot, an 11px caps label carrying the tone (green or red), the name, and a detail
+line, with "Explore" in Clear Sky Blue on the label's line. The home page's Latest Highlights and
+every Latest Standouts group use it (`FeedPanel` in `app/page.tsx`).
 
 ### Ranked row (signature)
 
