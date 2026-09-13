@@ -10,12 +10,14 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-accent-hot text-background shadow-[var(--shadow-glow-hot)] hover:opacity-90 focus-visible:ring-accent-hot",
-        destructive: "bg-red-500/90 text-white hover:bg-red-500 focus-visible:ring-red-500",
+        destructive:
+          "bg-accent-cold/90 text-white hover:bg-accent-cold focus-visible:ring-accent-cold",
         outline:
-          "border border-border-subtle bg-transparent text-text-primary hover:bg-elevated focus-visible:ring-border-subtle",
+          "border border-border-subtle bg-transparent text-text-primary hover:bg-elevated focus-visible:ring-accent-blue",
         secondary:
-          "bg-elevated text-text-secondary hover:text-text-primary focus-visible:ring-elevated",
-        ghost: "text-text-muted hover:bg-elevated hover:text-text-primary",
+          "bg-elevated text-text-secondary hover:text-text-primary focus-visible:ring-accent-blue",
+        ghost:
+          "text-text-muted hover:bg-elevated hover:text-text-primary focus-visible:ring-accent-blue",
         link: "text-accent-hot underline-offset-4 hover:underline",
       },
       size: {
