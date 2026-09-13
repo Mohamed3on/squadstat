@@ -113,7 +113,7 @@ function TeamCard({
             <RankBadge
               rank={rank}
               highlightClass={
-                isOver ? "bg-accent-hot text-background" : "bg-accent-cold text-white"
+                isOver ? "bg-accent-hot text-background" : "bg-accent-cold text-background"
               }
             />
 

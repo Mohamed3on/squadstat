@@ -5,7 +5,7 @@ export function NationalityFlag({
 }: {
   url?: string;
   name?: string;
-  /** Player is currently called up to this national team; adds a subtle emerald presence dot. */
+  /** Player is currently called up to this national team; adds a subtle green presence dot. */
   calledUp?: boolean;
 }) {
   if (!url) return null;

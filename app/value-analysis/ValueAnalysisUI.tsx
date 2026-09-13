@@ -191,13 +191,6 @@ const CARD_THEMES = {
     rankColor: "var(--accent-hot)",
     imageBorder: "var(--accent-hot-border)",
   },
-  green: {
-    gradientStart: "var(--accent-green-faint)",
-    border: "var(--accent-green-glow)",
-    rankBg: "var(--accent-green-glow)",
-    rankColor: "var(--accent-green)",
-    imageBorder: "var(--accent-green-border)",
-  },
 } as const satisfies Record<string, CardTheme>;
 
 type ComparisonCardVariant = "underperformer" | "outperformer";
@@ -390,10 +383,10 @@ function DiscoveryListCard({
   pointsLabel?: string;
 }) {
   const isOverpriced = variant === "overpriced";
-  const theme = isOverpriced ? CARD_THEMES.cold : CARD_THEMES.green;
-  const countColor = isOverpriced ? "var(--accent-hot)" : "var(--accent-green)";
+  const theme = isOverpriced ? CARD_THEMES.cold : CARD_THEMES.hot;
+  const countColor = "var(--accent-hot)";
   const countLabel = isOverpriced ? "cheaper & better" : "pricier & worse";
-  const valueColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-green)";
+  const valueColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-hot)";
 
   return (
     <PlayerCard
@@ -556,7 +549,7 @@ function DiscoverySection({
     noLeagueEdge: noLeagueEdgeOnly,
   } = filters;
   const isOverpriced = variant === "overpriced";
-  const accentColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-green)";
+  const accentColor = isOverpriced ? "var(--accent-cold-soft)" : "var(--accent-hot)";
   const isTop5 = leagueFilter === "top5";
 
   const clubOptions = useMemo(
@@ -836,7 +829,7 @@ function MvPlayerCard({
   onSelect?: (p: MinutesValuePlayer) => void;
   injuryMap?: InjuryMap;
 }) {
-  const theme = variant === "less" ? CARD_THEMES.cold : CARD_THEMES.green;
+  const theme = variant === "less" ? CARD_THEMES.cold : CARD_THEMES.hot;
   const valueDiff = target ? player.marketValue - target.marketValue : 0;
   const valueDiffDisplay =
     valueDiff > 0 ? `+${formatMarketValue(valueDiff)}` : formatMarketValue(valueDiff);
@@ -1458,7 +1451,7 @@ export function ValueAnalysisUI({ initialData, injuryMap, discovery }: ValueAnal
                 </TabsTrigger>
                 <TabsTrigger value="bargains" className="flex-1 gap-2">
                   Bargains
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-accent-green-glow text-accent-green">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-accent-hot-glow text-accent-hot">
                     {overTabCount ?? "—"}
                   </span>
                 </TabsTrigger>
@@ -1557,7 +1550,7 @@ export function ValueAnalysisUI({ initialData, injuryMap, discovery }: ValueAnal
                     </TabsTrigger>
                     <TabsTrigger value="more" className="flex-1 gap-2">
                       Playing More
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-accent-green-glow text-accent-green">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums bg-accent-hot-glow text-accent-hot">
                         {playingMore.length}
                       </span>
                     </TabsTrigger>

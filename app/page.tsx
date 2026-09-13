@@ -140,7 +140,7 @@ function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
     : isWorst
       ? "border-accent-cold/35 bg-accent-cold/12 text-accent-cold-soft"
       : isOnly
-        ? "border-accent-blue/35 bg-accent-blue/12 text-accent-blue"
+        ? "border-accent-gold/35 bg-accent-gold/12 text-accent-gold"
         : "border-border-subtle bg-card text-text-secondary";
 
   const ppgText =

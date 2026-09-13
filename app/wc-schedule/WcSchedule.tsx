@@ -223,7 +223,7 @@ function TeamName({
   );
 }
 
-// The chip under a knockout team: green when it's confirmed into the slot, dashed amber
+// The chip under a knockout team: green when it's confirmed into the slot, dashed gold
 // when it's only a squad-value projection. The Round of 32 also names the group spot it
 // came from; deeper rounds (winner of the previous tie) are obvious, so it shows just the
 // status.

@@ -80,7 +80,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
   const isBest = manager.ppgRank === 1 && !isOnly;
   const isWorst = manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
 
-  // Quiet, uniform token by default; a low-chroma tint flags only the best/worst.
+  // Quiet, uniform token by default; a faint tint flags only the best/worst.
   // The row's own ▲/▼ delta stays the loud signal — this is a secondary annotation.
   const tone = isBest
     ? "bg-accent-hot/10 text-accent-hot"
@@ -132,7 +132,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
                 href={manager.bestManager.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-accent-green hover:underline"
+                className="font-medium text-accent-hot hover:underline"
               >
                 {manager.bestManager.name}
               </a>

@@ -535,7 +535,7 @@ function StatsHighlights({
           })()}
 
         {topInjury && (
-          <div className="p-3 sm:p-4 border-l-2 border-l-blue-500/50">
+          <div className="p-3 sm:p-4 border-l-2 border-l-accent-blue/50">
             <StatCell
               label="Most Common Injury"
               value={topInjury.injury}
