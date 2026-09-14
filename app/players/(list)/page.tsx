@@ -3,7 +3,7 @@ import { getMinutesValueData, slimForClient } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
 import { buildInjuryMap } from "@/lib/injury-utils";
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
-import { PlayersUI } from "./PlayersUI";
+import { PlayersUI } from "../PlayersUI";
 import { createPageMetadata } from "@/lib/metadata";
 import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
 

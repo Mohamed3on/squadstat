@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function Cards({ count }: { count: number }) {
+function Cards({ count, className }: { count: number; className: string }) {
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <div className={className}>
       {Array.from({ length: count }).map((_, i) => (
         <Card key={i}>
           <CardContent className="space-y-2 p-3 sm:p-4">
@@ -18,31 +18,41 @@ function Cards({ count }: { count: number }) {
   );
 }
 
+// As Overview's FIVE_ACROSS: the fifth card takes the whole row on a phone.
+const FIVE_ACROSS =
+  "grid grid-cols-2 gap-3 lg:grid-cols-5 [&>:nth-child(5)]:col-span-2 lg:[&>:nth-child(5)]:col-span-1";
+
 export default function Loading() {
   return (
     <div className="space-y-8 sm:space-y-10">
       {/* The overview: best business, worst business, the money. */}
       <div className="space-y-6">
-        {["Best business", "Worst business", "Biggest money"].map((title, i) => (
+        {["Best business", "Worst business"].map((title) => (
           <section key={title}>
             <Skeleton className="h-4 w-28" />
-            <div className="mt-3">
-              <Cards count={i === 2 ? 4 : 5} />
-            </div>
+            <Cards count={5} className={`mt-3 ${FIVE_ACROSS}`} />
           </section>
         ))}
+        {/* The money: its seasons toggle, the cash cards, and the note under them. */}
+        <section>
+          <div className="flex items-center justify-between gap-4">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-44 rounded-lg" />
+          </div>
+          <Skeleton className="mt-2 h-3 w-48" />
+          <Cards count={4} className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4" />
+          <Skeleton className="mt-3 h-3 w-72 max-w-full" />
+        </section>
       </div>
 
-      {/* The heading, the controls beside it, and the ledger. */}
-      <section>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-6 w-64" />
-            <Skeleton className="h-4 w-full max-w-lg" />
-          </div>
-          <Skeleton className="h-8 w-80 shrink-0 rounded-lg" />
+      {/* The ledger's heading, the league picker under it, and the ledger. */}
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-64" />
+          <Skeleton className="h-4 w-full max-w-lg" />
         </div>
-        <div className="mt-4 space-y-2">
+        <Skeleton className="h-8 w-24 rounded-lg" />
+        <div className="space-y-2">
           {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton key={i} className="h-14 w-full" />
           ))}
