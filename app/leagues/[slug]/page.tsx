@@ -125,6 +125,8 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
   const inLeague = (name: string) => isSameLeague(name, league.name);
   const leagueTeams = teamFormData.allTeams.filter((t) => inLeague(t.league));
   const leaguePlayers = allPlayers.filter((p) => inLeague(p.league));
+  // The Players page filters on the data's spelling ("LaLiga"), not the display name ("La Liga").
+  const playersHref = `/players?league=${encodeURIComponent(leaguePlayers[0]?.league ?? league.name)}`;
   const leagueInjured = (injuredData.players ?? []).filter((p) => inLeague(p.league));
 
   const topTier = (teams: typeof leagueAnalysis.aggregatedTop) =>
@@ -231,9 +233,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
                 variant="outline"
                 className="border-border-medium bg-elevated text-text-primary hover:bg-card-hover"
               >
-                <Link href={`/players?league=${encodeURIComponent(league.name)}`}>
-                  Players in {league.name}
-                </Link>
+                <Link href={playersHref}>Players in {league.name}</Link>
               </Button>
               {tmUrl && (
                 <Button
@@ -330,7 +330,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
           <SectionHeader
             title="Top players"
             subtitle="Top 10 by npG+A — toggle to sort by value, mins, games, or pens."
-            linkHref={`/players?league=${encodeURIComponent(league.name)}`}
+            linkHref={playersHref}
             linkLabel={`See all ${trackedPlayers}`}
           />
           <SquadTab
