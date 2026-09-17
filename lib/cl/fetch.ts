@@ -1,23 +1,37 @@
-// Champions League scraper. Two Transfermarkt pages, cached separately because
-// they move at different speeds: squad values drift daily, results land on
-// matchday nights. Both go through fetchPage, so relay routing, the concurrency
-// limiter and the retry ladder are already handled.
+// Scraper for the two UEFA competitions that run the 36-club league phase (see
+// COMPETITIONS). Two Transfermarkt pages each, cached separately because they
+// move at different speeds: squad values drift daily, results land on matchday
+// nights. Both go through fetchPage, so relay routing, the concurrency limiter
+// and the retry ladder are already handled.
 
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { tmCurrentSeasonId } from "@/lib/player-aggregation";
-import type { ClClub, ClFixture, ClKoLeg, ClRound, ClSeason, ClTableRow, Kick } from "./types";
+import { COMPETITIONS } from "./types";
+import type {
+  ClClub,
+  ClFixture,
+  ClKoLeg,
+  ClRound,
+  ClSeason,
+  ClTableRow,
+  CompCode,
+  Competition,
+  Kick,
+} from "./types";
 
-const BASE = "https://www.transfermarkt.com/uefa-champions-league";
-const participantsUrl = () => `${BASE}/teilnehmer/pokalwettbewerb/CL/saison_id/${season()}`;
-const scheduleUrl = () => `${BASE}/gesamtspielplan/pokalwettbewerb/CL/saison_id/${season()}`;
+const tmUrl = (c: Competition, page: string) =>
+  `https://www.transfermarkt.com/${c.tmSlug}/${page}/pokalwettbewerb/${c.code}/saison_id/${season()}`;
 
-// The CL season starts in September, so TM's Aug 1 rollover always names the
-// right one — no coverage-based season selection needed (see lib/season-selection.ts,
+// Both competitions start in September, so TM's Aug 1 rollover always names the
+// right season — no coverage-based selection needed (see lib/season-selection.ts,
 // which exists because the *domestic* pool straddles the flip).
 const season = () => tmCurrentSeasonId();
+
+/** Eight league-phase games apiece, in both competitions. */
+const MATCHDAYS = 8;
 
 const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 // "Tue 08/09/2026 6:45 PM" — the header row that precedes each kickoff group.
@@ -53,8 +67,8 @@ const cellsOf = ($: cheerio.CheerioAPI, tr: any): string[] =>
 
 // --- participants: the 36 clubs and what their squads are worth ---
 
-async function fetchClubs(): Promise<ClClub[]> {
-  const $ = cheerio.load(await fetchPage(participantsUrl(), 86400));
+async function fetchClubs(comp: Competition): Promise<ClClub[]> {
+  const $ = cheerio.load(await fetchPage(tmUrl(comp, "teilnehmer"), 86400));
   const clubs: ClClub[] = [];
   $("table.items")
     .first()
@@ -74,7 +88,7 @@ async function fetchClubs(): Promise<ClClub[]> {
       });
     });
   if (clubs.length < 30) {
-    throw new Error(`[cl] participants parse found only ${clubs.length} clubs`);
+    throw new Error(`[${comp.code}] participants parse found only ${clubs.length} clubs`);
   }
   return clubs;
 }
@@ -141,27 +155,17 @@ function parseFixtures($: cheerio.CheerioAPI): ClFixture[] {
     });
   });
 
-  // TM lists fixtures chronologically without matchday labels. Each of the eight
-  // matchdays is 18 games over one or two dates, so walk date-blocks and start a
-  // new matchday once the current one is full — which never splits a date.
+  // TM lists fixtures chronologically without matchday labels. Every matchday is
+  // the same size — 18 games over two or three evenings — so chunk the sorted
+  // list into eight equal blocks. Walking date-blocks instead looks safer but
+  // cannot split a date, and the Europa League moves the odd game between the
+  // last two evenings (17 then 19), which merged matchdays 7 and 8 into one.
   out.sort((a, b) => a.kickoff - b.kickoff);
-  const perMatchday = Math.max(1, Math.round(out.length / 8));
-  const fixtures: ClFixture[] = [];
-  let matchday = 1;
-  let count = 0;
-  let day = "";
-  for (const f of out) {
-    if (f.dayLabel !== day) {
-      day = f.dayLabel;
-      if (count >= perMatchday) {
-        matchday++;
-        count = 0;
-      }
-    }
-    fixtures.push({ ...f, matchday });
-    count++;
-  }
-  return fixtures;
+  const perMatchday = Math.max(1, Math.round(out.length / MATCHDAYS));
+  return out.map((f, i) => ({
+    ...f,
+    matchday: Math.min(MATCHDAYS, Math.floor(i / perMatchday) + 1),
+  }));
 }
 
 // TM labels knockout ties "IR 1"…"Ro16 8"/"QF 1"/"SF 1"/"FI".
@@ -215,8 +219,8 @@ function parseKo($: cheerio.CheerioAPI): ClKoLeg[] {
   return out;
 }
 
-async function fetchSeason(): Promise<ClSeason> {
-  const html = await fetchPage(scheduleUrl(), 21600);
+async function fetchSeason(comp: Competition): Promise<ClSeason> {
+  const html = await fetchPage(tmUrl(comp, "gesamtspielplan"), 21600);
   const $ = cheerio.load(html);
   const label =
     $(".content-box-headline")
@@ -226,22 +230,39 @@ async function fetchSeason(): Promise<ClSeason> {
   const table = parseTable($);
   const fixtures = parseFixtures($);
   if (table.length < 30 || fixtures.length < 100) {
-    throw new Error(`[cl] schedule parse: ${table.length} table rows, ${fixtures.length} fixtures`);
+    throw new Error(
+      `[${comp.code}] schedule parse: ${table.length} table rows, ${fixtures.length} fixtures`,
+    );
   }
   return { label, fetchedAt: Date.now(), table, fixtures, ko: parseKo($) };
 }
 
 // Squad values drift daily; results want to land the same evening a matchday is
-// played. Separate tags so the header refresh button can bust either.
-export const getClClubs = unstable_cache(fetchClubs, ["cl-clubs"], {
-  revalidate: 86400,
-  tags: ["cl-values"],
-});
+// played. Separate tags per competition so the header refresh button can bust
+// exactly the page it is sitting on.
+const loaders = (comp: Competition) => {
+  const t = comp.code.toLowerCase();
+  return {
+    clubs: unstable_cache(() => fetchClubs(comp), [`${t}-clubs`], {
+      revalidate: 86400,
+      tags: [`${t}-values`],
+    }),
+    season: unstable_cache(() => fetchSeason(comp), [`${t}-season`], {
+      revalidate: 21600,
+      tags: [`${t}-results`],
+    }),
+  };
+};
 
-export const getClSeason = unstable_cache(fetchSeason, ["cl-season"], {
-  revalidate: 21600,
-  tags: ["cl-results"],
-});
+// Built once at module scope: unstable_cache memoises per wrapper, so handing
+// out a fresh one per request would throw the in-process cache away.
+const LOADERS: Record<CompCode, ReturnType<typeof loaders>> = {
+  CL: loaders(COMPETITIONS.CL),
+  EL: loaders(COMPETITIONS.EL),
+};
+
+export const getCompClubs = (code: CompCode) => LOADERS[code].clubs();
+export const getCompSeason = (code: CompCode) => LOADERS[code].season();
 
 /** Parsers exposed for the fixture-backed tests in lib/cl/model.test.ts. */
 export const __parsers = { parseTable, parseFixtures, parseKo };

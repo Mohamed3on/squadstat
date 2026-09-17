@@ -1,5 +1,5 @@
 /* Tournament bracket + tracker styling, scoped under .tourney so it never touches the
-   rest of the app. Shared by the World Cup pages and /leagues/champions-league. */
+   rest of the app. Shared by the World Cup pages and the /leagues UEFA competition pages. */
 .tourney {
   --tny-panel: #141d2b;
   --tny-panel2: #0e1521;
@@ -1061,7 +1061,7 @@
   }
 }
 
-/* ---- /leagues/champions-league additions ---- */
+/* ---- UEFA league-phase page additions (/leagues/champions-league, /europa-league) ---- */
 
 /* Club crests stand in for the World Cup's flag emoji, in bracket cards and rows.
    inline-block because Tailwind's preflight makes every img a block, which would

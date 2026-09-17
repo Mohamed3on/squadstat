@@ -8,7 +8,7 @@ import { formatMillions, getTeamDetailHref, ordinal } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
 import { ZONE_LABEL, type ClCard, type ClModel, type ClRow, type ClubLite } from "@/lib/cl/model";
-import type { ClFixture } from "@/lib/cl/types";
+import type { ClFixture, Competition } from "@/lib/cl/types";
 import "@/app/components/tournament.css";
 
 type ColKey = "pos" | "club" | "pl" | "gd" | "pts" | "mv" | "valueRank" | "delta";
@@ -413,7 +413,7 @@ function Bracket({ model }: { model: ClModel }) {
 
 // ---- Page ----
 
-export function ChampionsLeague({ model }: { model: ClModel }) {
+export function LeaguePhase({ model, comp }: { model: ClModel; comp: Competition }) {
   const [active, setActive] = useState<string | null>(null);
   // Mid-league-phase, places swing on goal difference, so the gap is counted in
   // points; once the eight games are in, places are the honest unit.
@@ -426,11 +426,15 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
   // card lists every one of them, most valuable first.
   const levelOn = (g: number) =>
     played.filter((r) => gap(r) === g).sort((a, b) => a.valueRank - b.valueRank);
+  // Once a single club is left the projection has stopped projecting anything.
+  const won = model.alive === 1;
 
   return (
     <div className="tourney page-container">
       <header className="t-hero">
-        <div className="kicker">UEFA Champions League {model.label}</div>
+        <div className="kicker">
+          UEFA {comp.name} {model.label}
+        </div>
         <h1 className="t-title">Table vs Value per Player</h1>
         <p className="rule">
           All 36 clubs in the league phase, ranked by where they actually sit and by value per
@@ -448,6 +452,28 @@ export function ChampionsLeague({ model }: { model: ClModel }) {
           )}
         </p>
       </header>
+
+      {model.projected && (
+        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[color:var(--tny-gold)]/40 bg-[var(--tny-panel)] p-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
+              {won ? "Winner" : "Projected winner"}
+            </div>
+            <div className="mt-1 flex items-center justify-center gap-2 text-base font-semibold sm:justify-start">
+              <span aria-hidden>🏆</span>
+              <ClubName club={model.projected} />
+            </div>
+          </div>
+          <div className="text-xs text-[var(--tny-muted)] sm:text-right">
+            <div>{won ? "The last club standing" : "The most valuable squad still in it"}</div>
+            <div className="mt-0.5">
+              <span className="font-value">{formatMillions(model.projected.mv)}</span> per player ·{" "}
+              <span className="font-value">{model.alive}</span> of{" "}
+              <span className="font-value">{model.rows.length}</span> clubs left
+            </div>
+          </div>
+        </div>
+      )}
 
       {top > 0 && bottom < 0 && (
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

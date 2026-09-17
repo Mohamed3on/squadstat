@@ -10,6 +10,8 @@ const ALL_TAGS = [
   "top-transfers",
   "cl-values",
   "cl-results",
+  "el-values",
+  "el-results",
 ];
 
 export async function POST(request: NextRequest) {

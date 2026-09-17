@@ -54,6 +54,45 @@ describe("parsing", () => {
     expect(season.fixtures.every((f) => f.played)).toBe(true);
   });
 
+  // The minimum markup parseFixtures reads: a table announced by a "Schedule"
+  // hauptlink cell, then a one-cell kickoff header per evening followed by its
+  // six-cell fixture rows.
+  const scheduleHtml = (evenings: { date: string; games: number }[]) => {
+    let id = 1000;
+    const club = (n: number) => `<td><a href="/x/startseite/verein/${n}">C${n}</a></td>`;
+    const rows = evenings.map(({ date, games }) => {
+      const played = Array.from({ length: games }, () => {
+        const [h, a] = [id++, id++];
+        return `<tr><td></td>${club(h)}<td></td><td>1:0</td><td></td>${club(a)}</tr>`;
+      });
+      return `<tr><td>Wed ${date} 9:00 PM</td></tr>${played.join("")}`;
+    });
+    return cheerio.load(
+      `<table><tr><td class="hauptlink">Schedule</td></tr>${rows.join("")}</table>`,
+    );
+  };
+
+  it("splits eight equal matchdays even when a game moves between evenings", () => {
+    // The Europa League's last two evenings run 17 then 19, not 18 and 18. A
+    // date-block walk cannot split the 19, so it merged matchdays 7 and 8 into
+    // one 36-game block and left the page with no matchday 8 at all.
+    const evenings = Array.from({ length: 6 }, (_, i) => ({
+      date: `0${i + 1}/10/2026`,
+      games: 18,
+    }));
+    const fixtures = __parsers.parseFixtures(
+      scheduleHtml([
+        ...evenings,
+        { date: "21/01/2027", games: 17 },
+        { date: "28/01/2027", games: 19 },
+      ]),
+    );
+    expect(fixtures).toHaveLength(144);
+    for (let md = 1; md <= 8; md++) {
+      expect(fixtures.filter((f) => f.matchday === md)).toHaveLength(18);
+    }
+  });
+
   it("reads every knockout leg, including extra time and shootouts", () => {
     const count = (round: string, leg: number) =>
       season.ko.filter((k) => k.round === round && k.leg === leg).length;
@@ -132,7 +171,7 @@ describe("bracket, replayed against the real 2025/26 draw", () => {
     const final = model.bracket.cards.at(-1)!;
     expect([final.home?.name, final.away?.name]).toEqual(["PSG", "Arsenal"]);
     expect(final.pens).toBe(true);
-    expect(model.champion?.name).toBe("PSG");
+    expect(model.projected?.name).toBe("PSG");
   });
 
   it("keeps the real bracket a binary tree from the last 16 up", () => {

@@ -36,6 +36,13 @@ export const SITE_PAGES: readonly SitePage[] = [
     logoUrl: leagueLogoUrl("CL"),
   },
   {
+    href: "/leagues/europa-league",
+    name: "Europa League",
+    kind: "competition",
+    keywords: ["uel", "uefa", "el"],
+    logoUrl: leagueLogoUrl("EL"),
+  },
+  {
     href: "/wc",
     name: "World Cup 2026 Simulation",
     kind: "competition",

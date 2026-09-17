@@ -26,7 +26,7 @@ import { ComparisonItem } from "@/components/ComparisonItem";
 import { DetailDeck } from "@/components/DetailDeck";
 import { HeroMetric } from "@/components/HeroMetric";
 import { SectionPanel } from "@/components/SectionPanel";
-import { ChampionsLeagueBadge } from "./ChampionsLeagueBadge";
+import { CompetitionBadge } from "./CompetitionBadge";
 import { ClubWindowBadges } from "./ClubWindowBadges";
 import { SquadTab } from "./SquadTab";
 import { TransfersTab } from "./TransfersTab";
@@ -324,7 +324,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
             <div className="flex flex-wrap items-center gap-2">
               <LeagueBadge league={league} />
               <Suspense>
-                <ChampionsLeagueBadge clubId={clubId} />
+                <CompetitionBadge clubId={clubId} />
               </Suspense>
             </div>
 

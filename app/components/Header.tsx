@@ -34,6 +34,7 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/fee-vs-value": { tags: ["top-transfers"] },
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
   "/leagues/champions-league": { tags: ["cl-values", "cl-results"] },
+  "/leagues/europa-league": { tags: ["el-values", "el-results"] },
 };
 
 async function refreshPage(pathname: string) {
@@ -109,6 +110,12 @@ const LEAGUE_NAV = [
     name: "Champions League",
     href: "/leagues/champions-league",
     logoUrl: leagueLogoUrl("CL"),
+  },
+  {
+    slug: "europa-league",
+    name: "Europa League",
+    href: "/leagues/europa-league",
+    logoUrl: leagueLogoUrl("EL"),
   },
 ];
 

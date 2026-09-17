@@ -1,4 +1,5 @@
-// Deterministic "the more valuable squad wins" Champions League model.
+// Deterministic "the more valuable squad wins" model for the 36-club league
+// phase, shared by the Champions League and the Europa League (see COMPETITIONS).
 // Pure: buildClModel(clubs, season) turns a roster + market values + whatever
 // Transfermarkt has published so far into the value-vs-table rows and a
 // knockout bracket. No fetching, so the client can import it freely.
@@ -318,7 +319,21 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
       };
     });
 
-  const champion = cards.get("F-1")?.winner ?? null;
+  // ---- Who can still win it ----
+  // Out: the bottom twelve, once the league phase is actually over, plus the
+  // loser of every tie Transfermarkt has already settled. Everyone else is still
+  // in, so the projected winner is simply the most valuable squad left — which is
+  // also what the bracket above resolves to, since every undecided tie there goes
+  // to the higher value per player.
+  const out = new Set<string>();
+  if (leaguePhaseComplete) {
+    for (const r of rows) if (r.zone === "out") out.add(r.club.id);
+  }
+  for (const c of allCards) {
+    if (!c.decided) continue;
+    for (const side of [c.home, c.away]) if (side && side.id !== c.winner) out.add(side.id);
+  }
+  const alive = rows.filter((r) => !out.has(r.club.id)).sort((a, b) => a.valueRank - b.valueRank);
 
   return {
     label: season.label,
@@ -338,7 +353,11 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
       cardW: CARD_W,
       cardH: CARD_H,
     },
-    champion: champion ? (byId.get(champion) ?? null) : null,
+    /** Most valuable squad not yet out — the projected winner, shown from
+     *  matchday one, when it is still just "the best squad in the draw". */
+    projected: alive[0]?.club ?? null,
+    /** How many of the 36 can still win it. */
+    alive: alive.length,
     fixtures: season.fixtures,
     clubsById: Object.fromEntries(byId),
   };

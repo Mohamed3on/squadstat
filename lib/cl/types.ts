@@ -1,6 +1,34 @@
-// Champions League types, shared by the scraper (lib/cl/fetch.ts), the pure
-// model (lib/cl/model.ts) and the client components. Kept dependency-free so a
-// client bundle importing them never reaches for cheerio.
+// Champions-League-format types, shared by the scraper (lib/cl/fetch.ts), the
+// pure model (lib/cl/model.ts) and the client components. Kept dependency-free
+// so a client bundle importing them never reaches for cheerio.
+
+/** The Europa League copied the Champions League format wholesale — 36 clubs,
+ *  eight league-phase games, the same 8/16/12 split and the same knockout
+ *  seeding — so both pages run off one scraper, one model and one component.
+ *  These four strings are the only thing that differs between them. */
+export type CompCode = "CL" | "EL";
+
+export type Competition = {
+  code: CompCode; // Transfermarkt's competition id, and the cache-tag prefix
+  slug: string; // /leagues/<slug>
+  tmSlug: string; // transfermarkt.com/<tmSlug>/…
+  name: string; // "Champions League"
+};
+
+export const COMPETITIONS: Record<CompCode, Competition> = {
+  CL: {
+    code: "CL",
+    slug: "champions-league",
+    tmSlug: "uefa-champions-league",
+    name: "Champions League",
+  },
+  EL: {
+    code: "EL",
+    slug: "europa-league",
+    tmSlug: "europa-league",
+    name: "Europa League",
+  },
+};
 
 /** A club in the league phase, as the participants page lists it. */
 export type ClClub = {

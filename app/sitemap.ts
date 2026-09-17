@@ -17,6 +17,7 @@ const CORE_ROUTES = [
   "/fee-vs-value",
   "/club-transfers",
   "/leagues/champions-league",
+  "/leagues/europa-league",
   "/wc-live",
   "/wc",
   "/wc-schedule",
