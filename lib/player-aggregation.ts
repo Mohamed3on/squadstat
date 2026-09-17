@@ -1,5 +1,6 @@
 import { BASE_URL } from "./constants";
 import { extractClubIdFromLogoUrl, extractLeagueCodeFromLogoUrl } from "./format";
+import { LEAGUES } from "./leagues";
 
 /** Pure aggregation of Transfermarkt ceapi per-game data into season stats.
  *  No I/O: everything here computes from already-fetched `CeapiGame[]`, which
@@ -120,13 +121,10 @@ export interface PlayerStatsResult {
 
 // --- Display vocabulary ---
 
-/** Domestic league competition ID → display name */
+/** Domestic league competition ID → display name. The top five come from LEAGUES, so player
+ *  data spells them exactly as every other page does. */
 export const LEAGUE_NAMES: Record<string, string> = {
-  GB1: "Premier League",
-  ES1: "LaLiga",
-  L1: "Bundesliga",
-  IT1: "Serie A",
-  FR1: "Ligue 1",
+  ...Object.fromEntries(LEAGUES.map((l) => [l.code, l.name])),
   PO1: "Liga Portugal",
   NL1: "Eredivisie",
   BE1: "Jupiler Pro League",

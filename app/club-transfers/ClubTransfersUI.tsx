@@ -16,6 +16,7 @@ import {
   type ModeSpec,
 } from "@/lib/fee-vs-value-rankings";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
+import { canonicalLeagueName } from "@/lib/leagues";
 import { cn } from "@/lib/utils";
 import type { TransferBalanceResult } from "@/app/types";
 import { BalanceTable } from "./BalanceTable";
@@ -45,7 +46,7 @@ export function ClubTransfersUI({
   const by = params.get("by");
   const { mode, endKey, endIndex } = resolveClubs(by, params.get("end"));
   const sort: LedgerSort = by === "net" ? { net: endKey } : { mode, endIndex };
-  const league = params.get("league") || "all";
+  const league = canonicalLeagueName(params.get("league") || "all");
 
   const [seasons, setSeasons] = useState(balance.windows[0].seasons);
   const cash = balance.windows.find((w) => w.seasons === seasons) ?? balance.windows[0];

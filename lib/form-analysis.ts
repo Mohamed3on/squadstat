@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 import type { TeamStats, PeriodAnalysis, AnalysisResult, AggregatedTeam } from "@/app/types";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
-import { isSameLeague } from "@/lib/leagues";
+import { canonicalLeagueName, isSameLeague } from "@/lib/leagues";
 import { tmImage } from "@/lib/transfermarkt";
 
 const PERIODS = [20, 15, 10, 5];
@@ -29,7 +29,7 @@ function parseTeamRow($: cheerio.CheerioAPI, row: any): TeamStats | null {
   const nameCell = $(cells[1]);
   const clubLink = nameCell.find(".inline-table a").first();
   const name = clubLink.attr("title") || nameCell.find(".hauptlink a").first().text().trim();
-  const league = nameCell.find("table tr:last-child a").text().trim();
+  const league = canonicalLeagueName(nameCell.find("table tr:last-child a").text().trim());
   const leaguePosition = parseInt($(cells[2]).text().trim()) || 0;
   const country = $(cells[3]).find("img").attr("title") || "";
 

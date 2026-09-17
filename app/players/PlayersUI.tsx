@@ -18,7 +18,7 @@ import { PositionDisplay, POS_ABBREV } from "@/components/PositionDisplay";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { cn } from "@/lib/utils";
-import { getLeagueUrl } from "@/lib/leagues";
+import { canonicalLeagueName, getLeagueUrl } from "@/lib/leagues";
 import { includeTournamentStats, npga } from "@/lib/stats-toggles";
 import {
   matchesPositionFilter,
@@ -521,7 +521,9 @@ export function PlayersUI({
   const sortBy = parseSortKey(params.get("sort"));
   const sortAsc = params.get("dir") === "asc";
   const formWindow = parseFormWindow(params.get("fw"));
-  const leagueFilter = params.get("league") || (params.get("top5") === "1" ? "top5" : "all");
+  const leagueFilter = canonicalLeagueName(
+    params.get("league") || (params.get("top5") === "1" ? "top5" : "all"),
+  );
   const clubFilter = params.get("club") || "all";
   const nationalityFilter = params.get("nat") || "all";
   const positionFilter = params.get("pos") || "";

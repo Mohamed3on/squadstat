@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ManagerSection, ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
 import { InfoTip } from "@/app/components/InfoTip";
-import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
+import { LEAGUES, canonicalLeagueName, getLeagueLogoUrl } from "@/lib/leagues";
 import { FormLeaderPill } from "@/components/FormLeaderPill";
 import { LeagueBadge } from "@/components/LeagueBadge";
 import { RankBadge } from "@/components/RankBadge";
@@ -452,7 +452,7 @@ export function TeamFormUI({ initialData, formLeaders }: TeamFormUIProps) {
   const data = initialData;
   const { params, update } = useQueryParams("/expected-position");
   const [view, setView] = useState<ViewMode>("bars");
-  const requestedLeague = params.get("league");
+  const requestedLeague = canonicalLeagueName(params.get("league") ?? "");
   const selectedLeague =
     requestedLeague && LEAGUES.some((league) => league.name === requestedLeague)
       ? requestedLeague

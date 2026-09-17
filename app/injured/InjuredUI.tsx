@@ -25,6 +25,7 @@ import { Combobox } from "@/components/Combobox";
 import { LeagueCombobox } from "@/components/LeagueCombobox";
 import { InfoTip } from "@/app/components/InfoTip";
 import { filterPlayersByLeagueAndClub, uniqueFilterOptions } from "@/lib/filter-players";
+import { canonicalLeagueName } from "@/lib/leagues";
 import { groupPlayersByClub, categorizeInjury, type TeamInjuryGroup } from "@/lib/injury-utils";
 
 interface InjuryTypeGroup {
@@ -554,7 +555,7 @@ export function InjuredUI({ initialData }: InjuredUIProps) {
   const { params, update } = useQueryParams("/injured");
 
   const tab = params.get("tab") || "players";
-  const leagueFilter = params.get("league") || "all";
+  const leagueFilter = canonicalLeagueName(params.get("league") || "all");
   const clubFilter = params.get("club") || "all";
   const teamSort: GroupSort = params.get("tSort") === "count" ? "count" : "value";
   const injurySort: GroupSort = params.get("iSort") === "count" ? "count" : "value";

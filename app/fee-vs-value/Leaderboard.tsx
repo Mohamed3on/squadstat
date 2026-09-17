@@ -7,6 +7,7 @@ import { VirtualList } from "@/components/VirtualList";
 import { Combobox } from "@/components/Combobox";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
+import { canonicalLeagueName } from "@/lib/leagues";
 import { gapScale, rank, transferKey, withRanks, type PricedTransfer } from "@/lib/fee-vs-value";
 import {
   PATH,
@@ -76,7 +77,7 @@ function TransferList({
 export function Leaderboard({ transfers }: { transfers: PricedTransfer[] }) {
   const { params, update, replace } = useQueryParams(PATH);
   const { key: view, spec, option } = resolve(params.get("view"), params.get("by"));
-  const league = params.get("league") || "all";
+  const league = canonicalLeagueName(params.get("league") || "all");
 
   // A transfer is in scope when either of its clubs is — see `transferInLeague`.
   const scoped = useMemo(

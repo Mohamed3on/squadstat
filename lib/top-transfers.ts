@@ -4,6 +4,7 @@ import { getCurrentMarketValues } from "./current-values";
 import { analyzeTransfers, type FeeVsValueData } from "./fee-vs-value";
 import { TOP_TRANSFER_LIMIT } from "./constants";
 import { fetchTopTransfers } from "./fetch-top-transfers";
+import { canonicalLeagueName } from "./leagues";
 
 /** The scrape, and only the scrape.
  *
@@ -45,5 +46,12 @@ export const getFeeVsValueData = cache(async (): Promise<FeeVsValueData> => {
     fetchCached(),
     getCurrentMarketValues(),
   ]);
-  return analyzeTransfers(season, transfers, currentValues);
+  // Spelled canonically here rather than in the scrape, so a day-old cached table
+  // can't carry Transfermarkt's "LaLiga" past a deploy.
+  const canonical = transfers.map((t) => ({
+    ...t,
+    from: { ...t.from, league: canonicalLeagueName(t.from.league) },
+    to: { ...t.to, league: canonicalLeagueName(t.to.league) },
+  }));
+  return analyzeTransfers(season, canonical, currentValues);
 });

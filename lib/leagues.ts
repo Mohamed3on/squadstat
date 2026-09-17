@@ -77,6 +77,14 @@ export function getLeagueSlug(leagueName: string): string | undefined {
   return leagueSlugMap[leagueName] || leagueSlugMap[leagueName.toLowerCase().replace(/\s/g, "")];
 }
 
+/** The app's one spelling of a league: LEAGUES' name for any variant of a tracked league
+ *  (Transfermarkt writes "LaLiga"), any other name unchanged. Every league name entering
+ *  the app — a scrape, a URL param — goes through here, so a plain `===` holds everywhere. */
+export function canonicalLeagueName(leagueName: string): string {
+  const slug = getLeagueSlug(leagueName);
+  return LEAGUES.find((l) => l.slug === slug)?.name ?? leagueName;
+}
+
 export function getLeagueUrl(leagueName: string): string | undefined {
   const slug = getLeagueSlug(leagueName);
   return slug ? `/leagues/${slug}` : undefined;

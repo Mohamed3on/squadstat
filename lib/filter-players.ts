@@ -1,8 +1,9 @@
 import type { ComboboxGroup } from "@/components/Combobox";
 import { effectivePosition, getPositionClassRank } from "@/lib/positions";
 import { npga } from "@/lib/stats-toggles";
+import { LEAGUES } from "@/lib/leagues";
 
-export const TOP_5_LEAGUES = ["Premier League", "LaLiga", "Bundesliga", "Serie A", "Ligue 1"];
+export const TOP_5_LEAGUES: string[] = LEAGUES.map((l) => l.name);
 
 /** Build sorted Combobox options from a list of items, with an "All ..." default. */
 export function uniqueFilterOptions<T>(

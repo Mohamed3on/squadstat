@@ -125,8 +125,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
   const inLeague = (name: string) => isSameLeague(name, league.name);
   const leagueTeams = teamFormData.allTeams.filter((t) => inLeague(t.league));
   const leaguePlayers = allPlayers.filter((p) => inLeague(p.league));
-  // The Players page filters on the data's spelling ("LaLiga"), not the display name ("La Liga").
-  const playersHref = `/players?league=${encodeURIComponent(leaguePlayers[0]?.league ?? league.name)}`;
+  const playersHref = `/players?league=${encodeURIComponent(league.name)}`;
   const leagueInjured = (injuredData.players ?? []).filter((p) => inLeague(p.league));
 
   const topTier = (teams: typeof leagueAnalysis.aggregatedTop) =>

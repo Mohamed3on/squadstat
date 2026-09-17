@@ -7,6 +7,7 @@ import {
 } from "@/lib/fetch-minutes-value";
 import { fetchTopScorersRaw, fetchYearlyScorersRaw } from "@/lib/fetch-top-scorers";
 import { fetchPlayerMinutesRaw } from "@/lib/fetch-player-minutes";
+import { canonicalLeagueName } from "@/lib/leagues";
 import {
   reaggregatePlayerStats,
   tmCurrentSeasonId,
@@ -352,7 +353,8 @@ function mergeStats(players: MinutesValuePlayer[], cache: Cache): void {
 
     if (s.club) p.club = s.club;
     if (s.clubLogoUrl) p.clubLogoUrl = s.clubLogoUrl;
-    if (s.league) p.league = s.league;
+    // Canonical even for cache entries aggregated before the spelling was unified.
+    if (s.league) p.league = canonicalLeagueName(s.league);
     if (s.nationality) p.nationality = s.nationality;
     if (s.nationalityFlagUrl) p.nationalityFlagUrl = s.nationalityFlagUrl;
     if (s.leagueLogoUrl) p.leagueLogoUrl = s.leagueLogoUrl;

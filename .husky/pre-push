@@ -1,1 +1,2 @@
 bun run typecheck
+bunx vitest run --dir lib

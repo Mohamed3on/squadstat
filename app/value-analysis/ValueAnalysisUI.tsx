@@ -27,6 +27,7 @@ import {
   uniqueFilterOptions,
   type MinutesValueFilter,
 } from "@/lib/filter-players";
+import { canonicalLeagueName } from "@/lib/leagues";
 import {
   countComparisons,
   MIN_COMPARISON_COUNT,
@@ -501,7 +502,7 @@ function discoveryControls(
     onSortChange: (value: DiscoverySortKey) =>
       update({ [`${prefix}Sort`]: value === "count" ? null : value }),
     filters: {
-      league: params.get(`${prefix}League`) || "all",
+      league: canonicalLeagueName(params.get(`${prefix}League`) || "all"),
       club: params.get(`${prefix}Club`) || "",
       nationality: params.get(`${prefix}Nat`) || "all",
       noLeagueEdge: params.get(`${prefix}Stronger`) === "1",
@@ -1021,7 +1022,7 @@ export function ValueAnalysisUI({ initialData, injuryMap, discovery }: ValueAnal
   // ── Shared tab state (both modes use `tab` param since they're mutually exclusive) ──
   const gaTab = params.get("tab") === "better-value" ? "better-value" : "underdelivering";
   const minsTab: CompareTab = params.get("tab") === "more" ? "more" : "less";
-  const minsLeagueFilter = params.get("mLeague") || "all";
+  const minsLeagueFilter = canonicalLeagueName(params.get("mLeague") || "all");
   const minsClubFilter = params.get("mClub") || "";
   const maxMissedRaw = params.get("maxMiss") ? parseInt(params.get("maxMiss")!) : NaN;
   const maxMissedPct = Number.isNaN(maxMissedRaw) ? null : maxMissedRaw;

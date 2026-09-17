@@ -4,6 +4,7 @@ import * as cheerio from "cheerio";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
+import { canonicalLeagueName } from "@/lib/leagues";
 import type { SquadValueClub, SquadValueResult } from "@/app/types";
 
 const DATA_DIR = join(process.cwd(), "data");
@@ -53,7 +54,7 @@ function parseClubs(html: string, page: number): SquadValueClub[] {
     clubs.push({
       id,
       name: link.attr("title") || link.text().trim(),
-      league: competition.text().trim(),
+      league: canonicalLeagueName(competition.text().trim()),
       leagueCode: (competition.attr("href") || "").match(COMPETITION)?.[1] ?? "",
       squadSize: Number(text(COL.squadSize)) || 0,
       averageAge: Number(text(COL.averageAge)) || 0,
