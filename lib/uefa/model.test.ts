@@ -3,21 +3,20 @@ import { fileURLToPath } from "node:url";
 import * as cheerio from "cheerio";
 import { describe, it, expect } from "vitest";
 import { __parsers } from "./fetch";
-import { buildClModel, expectedStage, poUnseeded, zoneOf } from "./model";
-import type { ClClub, ClSeason } from "./types";
+import { buildModel, expectedStage, poUnseeded, zoneOf } from "./model";
+import type { Club, Season } from "./types";
 
-// The finished 2025/26 league phase, play-off, and bracket through to the final,
-// captured from Transfermarkt's "all fixtures & results" page (images stripped).
+// The finished Champions League 2025/26 league phase, play-off, and bracket
+// through to the final, captured from Transfermarkt's "all fixtures & results"
+// page (images stripped). The Europa League runs the same format off the same
+// code, so one competition's season exercises both.
 // A completed season is the only way to check the bracket end to end: it has a
 // settled 36-club table *and* a real draw to compare the seeding rules against.
 const $ = cheerio.load(
-  readFileSync(
-    fileURLToPath(new URL("./__fixtures__/schedule-2025-26.html", import.meta.url)),
-    "utf8",
-  ),
+  readFileSync(fileURLToPath(new URL("./__fixtures__/cl-2025-26.html", import.meta.url)), "utf8"),
 );
 
-const season: ClSeason = {
+const season: Season = {
   label: "25/26",
   fetchedAt: 0,
   table: __parsers.parseTable($),
@@ -28,7 +27,7 @@ const season: ClSeason = {
 // The fixture is the schedule page, which never spells out squad values. Market
 // value only decides *projections*, and every 25/26 tie has a real result, so a
 // placeholder ladder keeps the real-results assertions honest.
-const clubs: ClClub[] = season.table.map((r) => ({
+const clubs: Club[] = season.table.map((r) => ({
   id: r.id,
   name: r.short,
   squad: 25,
@@ -36,7 +35,7 @@ const clubs: ClClub[] = season.table.map((r) => ({
   mv: 1000 - r.order * 10,
 }));
 
-const model = buildClModel(clubs, season);
+const model = buildModel(clubs, season);
 const posOf = new Map(model.rows.map((r) => [r.club.id, r.pos]));
 const cardsIn = (round: string) => model.bracket.cards.filter((c) => c.round === round);
 
@@ -149,7 +148,7 @@ describe("league phase", () => {
   });
 
   it("leaves both gaps null for a club that has not kicked off", () => {
-    const notStarted = buildClModel(clubs, { ...season, table: [], fixtures: [] });
+    const notStarted = buildModel(clubs, { ...season, table: [], fixtures: [] });
     expect(notStarted.rows.every((r) => r.ptsDelta === null && r.posDelta === null)).toBe(true);
   });
 });
@@ -206,7 +205,7 @@ describe("bracket, replayed against the real 2025/26 draw", () => {
 describe("bracket, projected before the draw", () => {
   // Same finished table, knockout data withheld — what the page shows in the days
   // between the last matchday and the play-off draw.
-  const projected = buildClModel(clubs, { ...season, ko: [] });
+  const projected = buildModel(clubs, { ...season, ko: [] });
   const pos = new Map(projected.rows.map((r) => [r.club.id, r.pos]));
   const at = (id: string) => projected.bracket.cards.find((c) => c.id === id)!;
 

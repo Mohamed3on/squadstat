@@ -7,8 +7,14 @@ import { BASE_URL } from "@/lib/constants";
 import { formatMillions, getTeamDetailHref, ordinal } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
-import { ZONE_LABEL, type ClCard, type ClModel, type ClRow, type ClubLite } from "@/lib/cl/model";
-import type { ClFixture, Competition } from "@/lib/cl/types";
+import {
+  ZONE_LABEL,
+  type Card,
+  type ClubLite,
+  type PhaseRow,
+  type UefaModel,
+} from "@/lib/uefa/model";
+import type { Competition, Fixture } from "@/lib/uefa/types";
 import "@/app/components/tournament.css";
 
 type ColKey = "pos" | "club" | "pl" | "gd" | "pts" | "mv" | "valueRank" | "delta";
@@ -17,14 +23,14 @@ type ColKey = "pos" | "club" | "pl" | "gd" | "pts" | "mv" | "valueRank" | "delta
 // points against whoever holds your value-seeded slot — over eight games a place
 // in a 36-club table turns on goal difference, so counting places exaggerates.
 // Once the table has settled, places are the honest unit.
-type Measure = { key: "pts" | "pos"; label: string; of: (r: ClRow) => number | null };
+type Measure = { key: "pts" | "pos"; label: string; of: (r: PhaseRow) => number | null };
 const BY_POINTS: Measure = { key: "pts", label: "Δ pts", of: (r) => r.ptsDelta };
 const BY_PLACES: Measure = { key: "pos", label: "Δ pos", of: (r) => r.posDelta };
 
 // `numeric` here means "reads largest-first" — it sets the direction a column
 // takes when you first sort by it. Points and money read largest-first; a
 // finishing position and a value rank read from 1 down, so both say so.
-const columnsFor = (m: Measure): SortColumn<ClRow, ColKey>[] => [
+const columnsFor = (m: Measure): SortColumn<PhaseRow, ColKey>[] => [
   { key: "pos", label: "#", numeric: false, value: (r) => r.pos },
   { key: "club", label: "Club", numeric: false, value: (r) => r.club.name },
   { key: "pl", label: "Pl", numeric: true, value: (r) => r.pl, className: "hidden sm:table-cell" },
@@ -37,7 +43,7 @@ const columnsFor = (m: Measure): SortColumn<ClRow, ColKey>[] => [
 
 // useTableSort memoises on the column array, so both are built once at module
 // scope rather than rebuilt on every render.
-const COLUMNS: Record<Measure["key"], SortColumn<ClRow, ColKey>[]> = {
+const COLUMNS: Record<Measure["key"], SortColumn<PhaseRow, ColKey>[]> = {
   pts: columnsFor(BY_POINTS),
   pos: columnsFor(BY_PLACES),
 };
@@ -118,7 +124,7 @@ function LeagueTable({
   active,
   onHover,
 }: {
-  rows: ClRow[];
+  rows: PhaseRow[];
   measure: Measure;
   active: string | null;
   onHover: (id: string | null) => void;
@@ -180,7 +186,7 @@ function Row({
   banded,
   measure,
 }: {
-  row: ClRow;
+  row: PhaseRow;
   active: string | null;
   onHover: (id: string | null) => void;
   cutline: string | null;
@@ -218,7 +224,7 @@ function Row({
 
 // ---- Fixtures ----
 
-function Matchday({ md, fixtures }: { md: number; fixtures: ClFixture[] }) {
+function Matchday({ md, fixtures }: { md: number; fixtures: Fixture[] }) {
   // A matchday runs over two or three evenings, so the games are grouped by the
   // one they're played on — otherwise an unplayed fixture shows a kickoff time
   // with no day attached to it.
@@ -265,7 +271,7 @@ const GOALS: Record<Outcome, string> = {
   level: "",
 };
 
-function FixtureRow({ f }: { f: ClFixture }) {
+function FixtureRow({ f }: { f: Fixture }) {
   const outcome = (scored: number | null, conceded: number | null): Outcome | null =>
     scored === null || conceded === null
       ? null
@@ -331,7 +337,7 @@ function Side({
   seed,
 }: {
   club: ClubLite | null;
-  card: ClCard;
+  card: Card;
   score: string | null;
   isWinner: boolean;
   seed: number | null;
@@ -360,7 +366,7 @@ function Side({
   );
 }
 
-function Bracket({ model }: { model: ClModel }) {
+function Bracket({ model }: { model: UefaModel }) {
   const { bracket } = model;
   const [active, setActive] = useState<string | null>(null);
   return (
@@ -413,13 +419,13 @@ function Bracket({ model }: { model: ClModel }) {
 
 // ---- Page ----
 
-export function LeaguePhase({ model, comp }: { model: ClModel; comp: Competition }) {
+export function LeaguePhase({ model, comp }: { model: UefaModel; comp: Competition }) {
   const [active, setActive] = useState<string | null>(null);
   // Mid-league-phase, places swing on goal difference, so the gap is counted in
   // points; once the eight games are in, places are the honest unit.
   const measure = model.leaguePhaseComplete ? BY_PLACES : BY_POINTS;
   const played = model.rows.filter((r) => measure.of(r) !== null);
-  const gap = (r: ClRow) => measure.of(r)!;
+  const gap = (r: PhaseRow) => measure.of(r)!;
   const top = Math.max(...played.map(gap));
   const bottom = Math.min(...played.map(gap));
   // Early in the league phase several clubs share the biggest gap either way, so each

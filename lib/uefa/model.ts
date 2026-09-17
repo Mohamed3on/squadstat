@@ -1,10 +1,10 @@
-// Deterministic "the more valuable squad wins" model for the 36-club league
+// Deterministic "the more valuable squad wins" model for the UEFA 36-club league
 // phase, shared by the Champions League and the Europa League (see COMPETITIONS).
-// Pure: buildClModel(clubs, season) turns a roster + market values + whatever
+// Pure: buildModel(clubs, season) turns a roster + market values + whatever
 // Transfermarkt has published so far into the value-vs-table rows and a
 // knockout bracket. No fetching, so the client can import it freely.
 
-import type { ClClub, ClKoLeg, ClRound, ClSeason, ClTableRow } from "./types";
+import type { Club, KoLeg, Round, Season, TableRow } from "./types";
 
 export type ClubLite = { id: string; name: string; short: string; mv: number };
 
@@ -47,7 +47,7 @@ export const ZONE_LABEL: Record<Zone, string> = {
   out: "Out after the league phase",
 };
 
-export type ClRow = {
+export type PhaseRow = {
   club: ClubLite;
   pos: number;
   pl: number;
@@ -67,9 +67,9 @@ export type ClRow = {
   expLabel: string;
 };
 
-export type ClCard = {
+export type Card = {
   id: string; // `${round}-${num}`
-  round: ClRound;
+  round: Round;
   num: number;
   home: ClubLite | null;
   away: ClubLite | null;
@@ -85,9 +85,9 @@ export type ClCard = {
   y: number;
 };
 
-export type ClEdge = { d: string; club: string };
+export type Edge = { d: string; club: string };
 
-// ---- The bracket skeleton (UEFA Champions League regulations, Article 19 + Annex B) ----
+// ---- The bracket skeleton (UEFA competition regulations, Article 19 + Annex B) ----
 //
 // Fixed by the regulations, not by the draw:
 //   · play-off ties pair 9/10 v 23/24, 11/12 v 21/22, 13/14 v 19/20, 15/16 v 17/18
@@ -115,7 +115,7 @@ const ROW = 82,
   // Clear of the round labels, which .tourney .rlabel pins 46px from the top.
   TOP = 98;
 
-const ROUNDS: { round: ClRound; count: number; label: string }[] = [
+const ROUNDS: { round: Round; count: number; label: string }[] = [
   { round: "PO", count: 8, label: "Play-off" },
   { round: "R16", count: 8, label: "Round of 16" },
   { round: "QF", count: 4, label: "Quarter-finals" },
@@ -125,14 +125,14 @@ const ROUNDS: { round: ClRound; count: number; label: string }[] = [
 
 const clip = (name: string) => (name.length > 18 ? name.slice(0, 17).trimEnd() + "…" : name);
 
-export type ClModel = ReturnType<typeof buildClModel>;
+export type UefaModel = ReturnType<typeof buildModel>;
 
-export function buildClModel(clubs: ClClub[], season: ClSeason) {
+export function buildModel(clubs: Club[], season: Season) {
   // The participants page spells clubs out ("Paris Saint-Germain"); the table
   // abbreviates them ("PSG"). Bracket cards want the abbreviation, so prefer
   // Transfermarkt's own rather than blindly clipping the long name.
   const abbrev = new Map(season.table.map((r) => [r.id, r.short]));
-  const lite = (c: ClClub): ClubLite => ({
+  const lite = (c: Club): ClubLite => ({
     id: c.id,
     name: c.name,
     short: clip(abbrev.get(c.id) ?? c.name),
@@ -160,9 +160,9 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
   const ptsAt = new Map<number, number>();
   for (const r of season.table) ptsAt.set(dense.get(r.id)!, r.pts);
 
-  const rows: ClRow[] = clubs
+  const rows: PhaseRow[] = clubs
     .map((c) => {
-      const t: ClTableRow | undefined = tableById.get(c.id);
+      const t: TableRow | undefined = tableById.get(c.id);
       const rank = valueRank.get(c.id)!;
       const pos = dense.get(c.id) ?? rank;
       const expStage = expectedStage(rank);
@@ -193,7 +193,7 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
   // ---- Knockout bracket ----
   // Real legs where TM has them, the seeded projection where it doesn't. Sides are
   // resolved bottom-up, so a round only ever projects from the round below it.
-  const legsOf = new Map<string, ClKoLeg[]>();
+  const legsOf = new Map<string, KoLeg[]>();
   for (const leg of season.ko) {
     const key = `${leg.round}-${leg.num}`;
     legsOf.set(key, [...(legsOf.get(key) ?? []), leg]);
@@ -202,7 +202,7 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
   // A club shown in a deeper round has advanced — the same signal lib/wc/live.ts
   // trusts first, because TM wires the next round's names in before it settles
   // aggregate scores.
-  const depth: Record<ClRound, number> = { PO: 1, R16: 2, QF: 3, SF: 4, F: 5 };
+  const depth: Record<Round, number> = { PO: 1, R16: 2, QF: 3, SF: 4, F: 5 };
   const atDepth = new Map<number, Set<string>>();
   for (const leg of season.ko) {
     const set = atDepth.get(depth[leg.round]) ?? new Set<string>();
@@ -215,8 +215,8 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
     return false;
   };
 
-  const cards = new Map<string, ClCard>();
-  const resolve = (round: ClRound, num: number): ClCard => {
+  const cards = new Map<string, Card>();
+  const resolve = (round: Round, num: number): Card => {
     const id = `${round}-${num}`;
     const cached = cards.get(id);
     if (cached) return cached;
@@ -277,7 +277,7 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
     if (!winner) winner = mvOf(homeId) >= mvOf(awayId) ? homeId : awayId;
 
     const col = ROUNDS.findIndex((r) => r.round === round);
-    const card: ClCard = {
+    const card: Card = {
       id,
       round,
       num,
@@ -303,7 +303,7 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
 
   // Child → parent connectors. PO feeds the R16 slot of the same number; every
   // later round takes two.
-  const edges: ClEdge[] = allCards
+  const edges: Edge[] = allCards
     .filter((c) => c.round !== "F")
     .map((c) => {
       const parent =
@@ -363,13 +363,13 @@ export function buildClModel(clubs: ClClub[], season: ClSeason) {
   };
 }
 
-const ORDER: ClRound[] = ["PO", "R16", "QF", "SF", "F"];
-const prevRound = (r: ClRound) => ORDER[ORDER.indexOf(r) - 1];
-const nextRound = (r: ClRound) => ORDER[ORDER.indexOf(r) + 1];
+const ORDER: Round[] = ["PO", "R16", "QF", "SF", "F"];
+const prevRound = (r: Round) => ORDER[ORDER.indexOf(r) - 1];
+const nextRound = (r: Round) => ORDER[ORDER.indexOf(r) + 1];
 
 /** Play-off and last-16 sit on the same eight rows; each later round is the
  *  midpoint of the two ties feeding it. */
-function yOf(round: ClRound, num: number): number {
+function yOf(round: Round, num: number): number {
   if (round === "PO" || round === "R16") return TOP + (num - 1) * ROW;
   const a = yOf(prevRound(round), num * 2 - 1);
   const b = yOf(prevRound(round), num * 2);

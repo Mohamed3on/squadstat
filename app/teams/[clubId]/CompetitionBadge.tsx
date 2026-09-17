@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCompClubs, getCompSeason } from "@/lib/cl/fetch";
-import { buildClModel } from "@/lib/cl/model";
-import { COMPETITIONS, type CompCode } from "@/lib/cl/types";
+import { getCompClubs, getCompSeason } from "@/lib/uefa/fetch";
+import { buildModel } from "@/lib/uefa/model";
+import { COMPETITIONS, type CompCode } from "@/lib/uefa/types";
 import { ordinal } from "@/lib/format";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 
@@ -33,7 +33,7 @@ export async function CompetitionBadge({ clubId }: { clubId: string }) {
   const comp = COMPETITIONS[CODES[i]];
   const season = await getCompSeason(comp.code).catch(() => null);
   const row = season
-    ? buildClModel(rosters[i]!, season).rows.find((r) => r.club.id === clubId)
+    ? buildModel(rosters[i]!, season).rows.find((r) => r.club.id === clubId)
     : null;
   const place = row && row.pl > 0 ? row.pos : null;
   const label = place ? `${comp.name} · ${ordinal(place)} in league phase` : comp.name;

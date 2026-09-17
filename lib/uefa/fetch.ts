@@ -11,12 +11,12 @@ import { parseMarketValue } from "@/lib/parse-market-value";
 import { tmCurrentSeasonId } from "@/lib/player-aggregation";
 import { COMPETITIONS } from "./types";
 import type {
-  ClClub,
-  ClFixture,
-  ClKoLeg,
-  ClRound,
-  ClSeason,
-  ClTableRow,
+  Club,
+  Fixture,
+  KoLeg,
+  Round,
+  Season,
+  TableRow,
   CompCode,
   Competition,
   Kick,
@@ -67,9 +67,9 @@ const cellsOf = ($: cheerio.CheerioAPI, tr: any): string[] =>
 
 // --- participants: the 36 clubs and what their squads are worth ---
 
-async function fetchClubs(comp: Competition): Promise<ClClub[]> {
+async function fetchClubs(comp: Competition): Promise<Club[]> {
   const $ = cheerio.load(await fetchPage(tmUrl(comp, "teilnehmer"), 86400));
-  const clubs: ClClub[] = [];
+  const clubs: Club[] = [];
   $("table.items")
     .first()
     .find("tbody > tr")
@@ -95,11 +95,11 @@ async function fetchClubs(comp: Competition): Promise<ClClub[]> {
 
 // --- schedule page: league table + all 144 fixtures + the knockout bracket ---
 
-function parseTable($: cheerio.CheerioAPI): ClTableRow[] {
+function parseTable($: cheerio.CheerioAPI): TableRow[] {
   const box = $(".content-box-headline")
     .filter((_, el) => /^Group\b/.test($(el).text().trim()))
     .closest(".box");
-  const rows: ClTableRow[] = [];
+  const rows: TableRow[] = [];
   box.find("table.items tr").each((_, tr) => {
     const tds = $(tr).find("td");
     if (tds.length < 7) return;
@@ -121,12 +121,12 @@ function parseTable($: cheerio.CheerioAPI): ClTableRow[] {
   return rows;
 }
 
-function parseFixtures($: cheerio.CheerioAPI): ClFixture[] {
+function parseFixtures($: cheerio.CheerioAPI): Fixture[] {
   const table = $("td.hauptlink")
     .filter((_, el) => $(el).text().trim() === "Schedule")
     .first()
     .closest("table");
-  const out: Omit<ClFixture, "matchday">[] = [];
+  const out: Omit<Fixture, "matchday">[] = [];
   let cur: Kick | null = null;
 
   table.find("tr").each((_, tr) => {
@@ -169,7 +169,7 @@ function parseFixtures($: cheerio.CheerioAPI): ClFixture[] {
 }
 
 // TM labels knockout ties "IR 1"…"Ro16 8"/"QF 1"/"SF 1"/"FI".
-function parseKoLabel(label: string): { round: ClRound; num: number } | null {
+function parseKoLabel(label: string): { round: Round; num: number } | null {
   const m = label.trim().match(/^(IR|Ro16|QF|SF|FI)\s*(\d+)?$/i);
   if (!m) return null;
   const tag = m[1].toUpperCase();
@@ -180,11 +180,11 @@ function parseKoLabel(label: string): { round: ClRound; num: number } | null {
   return { round: tag as "QF" | "SF", num };
 }
 
-function parseKo($: cheerio.CheerioAPI): ClKoLeg[] {
+function parseKo($: cheerio.CheerioAPI): KoLeg[] {
   const box = $(".content-box-headline")
     .filter((_, el) => /knockout/i.test($(el).text().trim()))
     .closest(".box");
-  const out: ClKoLeg[] = [];
+  const out: KoLeg[] = [];
   let cur: Kick | null = null;
   let leg: 1 | 2 = 1;
 
@@ -219,7 +219,7 @@ function parseKo($: cheerio.CheerioAPI): ClKoLeg[] {
   return out;
 }
 
-async function fetchSeason(comp: Competition): Promise<ClSeason> {
+async function fetchSeason(comp: Competition): Promise<Season> {
   const html = await fetchPage(tmUrl(comp, "gesamtspielplan"), 21600);
   const $ = cheerio.load(html);
   const label =
@@ -264,5 +264,5 @@ const LOADERS: Record<CompCode, ReturnType<typeof loaders>> = {
 export const getCompClubs = (code: CompCode) => LOADERS[code].clubs();
 export const getCompSeason = (code: CompCode) => LOADERS[code].season();
 
-/** Parsers exposed for the fixture-backed tests in lib/cl/model.test.ts. */
+/** Parsers exposed for the fixture-backed tests in model.test.ts. */
 export const __parsers = { parseTable, parseFixtures, parseKo };

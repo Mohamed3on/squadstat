@@ -1,6 +1,6 @@
-import { getCompClubs, getCompSeason } from "@/lib/cl/fetch";
-import { buildClModel } from "@/lib/cl/model";
-import type { Competition } from "@/lib/cl/types";
+import { getCompClubs, getCompSeason } from "@/lib/uefa/fetch";
+import { buildModel } from "@/lib/uefa/model";
+import type { Competition } from "@/lib/uefa/types";
 import { getClubIdsWithPages } from "@/lib/team-detail";
 import { LeaguePhase, LinkedClubsProvider } from "./LeaguePhase";
 
@@ -12,7 +12,7 @@ export async function LeaguePhasePage({ comp }: { comp: Competition }) {
     getCompSeason(comp.code),
     getClubIdsWithPages(),
   ]);
-  const model = buildClModel(clubs, season);
+  const model = buildModel(clubs, season);
   return (
     <div className="py-6 sm:py-10">
       <LinkedClubsProvider linked={clubs.map((c) => c.id).filter((id) => withPages.has(id))}>

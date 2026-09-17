@@ -1,5 +1,5 @@
 import { createPageMetadata } from "@/lib/metadata";
-import { COMPETITIONS } from "@/lib/cl/types";
+import { COMPETITIONS } from "@/lib/uefa/types";
 import { LeaguePhasePage } from "../_uefa/LeaguePhasePage";
 
 // Request-rendered like the other Transfermarkt-backed league pages: the data

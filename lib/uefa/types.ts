@@ -1,6 +1,6 @@
-// Champions-League-format types, shared by the scraper (lib/cl/fetch.ts), the
-// pure model (lib/cl/model.ts) and the client components. Kept dependency-free
-// so a client bundle importing them never reaches for cheerio.
+// Types for the UEFA 36-club league phase, shared by the scraper (fetch.ts), the
+// pure model (model.ts) and the client components. Kept dependency-free so a
+// client bundle importing them never reaches for cheerio.
 
 /** The Europa League copied the Champions League format wholesale — 36 clubs,
  *  eight league-phase games, the same 8/16/12 split and the same knockout
@@ -31,7 +31,7 @@ export const COMPETITIONS: Record<CompCode, Competition> = {
 };
 
 /** A club in the league phase, as the participants page lists it. */
-export type ClClub = {
+export type Club = {
   id: string; // Transfermarkt club id — the join key between both pages
   name: string; // full name ("Paris Saint-Germain")
   squad: number;
@@ -40,11 +40,11 @@ export type ClClub = {
 };
 
 /** One row of the 36-club league-phase table. */
-export type ClTableRow = {
+export type TableRow = {
   id: string;
   short: string; // TM's abbreviated name ("PSG") — the table never spells them out
   /** Transfermarkt's displayed rank, which *ties* while clubs are level
-   *  (3, 3, 5, 6, 6, 6, 9…). The model densifies it — see buildClModel. */
+   *  (3, 3, 5, 6, 6, 6, 9…). The model densifies it — see buildModel. */
   rank: number;
   order: number; // row order on the page, TM's own tie-break
   pl: number;
@@ -61,7 +61,7 @@ export type Kick = {
 };
 
 /** A league-phase fixture. All 144 are published up front, scores fill in. */
-export type ClFixture = Kick & {
+export type Fixture = Kick & {
   matchday: number; // 1-8
   homeId: string;
   awayId: string;
@@ -73,11 +73,11 @@ export type ClFixture = Kick & {
 };
 
 /** PO = knockout phase play-off (TM labels it "IR"), then the bracket proper. */
-export type ClRound = "PO" | "R16" | "QF" | "SF" | "F";
+export type Round = "PO" | "R16" | "QF" | "SF" | "F";
 
 /** One leg of a knockout tie, straight off Transfermarkt. */
-export type ClKoLeg = Kick & {
-  round: ClRound;
+export type KoLeg = Kick & {
+  round: Round;
   num: number; // TM's match number within the round (PO/R16 1..8, QF 1..4, SF 1..2, F 1)
   leg: 1 | 2; // the final is a single leg 1
   homeId: string | null; // null while TM still shows a placeholder
@@ -89,10 +89,10 @@ export type ClKoLeg = Kick & {
 };
 
 /** Everything the schedule page yields in one fetch. */
-export type ClSeason = {
+export type Season = {
   label: string; // "26/27"
   fetchedAt: number;
-  table: ClTableRow[];
-  fixtures: ClFixture[];
-  ko: ClKoLeg[];
+  table: TableRow[];
+  fixtures: Fixture[];
+  ko: KoLeg[];
 };
