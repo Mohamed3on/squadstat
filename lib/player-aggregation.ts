@@ -63,6 +63,15 @@ export interface RecentGameStats {
   matchReportUrl?: string;
 }
 
+/** A player's season output for the club they play for now — no previous-club or
+ *  national-team games. What a club's scoring duo or trio is ranked on. */
+export interface CurrentClubStats {
+  goals: number;
+  assists: number;
+  penaltyGoals: number;
+  minutes: number;
+}
+
 export interface PlayerStatsResult {
   minutes: number;
   appearances: number;
@@ -70,6 +79,8 @@ export interface PlayerStatsResult {
   /** Goals in top-flight leagues, cups & continental only (excludes 2nd-tier-and-below
    *  league goals). Used to gate scorer-pool players in the refresh. */
   topFlightGoals: number;
+  /** Absent on cache entries aggregated before this field existed. */
+  currentClubStats?: CurrentClubStats;
   assists: number;
   penaltyGoals: number;
   penaltyMisses: number;
@@ -232,6 +243,7 @@ const MISSED_STATES = new Set(["injured", "absent", "suspended"]);
 export interface AggregatedStats {
   goals: number;
   topFlightGoals: number;
+  currentClubStats: CurrentClubStats;
   assists: number;
   minutes: number;
   appearances: number;
@@ -280,6 +292,7 @@ export function aggregateSeasonStats(
     intlMinutes = 0,
     intlAppearances = 0,
     intlPenaltyGoals = 0;
+  const currentClubStats: CurrentClubStats = { goals: 0, assists: 0, penaltyGoals: 0, minutes: 0 };
   let gamesMissed = 0;
   let totalGames = 0;
   let league = "";
@@ -362,6 +375,12 @@ export function aggregateSeasonStats(
     penaltyGoals += pGoals;
     penaltyMisses += gs.penaltyShooterMisses ?? 0;
     minutes += mins;
+    if (currentClubId && g.clubsInformation?.club?.clubId === currentClubId) {
+      currentClubStats.goals += gls;
+      currentClubStats.assists += ast;
+      currentClubStats.penaltyGoals += pGoals;
+      currentClubStats.minutes += mins;
+    }
     if (mins > 0) {
       appearances++;
       recordPlayedGame(g, gls, ast, pGoals, mins, posId);
@@ -384,6 +403,7 @@ export function aggregateSeasonStats(
   return {
     goals,
     topFlightGoals,
+    currentClubStats,
     assists,
     minutes,
     appearances,

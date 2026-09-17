@@ -13,6 +13,7 @@ import { FilterButton } from "@/components/FilterButton";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { InfoTip } from "@/app/components/InfoTip";
+import { ClubDuos } from "./ClubDuos";
 import { PositionDisplay, POS_ABBREV } from "@/components/PositionDisplay";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
@@ -669,6 +670,7 @@ export function PlayersUI({
           The top 500 most valuable players in world football plus top scorers in Europe&apos;s top
           5 leagues.
         </p>
+        <ClubDuos players={players} leagueFilter={leagueFilter} includePen={includePen} />
       </div>
 
       <section>

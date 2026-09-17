@@ -37,6 +37,7 @@ import {
 import { findRepeatLosers, findRepeatWinners } from "@/lib/biggest-movers";
 import { getManagerInfo } from "@/lib/fetch-manager";
 import { HeroCardSkeleton, StandoutsGridSkeleton } from "@/app/components/HomeSkeletons";
+import { FeedPanel } from "@/components/FeedPanel";
 import type {
   AggregatedTeam,
   ManagerInfo,
@@ -255,61 +256,12 @@ function SnapshotItemRow({ item }: { item: SnapshotItem }) {
   );
 }
 
-// The feed panel (DESIGN.md): one flat panel, a title line, then hairline-divided rows,
-// never a card per row. The hero's Latest Highlights and every Latest Standouts group use it.
-function FeedPanel({
-  title,
-  as: Heading = "h3",
-  description,
-  href,
-  items,
-  emptyText,
-  className = "",
-}: {
-  title: string;
-  as?: "h2" | "h3";
-  description?: string;
-  href?: string;
-  items: SnapshotItem[];
-  emptyText?: string;
-  className?: string;
-}) {
-  const headingId = `feed-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-  return (
-    <section
-      aria-labelledby={headingId}
-      className={`overflow-hidden rounded-xl border border-border-subtle bg-elevated ${className}`}
-    >
-      <div className="flex items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
-        <div className="min-w-0">
-          <Heading id={headingId} className="text-sm font-semibold text-text-primary">
-            {title}
-          </Heading>
-          {description && <p className="mt-0.5 text-xs text-text-secondary">{description}</p>}
-        </div>
-        {href && (
-          <Link
-            href={href}
-            className="group/link inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-blue transition-colors hover:text-text-primary"
-          >
-            Open
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
-          </Link>
-        )}
-      </div>
-      {items.length > 0 ? (
-        <ul className="divide-y divide-border-subtle">
-          {items.map((item) => (
-            <li key={`${item.label}-${item.value}`}>
-              <SnapshotItemRow item={item} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="px-4 py-6 text-sm text-text-secondary">{emptyText}</p>
-      )}
-    </section>
-  );
+function snapshotRows(items: SnapshotItem[]) {
+  return items.map((item) => (
+    <li key={`${item.label}-${item.value}`}>
+      <SnapshotItemRow item={item} />
+    </li>
+  ));
 }
 
 function formatSigned(value: number): string {
@@ -1082,9 +1034,10 @@ async function HeroCard({ dataPromise }: { dataPromise: Promise<HomeData> }) {
     <FeedPanel
       as="h2"
       title="Latest Highlights"
-      items={heroSnapshots}
       emptyText="Snapshot data is temporarily unavailable. Open a section below for full tables."
-    />
+    >
+      {snapshotRows(heroSnapshots)}
+    </FeedPanel>
   );
 }
 
@@ -1105,9 +1058,10 @@ async function StandoutsGrid({ dataPromise }: { dataPromise: Promise<HomeData> }
           title={group.title}
           description={group.description}
           href={group.href}
-          items={group.items}
           className="mb-4 break-inside-avoid"
-        />
+        >
+          {snapshotRows(group.items)}
+        </FeedPanel>
       ))}
     </div>
   );

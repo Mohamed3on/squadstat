@@ -1,4 +1,4 @@
-import type { CeapiGame, RecentGameStats } from "@/lib/player-aggregation";
+import type { CeapiGame, CurrentClubStats, RecentGameStats } from "@/lib/player-aggregation";
 import type { ClubIdentity } from "@/lib/transfermarkt";
 
 export interface TeamStats {
@@ -215,6 +215,8 @@ export interface MinutesValuePlayer {
   intlAppearances: number;
   intlPenaltyGoals: number;
   intlCareerCaps: number;
+  /** Absent until the data refresh records it. */
+  currentClubStats?: CurrentClubStats;
   isCurrentIntl?: boolean;
   imageUrl: string;
   profileUrl: string;

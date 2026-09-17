@@ -123,6 +123,30 @@ describe("aggregateSeasonStats", () => {
     expect(s.goals).toBe(0);
   });
 
+  it("counts only current-club games in currentClubStats", () => {
+    const s = aggregateSeasonStats(
+      [
+        game({ clubId: OTHER_SENIOR, goals: 2, assists: 2, penGoals: 1, minutes: 80 }),
+        game({ clubId: CLUB, goals: 2, assists: 1, penGoals: 1, minutes: 90 }),
+        game({ clubId: B_TEAM, goals: 3 }),
+        game({ national: true, compId: "FIWC", goals: 1 }),
+        game({ seasonId: 2024, goals: 4 }),
+      ],
+      CLUB,
+      clubTypes,
+      2025,
+    );
+    expect(s.goals).toBe(4);
+    expect(s.assists).toBe(3);
+    expect(s.currentClubStats).toEqual({ goals: 2, assists: 1, penaltyGoals: 1, minutes: 90 });
+  });
+
+  it("leaves currentClubStats at zero without a current club id", () => {
+    const s = aggregateSeasonStats([game({ goals: 2, assists: 1 })], "", clubTypes, 2025);
+    expect(s.goals).toBe(2);
+    expect(s.currentClubStats).toEqual({ goals: 0, assists: 0, penaltyGoals: 0, minutes: 0 });
+  });
+
   it("falls back to clubId equality when the clubType is unresolved", () => {
     const s = aggregateSeasonStats(
       [game({ clubId: UNKNOWN_SENIOR, minutes: 60 })],
@@ -238,6 +262,17 @@ describe("reaggregatePlayerStats", () => {
     expect(re.intlCareerCaps).toBe(57);
     expect(re.marketValue).toBe(50_000_000);
     expect(reaggregatePlayerStats(base, clubTypes, 2025)).toBe(base);
+  });
+
+  it("scopes currentClubStats to the club in the header crest", () => {
+    const prev = {
+      ...base,
+      rawGames: [game({ clubId: OTHER_SENIOR, assists: 3 }), game({ clubId: CLUB, assists: 1 })],
+    };
+    const re = reaggregatePlayerStats(prev, clubTypes, 2025);
+    expect(re.assists).toBe(4);
+    expect(re.currentClubStats?.assists).toBe(1);
+    expect(reaggregatePlayerStats(base, clubTypes, 2025).currentClubStats).toBeUndefined();
   });
 
   it("pins league to the current club's header league, not the season's games", () => {

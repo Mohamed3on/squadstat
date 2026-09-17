@@ -194,6 +194,12 @@ export default function HowItWorksPage() {
                 <Term>Form window (Last 5 / Last 10)</Term> — stats from only the player&apos;s most
                 recent 5 or 10 matches, useful for spotting current form vs. season-long totals.
               </li>
+              <li>
+                <Term>Best scoring duos / trios</Term> — each club&apos;s two or three tracked
+                players with the most npG+A for the club they play for now, added together. Goals
+                for a previous club this season and national-team games don&apos;t count, every
+                player needs a goal or assist, and ties go to fewer minutes for the club.
+              </li>
             </ul>
           </div>
 

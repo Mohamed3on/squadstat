@@ -30,6 +30,8 @@ export default function Loading() {
       <div className="mb-4 sm:mb-8">
         <Skeleton className="h-8 sm:h-9 w-56" />
         <Skeleton className="h-4 w-full max-w-xl mt-1 sm:mt-2" />
+        {/* ClubDuos: the best duo and trio lines */}
+        <Skeleton className="mt-3 h-40 w-full rounded-lg sm:h-18" />
       </div>
 
       {/* "All players" label and count */}
