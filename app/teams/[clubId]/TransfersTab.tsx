@@ -8,6 +8,7 @@ import { GapTrack } from "@/app/fee-vs-value/FeeValueBar";
 import { ClubMoveRow } from "@/app/fee-vs-value/TransferRow";
 import { barGeometry, transferKey, type ClubSide, type ClubWindow } from "@/lib/fee-vs-value";
 import {
+  CLUB_CASH_HREF,
   CLUB_PATH,
   TONE_TEXT,
   clubWindowSummary,
@@ -127,7 +128,7 @@ async function SpendingSection({ clubId }: { clubId: string }) {
     <SectionPanel
       title="Spending and sales"
       aside={
-        <Link href={CLUB_PATH} className={THROUGH_LINK}>
+        <Link href={CLUB_CASH_HREF} className={THROUGH_LINK}>
           Every club &rarr;
         </Link>
       }

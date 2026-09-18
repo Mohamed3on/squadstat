@@ -57,7 +57,7 @@ export function ledgerTitle(sort: LedgerSort): string {
 
 export function ledgerBlurb(sort: LedgerSort): string {
   if (isNetSort(sort)) {
-    return "Fees banked minus fees paid, among the window's biggest deals. Every deal, in cash, is in the money table below.";
+    return "Fees banked minus fees paid, among the window's biggest deals. Every deal, in cash, is under Spend & sales.";
   }
   return sort.mode.blurb;
 }
@@ -290,9 +290,14 @@ export function ClubLedger({
         {ordered.map((c) => (
           <Card key={keyOf(c)}>
             <CardContent className="p-3">
+              {/* Two columns that each wrap: the window sentence under Overall
+                  can run long, and a column that refused to shrink pushed it
+                  off the card. */}
               <div className="flex items-start justify-between gap-3">
-                <ClubCell c={c} />
-                <div className="shrink-0 text-right">
+                <div className="min-w-0 flex-1">
+                  <ClubCell c={c} />
+                </div>
+                <div className="min-w-0 flex-1 text-right">
                   <p className="text-[10px] uppercase tracking-wide text-text-muted">Overall</p>
                   <OverallCell c={c} />
                 </div>

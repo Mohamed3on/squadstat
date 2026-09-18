@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SectionPanel } from "@/components/SectionPanel";
 import { TOP_TRANSFER_LIMIT } from "@/lib/constants";
 import type { ClubWindow } from "@/lib/fee-vs-value";
@@ -17,10 +16,9 @@ import {
   type ModeSpec,
   type Tone,
 } from "@/lib/fee-vs-value-rankings";
-import { formatMarketValue, formatMillions, getTeamDetailHref } from "@/lib/format";
+import { formatMarketValue, getTeamDetailHref } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { cn } from "@/lib/utils";
-import type { TransferBalanceMetric, TransferBalanceWindow } from "@/app/types";
 
 const money = formatMarketValue;
 const { buying, selling, "squad-value": squadValue, overall } = CLUB_MODES;
@@ -75,7 +73,7 @@ function sentence(mode: ModeSpec, c: ClubWindow): string {
   return windowSentence(c);
 }
 
-interface Leader {
+export interface Leader {
   label: string;
   clubId: string;
   name: string;
@@ -103,43 +101,10 @@ function leaderOf(rows: ClubWindow[], [mode, endIndex]: [ModeSpec, 0 | 1]): Lead
   };
 }
 
-const CASH_LABEL: Record<TransferBalanceMetric, string> = {
-  expenditure: "Gross spend",
-  income: "Sales",
-  netSpender: "Biggest net spender",
-  netProfit: "Biggest net profit",
-};
-const CASH_ORDER: TransferBalanceMetric[] = ["expenditure", "income", "netSpender", "netProfit"];
-
-function cashLeaders(cash: TransferBalanceWindow): Leader[] {
-  const club = (id: string) => cash.clubs.find((c) => c.id === id);
-  return CASH_ORDER.map((metric) => {
-    const l = cash.leaders[metric];
-    const c = club(l.id);
-    const sub =
-      metric === "expenditure"
-        ? c
-          ? `${c.arrivals} signings`
-          : ""
-        : metric === "income"
-          ? c
-            ? `${c.departures} departures`
-            : ""
-          : metric === "netSpender"
-            ? "spent minus banked"
-            : "banked minus spent";
-    return {
-      label: CASH_LABEL[metric],
-      clubId: l.id,
-      name: c?.name ?? l.name,
-      figure: formatMillions(l.value),
-      tone: metric === "netSpender" ? "over" : metric === "netProfit" ? "under" : "neutral",
-      sub,
-    };
-  });
-}
-
-function LeaderCard({
+/** One club at the top of one measure: the measure, the club, the figure, and
+ *  what it did. Shared by the value cards here and the cash cards in the
+ *  Spend & sales tab. */
+export function LeaderCard({
   l,
   onPick,
 }: {
@@ -157,9 +122,7 @@ function LeaderCard({
             onClick={() => onPick(...l.opens!)}
             className="mb-2 block cursor-pointer text-left text-[10px] uppercase tracking-wider text-text-muted transition-colors hover:text-text-primary"
           >
-            {label}
-            {" "}
-            <span aria-hidden>↓</span>
+            {label} <span aria-hidden>↓</span>
           </button>
         ) : (
           <p className="mb-2 text-[10px] uppercase tracking-wider text-text-muted">{label}</p>
@@ -186,70 +149,31 @@ function LeaderCard({
   );
 }
 
-/** Who tops two of the four cash measures at once — the balance page's own
- *  hook, kept. */
-function MultiWinner({ cash }: { cash: TransferBalanceWindow }) {
-  if (cash.winners.length === 0) {
-    return (
-      <p className="text-xs text-text-muted">
-        No club tops two of the four over this window — widen it to find one.
-      </p>
-    );
-  }
-  return (
-    <Card className="border-accent-gold bg-accent-gold/5">
-      <CardContent className="p-3 sm:p-4">
-        {cash.winners.map((w) => (
-          <p key={w.id} className="text-sm">
-            <Link href={getTeamDetailHref(w.id)} className="font-bold hover:underline">
-              {w.name}
-            </Link>{" "}
-            tops <span className="font-value">{w.metrics.length}</span> of{" "}
-            <span className="font-value">4</span> —{" "}
-            {w.metrics.map((m) => CASH_LABEL[m]).join(" + ")}
-          </p>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
 /** The fifth card takes the whole row on a phone rather than sitting alone in
  *  a half-width slot. */
 const FIVE_ACROSS =
   "grid grid-cols-2 gap-3 lg:grid-cols-5 [&>:nth-child(5)]:col-span-2 lg:[&>:nth-child(5)]:col-span-1";
 
 /**
- * The top of every category: the best business, the worst, then the money.
+ * The top of the value judgement: the best business, then the worst.
  *
- * The business rows read the whole window, loans counted — the same cut the
- * club-page badges quote, so a club badged "Shopped best" is the club on the
- * card. The seasons control lives up here with the money cards it rewrites, so
- * the toggle scopes exactly the two things it changes — these cards and the
- * cash table at the bottom — and nothing about value.
+ * Both rows read the whole window, loans counted — the same cut the club-page
+ * badges quote, so a club badged "Shopped best" is the club on the card. The
+ * money in cash is the other tab's business and never appears here.
  */
 export function Overview({
   rows,
   season,
-  cash,
-  windows,
-  seasons,
-  onSeasons,
   onPick,
 }: {
   /** Every club window, loans in, unfiltered. */
   rows: ClubWindow[];
   season: number;
-  cash: TransferBalanceWindow;
-  windows: TransferBalanceWindow[];
-  seasons: number;
-  onSeasons: (n: number) => void;
   onPick: (mode: ModeSpec, endIndex: 0 | 1) => void;
 }) {
   const present = (l: Leader | null): l is Leader => l !== null;
   const best = useMemo(() => BEST.map((e) => leaderOf(rows, e)).filter(present), [rows]);
   const worst = useMemo(() => WORST.map((e) => leaderOf(rows, e)).filter(present), [rows]);
-  const money = useMemo(() => cashLeaders(cash), [cash]);
 
   return (
     <div className="space-y-6">
@@ -274,50 +198,6 @@ export function Overview({
           {worst.map((l) => (
             <LeaderCard key={l.label} l={l} onPick={onPick} />
           ))}
-        </div>
-      </SectionPanel>
-
-      <SectionPanel
-        title="Biggest money"
-        aside={
-          <span className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-wider text-text-muted">Seasons</span>
-            <ToggleGroup
-              type="single"
-              value={String(seasons)}
-              onValueChange={(v) => v && onSeasons(Number(v))}
-              variant="outline"
-              size="sm"
-              className="rounded-lg"
-              aria-label="Seasons"
-            >
-              {windows.map((w, i) => (
-                <ToggleGroupItem
-                  key={w.seasons}
-                  value={String(w.seasons)}
-                  className={cn(
-                    "px-2.5",
-                    i === 0 && "rounded-l-lg",
-                    i === windows.length - 1 && "rounded-r-lg",
-                  )}
-                >
-                  <span className="font-value">{w.seasons}</span>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </span>
-        }
-      >
-        <p className="-mt-1 mb-3 text-xs text-text-muted">
-          every deal Transfermarkt lists, <span className="font-value">{cash.label}</span>
-        </p>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {money.map((l) => (
-            <LeaderCard key={l.label} l={l} />
-          ))}
-        </div>
-        <div className="mt-3">
-          <MultiWinner cash={cash} />
         </div>
       </SectionPanel>
     </div>

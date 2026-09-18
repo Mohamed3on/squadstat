@@ -58,6 +58,11 @@ export const PATH = "/fee-vs-value";
 /** Where the club rankings live — one table, every club in the window. */
 export const CLUB_PATH = "/club-transfers";
 
+/** The club page's second tab — every deal in cash — for a link that means the
+ *  money rather than the value judgement. The value tab is the page's default
+ *  and has no address of its own. */
+export const CLUB_CASH_HREF = `${CLUB_PATH}?tab=cash`;
+
 /** TM keys a season by its starting year. */
 export function seasonLabel(season: number): string {
   return `${season}/${String((season + 1) % 100).padStart(2, "0")}`;

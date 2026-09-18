@@ -33,7 +33,8 @@ const netTone = (value: number) => TONE_TEXT[gainTone(value)];
 
 /**
  * Every deal Transfermarkt lists, in cash, for the world's biggest buyers and
- * sellers — one window of it, chosen by the seasons control up in the overview.
+ * sellers — one window of it, chosen by the seasons control at the head of the
+ * Spend & sales tab, which also prints the window's span and size.
  *
  * The table needs 604px and only fits from md up; below that it hid the Net
  * column entirely behind a horizontal scroll, so phones get cards instead.
@@ -44,11 +45,6 @@ export function BalanceTable({ window }: { window: TransferBalanceWindow }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-text-muted">
-        <span className="font-value">{window.label}</span> ·{" "}
-        <span className="font-value">{window.clubs.length}</span> clubs
-      </p>
-
       <div className="space-y-3 md:hidden">
         <SortPicker
           columns={COLUMNS}
