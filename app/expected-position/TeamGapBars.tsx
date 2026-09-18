@@ -1,13 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import type { ManagerInfo, TeamFormEntry } from "@/app/types";
 import { ManagerSection, ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
 import { FormLeaderPill } from "@/components/FormLeaderPill";
 import { LeagueBadge } from "@/components/LeagueBadge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { formatValueStr, getTeamDetailHref, ordinal } from "@/lib/format";
 import { useManagersMap } from "@/lib/hooks/use-manager-query";
+import { cn } from "@/lib/utils";
+
+export type GapTab = "over" | "under";
 
 interface GapBarRowProps {
   team: TeamFormEntry;
@@ -41,10 +45,11 @@ function GapBarRow({ team, formLeader, manager, managerLoading }: GapBarRowProps
 
       {/* Team, manager, value context */}
       <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-center gap-1.5 min-w-0">
+        {/* Badges drop to a second line rather than breaking mid-word beside a long name. */}
+        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
           <Link
             href={getTeamDetailHref(team.clubId)}
-            className="truncate font-semibold text-sm sm:text-base text-text-primary hover:underline"
+            className="max-w-full truncate font-semibold text-sm sm:text-base text-text-primary hover:underline"
           >
             {team.name}
           </Link>
@@ -64,9 +69,11 @@ function GapBarRow({ team, formLeader, manager, managerLoading }: GapBarRowProps
           )
         )}
 
+        {/* "per player" waits for 640px: on a phone it pushed the value off the end of the line. */}
         <div className="truncate text-[11px] sm:text-xs text-text-muted">
           <span className="font-value">{ordinal(team.leaguePosition)}</span> now,{" "}
-          <span className="font-value">{ordinal(team.marketValueRank)}</span> by value per player
+          <span className="font-value">{ordinal(team.marketValueRank)}</span> by value
+          <span className="hidden sm:inline"> per player</span>
           {valueStr !== "-" && <span className="text-text-muted/60"> · {valueStr}</span>}
         </div>
       </div>
@@ -77,20 +84,24 @@ function GapBarRow({ team, formLeader, manager, managerLoading }: GapBarRowProps
 function PerformerColumn({
   teams,
   type,
+  shown,
   formLeaders,
   managersMap,
   loadingSet,
 }: {
   teams: TeamFormEntry[];
-  type: "over" | "under";
+  type: GapTab;
+  shown: boolean;
   formLeaders?: Record<string, { type: "top" | "bottom"; count: number }>;
   managersMap: Record<string, ManagerInfo | null>;
   loadingSet: Set<string>;
 }) {
   const over = type === "over";
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
+    // Phones show one column at a time and the rail names it, so the heading
+    // only appears once both columns are side by side.
+    <div className={cn("space-y-3", !shown && "hidden md:block")}>
+      <div className="hidden md:flex items-center gap-3">
         <h2
           className={`text-lg sm:text-xl font-pixel flex items-center gap-2 shrink-0 ${over ? "text-accent-hot" : "text-accent-cold"}`}
         >
@@ -136,14 +147,21 @@ function PerformerColumn({
   );
 }
 
+const SEGMENT =
+  "h-full flex-1 rounded-md text-xs font-medium hover:bg-card/50 data-[state=on]:bg-card data-[state=on]:shadow-sm";
+
 export function TeamGapBars({
   overperformers,
   underperformers,
   formLeaders,
+  tab,
+  onTabChange,
 }: {
   overperformers: TeamFormEntry[];
   underperformers: TeamFormEntry[];
   formLeaders?: Record<string, { type: "top" | "bottom"; count: number }>;
+  tab: GapTab;
+  onTabChange: (tab: GapTab) => void;
 }) {
   const allTeams = useMemo(
     () => [...overperformers, ...underperformers],
@@ -155,22 +173,58 @@ export function TeamGapBars({
   );
   const { managersMap, loadingSet } = useManagersMap(clubIds);
 
+  // A switch from deep in one list would leave the reader partway down the
+  // other, so it also returns to the top of the rail.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const switchTab = (next: string) => {
+    if (next !== "over" && next !== "under") return;
+    onTabChange(next);
+    const root = rootRef.current;
+    if (root && root.getBoundingClientRect().top < 0) root.scrollIntoView({ block: "start" });
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start animate-fade-in">
-      <PerformerColumn
-        teams={overperformers}
-        type="over"
-        formLeaders={formLeaders}
-        managersMap={managersMap}
-        loadingSet={loadingSet}
-      />
-      <PerformerColumn
-        teams={underperformers}
-        type="under"
-        formLeaders={formLeaders}
-        managersMap={managersMap}
-        loadingSet={loadingSet}
-      />
+    <div ref={rootRef} className="scroll-mt-14 animate-fade-in">
+      {/* Phones: twenty rows a side is too far to scroll past, so the lists take
+          turns. The rail sticks under the header, keeping the other list one
+          tap away from anywhere. */}
+      <div className="sticky top-14 z-40 -mx-3 mb-4 border-b border-border-subtle bg-black/90 px-3 py-2 backdrop-blur-xl sm:-mx-4 sm:px-4 md:hidden">
+        <ToggleGroup
+          type="single"
+          value={tab}
+          onValueChange={switchTab}
+          aria-label="Teams to list"
+          className="flex h-10 w-full items-center rounded-lg bg-elevated p-1 text-text-muted"
+        >
+          <ToggleGroupItem value="over" className={`${SEGMENT} data-[state=on]:text-accent-hot`}>
+            Overperformers
+            <span className="ml-1.5 font-value opacity-60">{overperformers.length}</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="under" className={`${SEGMENT} data-[state=on]:text-accent-cold`}>
+            Underperformers
+            <span className="ml-1.5 font-value opacity-60">{underperformers.length}</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <PerformerColumn
+          teams={overperformers}
+          type="over"
+          shown={tab === "over"}
+          formLeaders={formLeaders}
+          managersMap={managersMap}
+          loadingSet={loadingSet}
+        />
+        <PerformerColumn
+          teams={underperformers}
+          type="under"
+          shown={tab === "under"}
+          formLeaders={formLeaders}
+          managersMap={managersMap}
+          loadingSet={loadingSet}
+        />
+      </div>
     </div>
   );
 }
