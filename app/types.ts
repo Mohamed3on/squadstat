@@ -134,7 +134,6 @@ export interface TeamFormEntry {
   logoUrl: string;
   clubUrl: string;
   clubId: string;
-  manager?: ManagerInfo | null;
 }
 
 /** A club as a league's matchday box names it: TM's short form ("Man City", "Nott'm Forest"). */

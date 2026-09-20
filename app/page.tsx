@@ -555,37 +555,6 @@ async function fetchHomeData(): Promise<{
 
   const { overperformers, underperformers } = splitPerformers(teamFormData?.allTeams ?? [], 20);
 
-  const managerByClubId = new Map<string, ManagerInfo | null>();
-  for (const team of [...overperformers, ...underperformers]) {
-    if (!team.clubId) continue;
-    managerByClubId.set(team.clubId, team.manager ?? null);
-  }
-
-  const aggregatedSnapshotTeams = [...aggregatedTop, ...aggregatedBottom];
-  const missingManagerClubIds = [
-    ...new Set(
-      aggregatedSnapshotTeams
-        .map((team) => team.clubId)
-        .filter((clubId) => clubId && !managerByClubId.has(clubId)),
-    ),
-  ];
-  if (missingManagerClubIds.length > 0) {
-    const managerResults = await Promise.allSettled(
-      missingManagerClubIds.map((clubId) => getManagerInfo(clubId)),
-    );
-    missingManagerClubIds.forEach((clubId, index) => {
-      const result = managerResults[index];
-      if (result?.status === "fulfilled") {
-        managerByClubId.set(clubId, result.value);
-      } else {
-        console.error(`[Home] getManagerInfo failed for club ${clubId}:`, result?.reason);
-        managerByClubId.set(clubId, null);
-      }
-    });
-  }
-  const getManagerForClub = (clubId?: string): ManagerInfo | undefined =>
-    clubId ? (managerByClubId.get(clubId) ?? undefined) : undefined;
-
   const mostOverperformingTeams = pickWithTies(overperformers, (team) => team.deltaPts, "top", {
     sort: (a, b) => b.points - a.points || b.marketValueNum - a.marketValueNum,
   });
@@ -595,6 +564,32 @@ async function fetchHomeData(): Promise<{
     "bottom",
     { sort: (a, b) => a.points - b.points || a.marketValueNum - b.marketValueNum },
   );
+
+  // Team-form entries carry no manager (that enrichment was 40 Transfermarkt fetches on
+  // every cache miss), so look managers up here for just the clubs the hero and the
+  // sections show: a handful of cached fetches, never the whole top/bottom 20.
+  const managerClubIds = [
+    ...new Set(
+      [...bestFormTeams, ...worstFormTeams, ...mostOverperformingTeams, ...mostUnderperformingTeams]
+        .map((team) => team.clubId)
+        .filter((clubId): clubId is string => Boolean(clubId)),
+    ),
+  ];
+  const managerByClubId = new Map<string, ManagerInfo | null>();
+  const managerResults = await Promise.allSettled(
+    managerClubIds.map((clubId) => getManagerInfo(clubId)),
+  );
+  managerClubIds.forEach((clubId, index) => {
+    const result = managerResults[index];
+    if (result?.status === "fulfilled") {
+      managerByClubId.set(clubId, result.value);
+    } else {
+      console.error(`[Home] getManagerInfo failed for club ${clubId}:`, result?.reason);
+      managerByClubId.set(clubId, null);
+    }
+  });
+  const getManagerForClub = (clubId?: string): ManagerInfo | undefined =>
+    clubId ? (managerByClubId.get(clubId) ?? undefined) : undefined;
 
   const statsNoPen = applyStatsToggles(players.map(toPlayerStats), { includePen: false });
   const underperformerCandidates = findValueCandidates(statsNoPen, {
