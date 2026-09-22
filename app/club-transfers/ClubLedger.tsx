@@ -48,7 +48,7 @@ export function isNetSort(sort: LedgerSort): sort is { net: EndKey } {
   return "net" in sort;
 }
 
-/** "Who shopped best" — the end's own title, asked as a question. */
+/** "Who bought best" — the end's own title, asked as a question. */
 export function ledgerTitle(sort: LedgerSort): string {
   if (isNetSort(sort)) return sort.net === "best" ? "Who banked the most" : "Who spent the most";
   const { title } = sort.mode.ends[sort.endIndex];
@@ -64,7 +64,7 @@ export function ledgerBlurb(sort: LedgerSort): string {
 
 /**
  * The ledger's order for a sort. A ranking's order is `rankClubs`'s — the one
- * the club-page badges are read from, so a club badged "Shopped best" is by
+ * the club-page badges are read from, so a club badged "Bought best" is by
  * construction the first row of that view — with the clubs that don't qualify
  * for the end continuing underneath in the same direction, so the table is
  * still every club rather than the end alone.

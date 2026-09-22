@@ -24,23 +24,23 @@ const money = formatMarketValue;
 const { buying, selling, "squad-value": squadValue, overall } = CLUB_MODES;
 
 /**
- * The overall verdict with the squad's direction as a condition on top: came
- * out ahead *and* stronger, came out behind *and* weaker. Not a ranking of its
- * own — the order is the overall one — just the two cards that name the
- * double, so a club that came out ahead by selling everyone (PSG) sits beside
- * one that came out ahead by getting better for less (Como).
+ * The overall verdict with the squad's direction as a condition on top: a good
+ * window *and* a stronger squad, a bad window *and* a weaker one. Not a ranking
+ * of its own — the order is the overall one — just the two cards that name the
+ * double, so a club that had the best window by selling everyone (PSG) sits
+ * beside one that had a good window by getting better for less (Como).
  */
 const STRONGER: ModeSpec = {
   ...overall,
   ends: [
     {
-      title: "Got more than they gave & stronger",
+      title: "Good window, stronger squad",
       tone: "under",
       side: "in",
       qualifies: (c) => surplus(c) > 0 && c.netValue > 0,
     },
     {
-      title: "Gave more than they got & weaker",
+      title: "Bad window, weaker squad",
       tone: "over",
       side: "out",
       qualifies: (c) => surplus(c) < 0 && c.netValue < 0,
@@ -158,7 +158,7 @@ const FIVE_ACROSS =
  * The top of the value judgement: the best business, then the worst.
  *
  * Both rows read the whole window, loans counted — the same cut the club-page
- * badges quote, so a club badged "Shopped best" is the club on the card. The
+ * badges quote, so a club badged "Bought best" is the club on the card. The
  * money in cash is the other tab's business and never appears here.
  */
 export function Overview({

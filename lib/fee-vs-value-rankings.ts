@@ -181,8 +181,8 @@ export const CLUB_MODES = {
     figure: (c) => signed(c.in.premium),
     caption: (c) => `${money(c.in.pricedValue)} of players for ${money(pricedFees(c.in))}`,
     ends: [
-      { title: "Paid over the odds", tone: "over", side: "in" },
-      { title: "Shopped best", tone: "under", side: "in" },
+      { title: "Paid too much", tone: "over", side: "in" },
+      { title: "Bought best", tone: "under", side: "in" },
     ],
   },
   selling: {
@@ -198,8 +198,8 @@ export const CLUB_MODES = {
     ends: [
       // Banking more than a player was worth is the good outcome here, so the
       // colours run opposite to the buying tables.
-      { title: "Sold above value", tone: "under", side: "out" },
-      { title: "Sold below value", tone: "over", side: "out" },
+      { title: "Sold best", tone: "under", side: "out" },
+      { title: "Sold too cheap", tone: "over", side: "out" },
     ],
   },
   "squad-value": {
@@ -219,13 +219,13 @@ export const CLUB_MODES = {
     expand: "both",
     ends: [
       {
-        title: "Gained the most value",
+        title: "Strengthened most",
         tone: "under",
         side: "in",
         qualifies: (c) => c.netValue > 0,
       },
       {
-        title: "Lost the most value",
+        title: "Weakened most",
         tone: "over",
         side: "out",
         qualifies: (c) => c.netValue < 0,
@@ -237,7 +237,7 @@ export const CLUB_MODES = {
     toggle: "Overall",
     title: "Who came out ahead",
     blurb:
-      "Value added minus money spent — everything a club did in the window, netted. Buying under value, selling over it and the squad's change in worth all count, so a club can come out ahead while getting weaker if it was paid enough on the way.",
+      "Value added minus money spent — everything a club did in the window, netted. Buying under value, selling over it and the squad's change in worth all count, so a club can have a good window while getting weaker if it was paid enough on the way.",
     sort: surplus,
     figure: (c) => signed(surplus(c)),
     caption: windowSentence,
@@ -245,13 +245,13 @@ export const CLUB_MODES = {
     expand: "both",
     ends: [
       {
-        title: "Got more than they gave",
+        title: "Had the best window",
         tone: "under",
         side: "in",
         qualifies: (c) => surplus(c) > 0,
       },
       {
-        title: "Gave more than they got",
+        title: "Had the worst window",
         tone: "over",
         side: "out",
         qualifies: (c) => surplus(c) < 0,
@@ -295,7 +295,7 @@ export type ClubMode = keyof typeof CLUB_MODES;
  * The top end reads the shared sort from its top and the bottom end from its
  * bottom, which is what makes the two genuine opposites. The table takes the
  * first `TOP` of this; a badge takes the first one. Sharing the function is the
- * point — a club badged "Shopped best" is by construction the club sitting at
+ * point — a club badged "Bought best" is by construction the club sitting at
  * the head of the table it links to.
  */
 export function rankClubs(rows: ClubWindow[], mode: ModeSpec, endIndex: 0 | 1): ClubWindow[] {
@@ -612,8 +612,8 @@ export function clubAccolades(
       const led = leaders(rankClubs(rows, spec, endIndex), spec.figure);
       if (!led?.top.some((c) => c.club.clubId === clubId)) continue;
       out.push({
-        // No "joint" form: the end titles are verb phrases, and "Gained the most
-        // value" stays true of both clubs when two tie on it.
+        // No "joint" form: the end titles are verb phrases, and "Strengthened
+        // most" stays true of both clubs when two tie on it.
         title: spec.ends[endIndex].title,
         figure: led.figure,
         href: clubRankingHref(spec, endIndex),

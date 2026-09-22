@@ -86,8 +86,9 @@ for a single club, player or competition.
 - **Voice (confirmed across sessions):**
   - Label every metric literally and print its arithmetic under the header, e.g.
     "Overall · value added − money spent".
-  - Use verb phrases a fan would say ("came out ahead", "sold below value") instead of coined
-    jargon. "Won the window" and "won the market" were rejected.
+  - Use short verb phrases a fan would say ("bought best", "sold too cheap", "had the best
+    window") instead of coined jargon. "Won the window" and "won the market" were rejected, and
+    so were comparisons that read like a formula ("sold above value", "got more than they gave").
   - Keep one sign convention per page, and say which direction is good.
   - Never write "hub", "board" or "dashboard". Use views, pages, sections, or a descriptive noun.
 
