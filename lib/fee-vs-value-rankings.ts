@@ -144,7 +144,7 @@ export type ModeSpec = {
 };
 
 /**
- * A whole window, netted: value added minus money spent. Algebraically the
+ * A whole window, netted: value added minus net spend. Algebraically the
  * two premiums above added together in their good directions — what a club
  * saved buying under value plus what it made selling over it — so buying well
  * and selling well count the same, and a club can come out ahead while getting
@@ -152,20 +152,21 @@ export type ModeSpec = {
  */
 export const surplus = (c: ClubWindow) => c.netValue - c.netSpend;
 
-/** The rare double: banked money *and* came out stronger. */
+/** The rare double: a net profit *and* a stronger squad. */
 export const doubled = (c: ClubWindow) => c.netSpend < 0 && c.netValue > 0;
 
-/** `€133.0M of value for €39.5M` · `€12.0M of value while banking €41.9M` ·
- *  `€25.0M of value lost while spending €97.2M`. The sentence behind an
- *  overall figure, which is where a club that came out ahead getting weaker
- *  says so. */
+/** `€133.0M of value for €39.5M net spend` · `€12.0M of value and a €41.9M net
+ *  profit` · `€25.0M of value lost for €97.2M net spend`. The sentence behind an
+ *  overall figure, which is where a club that had a good window getting weaker
+ *  says so. The money is net, and says so: Man City's 2026/27 read "while
+ *  spending €184.6M" one card along from the €519.2M it actually paid in fees. */
 export function windowSentence(c: ClubWindow): string {
   const value =
     c.netValue < 0 ? `${money(-c.netValue)} of value lost` : `${money(c.netValue)} of value`;
-  if (c.netSpend > 0) {
-    return `${value} ${c.netValue < 0 ? "while spending" : "for"} ${money(c.netSpend)}`;
+  if (c.netSpend > 0) return `${value} for ${money(c.netSpend)} net spend`;
+  if (c.netSpend < 0) {
+    return `${value} ${c.netValue < 0 ? "for" : "and"} a ${money(-c.netSpend)} net profit`;
   }
-  if (c.netSpend < 0) return `${value} while banking ${money(-c.netSpend)}`;
   return `${value} for nothing net`;
 }
 
@@ -237,11 +238,11 @@ export const CLUB_MODES = {
     toggle: "Overall",
     title: "Who came out ahead",
     blurb:
-      "Value added minus money spent — everything a club did in the window, netted. Buying under value, selling over it and the squad's change in worth all count, so a club can have a good window while getting weaker if it was paid enough on the way.",
+      "Value added minus net spend — everything a club did in the window, netted. Buying under value, selling over it and the squad's change in worth all count, so a club can have a good window while getting weaker if it was paid enough on the way.",
     sort: surplus,
     figure: (c) => signed(surplus(c)),
     caption: windowSentence,
-    badge: (c) => (doubled(c) ? "banked & stronger" : null),
+    badge: (c) => (doubled(c) ? "stronger and richer" : null),
     expand: "both",
     ends: [
       {

@@ -144,10 +144,10 @@ export function ClubTransfersUI({
             <span className="font-value">{seasonLabel(season)}</span>, each fee held against what
             the player is worth today. <strong>Bought</strong> and <strong>Sold</strong> are fee
             minus worth — green is the good outcome from either end, under value on the way in and
-            over it on the way out. <strong>Overall</strong> is value added minus money spent,
-            everything netted — a club can come out ahead while getting weaker if the market paid it
-            enough on the way. Loans count towards <strong>Squad value</strong>, where a player on
-            loan is in the dressing room either way, and a loan fee counts as cash in{" "}
+            over it on the way out. <strong>Overall</strong> is value added minus net spend,
+            everything netted — a club can have a good window while getting weaker if the market
+            paid it enough on the way. Loans count towards <strong>Squad value</strong>, where a
+            player on loan is in the dressing room either way, and a loan fee counts as cash in{" "}
             <strong>Net</strong>. What they stay out of is <strong>Bought</strong> and{" "}
             <strong>Sold</strong>: TM publishes a fee for few loans, and neither a €3m loan fee nor
             no fee at all is what a €25m player was worth. A club keeps its whole window under any

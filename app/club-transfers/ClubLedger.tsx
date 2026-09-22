@@ -114,7 +114,7 @@ const COLUMNS: Column[] = [
   {
     key: "overall",
     label: "Overall",
-    sum: "value added − money spent",
+    sum: "value added − net spend",
     mode: CLUB_MODES.overall,
   },
 ];
@@ -160,7 +160,7 @@ function OverallCell({ c }: { c: ClubWindow }) {
       </span>
       {doubled(c) && (
         <Badge variant="outline" className="mt-0.5 font-normal">
-          banked &amp; stronger
+          stronger and richer
         </Badge>
       )}
     </>

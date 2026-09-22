@@ -101,6 +101,18 @@ function leaderOf(rows: ClubWindow[], [mode, endIndex]: [ModeSpec, 0 | 1]): Lead
   };
 }
 
+/** A row of cards, one per ranking. The double is the overall ranking narrowed,
+ *  so when the overall leader already qualifies for it both cards name the same
+ *  club with the same figure — Man City, twice, in 2026/27's worst row. Two
+ *  cards that open the same ranking at the same club are one fact, said once. */
+function leadersOf(rows: ClubWindow[], ends: [ModeSpec, 0 | 1][]): Leader[] {
+  const cards = ends.flatMap((e) => leaderOf(rows, e) ?? []);
+  return cards.filter(
+    (l, i) =>
+      !cards.slice(0, i).some((p) => p.clubId === l.clubId && p.opens?.[0] === l.opens?.[0]),
+  );
+}
+
 /** One club at the top of one measure: the measure, the club, the figure, and
  *  what it did. Shared by the value cards here and the cash cards in the
  *  Spend & sales tab. */
@@ -150,9 +162,10 @@ export function LeaderCard({
 }
 
 /** The fifth card takes the whole row on a phone rather than sitting alone in
- *  a half-width slot. */
+ *  a half-width slot. A row of four — the double said once — lets its last card
+ *  take the empty fifth column on desktop instead. */
 const FIVE_ACROSS =
-  "grid grid-cols-2 gap-3 lg:grid-cols-5 [&>:nth-child(5)]:col-span-2 lg:[&>:nth-child(5)]:col-span-1";
+  "grid grid-cols-2 gap-3 lg:grid-cols-5 [&>:nth-child(5)]:col-span-2 lg:[&>:nth-child(5)]:col-span-1 lg:[&>:nth-child(4):last-child]:col-span-2";
 
 /**
  * The top of the value judgement: the best business, then the worst.
@@ -171,9 +184,8 @@ export function Overview({
   season: number;
   onPick: (mode: ModeSpec, endIndex: 0 | 1) => void;
 }) {
-  const present = (l: Leader | null): l is Leader => l !== null;
-  const best = useMemo(() => BEST.map((e) => leaderOf(rows, e)).filter(present), [rows]);
-  const worst = useMemo(() => WORST.map((e) => leaderOf(rows, e)).filter(present), [rows]);
+  const best = useMemo(() => leadersOf(rows, BEST), [rows]);
+  const worst = useMemo(() => leadersOf(rows, WORST), [rows]);
 
   return (
     <div className="space-y-6">

@@ -85,7 +85,7 @@ for a single club, player or competition.
   Oun", with links to mohamed3on.com, GitHub, X and Tech Cities Index.
 - **Voice (confirmed across sessions):**
   - Label every metric literally and print its arithmetic under the header, e.g.
-    "Overall · value added − money spent".
+    "Overall · value added − net spend". A net figure is called net, never plain "spend".
   - Use short verb phrases a fan would say ("bought best", "sold too cheap", "had the best
     window") instead of coined jargon. "Won the window" and "won the market" were rejected, and
     so were comparisons that read like a formula ("sold above value", "got more than they gave").
