@@ -22,7 +22,7 @@ import { getMinutesValueData } from "./fetch-minutes-value";
  *    multiple drifts towards 1.00× as the market comes round to the price. A
  *    deal stops looking like an overpay once the market agrees with it.
  * 2. Coverage is partial: the dataset tracks a pool of roughly 700 players,
- *    which caught 66% of this window's permanent signings. The rest fall back to
+ *    which caught 48% of this window's permanent signings. The rest fall back to
  *    the frozen value, so a times-value ranking mixes the two bases across rows.
  *
  * Memoised per process: committed data, read once, same as `linkable-nations`.

@@ -18,9 +18,10 @@ import { tmCurrentSeasonId } from "./player-aggregation";
  * happily, so every page goes at once through fetchPage's pool. Measured over
  * the 8 pages a top-200 fetch took: 2.1s all-at-once against 2.2s for a single
  * page — the whole thing costs what one request costs. (At concurrency 4 it was
- * 4.1s, at 2 it was 7.8s, so the pool's default of 10 is doing the work.) The 10
- * pages this now takes go into the same pool, so the extra rows are free. TM does
- * answer 503 to the odd page under that load; fetchPage retries with backoff.
+ * 4.1s, at 2 it was 7.8s, so the pool's default of 10 is doing the work.) The 16
+ * pages this now takes overflow the pool into a second round: 3.4s against 1.9s
+ * for 10, once a day behind the cache. TM does answer 503 to the odd page under
+ * that load; fetchPage retries with backoff.
  */
 const PAGE_SIZE = 25;
 

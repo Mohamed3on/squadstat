@@ -9,7 +9,7 @@ import { canonicalLeagueName } from "./leagues";
 /** The scrape, and only the scrape.
  *
  *  Transfers move once a day at most outside a deadline, and the whole fetch is
- *  10 pages, so a day's cache costs one scrape and keeps the page instant.
+ *  16 pages, so a day's cache costs one scrape and keeps the page instant.
  *  Tagged so the header's refresh button can bust it (see app/api/revalidate).
  *
  *  The row limit is part of the key because it is the one thing about the scrape
@@ -35,7 +35,7 @@ const fetchCached = unstable_cache(
 
 /** Priced against today's market values, fresh on every request.
  *
- *  `analyzeTransfers` is a map over 250 rows against a process-memoised lookup,
+ *  `analyzeTransfers` is a map over 400 rows against a process-memoised lookup,
  *  so running it per request costs nothing measurable and buys back the whole
  *  cache-invalidation problem. It also drops `getDataVersion` from the picture:
  *  the committed dataset is no longer read from inside a cached region, so there

@@ -21,7 +21,7 @@ const SQUAD_VALUE = CLUB_MODES["squad-value"];
  *
  * A club leading the squad-value table would then print its net value twice, so
  * that accolade absorbs the standing figure instead of sitting beside a copy of
- * it. Nothing renders at all for a club with no deals in the top 250 — a
+ * it. Nothing renders at all for a club with no deals in the top 400 — a
  * handful of the big five, and most clubs below them.
  *
  * Same shape as `PlayerTransferBadges`: own fetch, own `<Suspense>`, failure
