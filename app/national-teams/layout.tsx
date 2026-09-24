@@ -6,8 +6,7 @@ export default function NationalTeamsLayout({ children }: { children: React.Reac
           Most Valuable National Teams
         </h1>
         <p className="max-w-xl text-sm text-text-muted sm:text-base">
-          What the world&apos;s hundred richest national squads are worth, and what that comes to
-          per player.
+          What every national squad in the world is worth, and what that comes to per player.
         </p>
       </div>
       {children}

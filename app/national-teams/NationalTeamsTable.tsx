@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import Link from "next/link";
 import { EmptyNote } from "@/components/EmptyNote";
 import { NationalityFlag } from "@/components/NationalityFlag";
@@ -60,10 +60,73 @@ function NationCell({ team, href }: { team: NationalTeamValue; href?: string }) 
   );
 }
 
+interface NationProps {
+  team: NationalTeamValue;
+  rank: number;
+  href?: string;
+}
+
+// Memoised, so a keystroke only mounts or drops the nations it lets in or out:
+// the rest keep every prop, rank included, since a search never renumbers.
+const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1.5">
+            <NationCell team={team} href={href} />
+            {team.confederation && <Badge variant="secondary">{team.confederation}</Badge>}
+          </div>
+          <span className="font-value shrink-0 text-sm text-text-muted">#{rank}</span>
+        </div>
+        <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-border-subtle pt-2 text-xs">
+          <div>
+            <dt className="text-text-muted">Squad value</dt>
+            <dd className="font-value">{formatMarketValue(team.totalValue)}</dd>
+          </div>
+          <div className="text-right">
+            <dt className="text-text-muted">Value per player</dt>
+            <dd className="font-value text-accent-gold">
+              {formatValuePerPlayer(team.averageValue)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-text-muted">Squad size</dt>
+            <dd className="font-value">{team.squadSize}</dd>
+          </div>
+          <div className="text-right">
+            <dt className="text-text-muted">Avg age</dt>
+            <dd className="font-value">{team.averageAge.toFixed(1)}</dd>
+          </div>
+        </dl>
+      </CardContent>
+    </Card>
+  );
+});
+
+const NationRow = memo(function NationRow({ team, rank, href }: NationProps) {
+  return (
+    <TableRow>
+      <TableCell className="font-value text-text-muted">{rank}</TableCell>
+      <TableCell>
+        <NationCell team={team} href={href} />
+      </TableCell>
+      <TableCell>
+        {team.confederation && <Badge variant="secondary">{team.confederation}</Badge>}
+      </TableCell>
+      <TableCell className="font-value text-right">{team.squadSize}</TableCell>
+      <TableCell className="font-value text-right">{team.averageAge.toFixed(1)}</TableCell>
+      <TableCell className="font-value text-right">{formatMarketValue(team.totalValue)}</TableCell>
+      <TableCell className="font-value text-right text-accent-gold">
+        {formatValuePerPlayer(team.averageValue)}
+      </TableCell>
+    </TableRow>
+  );
+});
+
 /**
- * The hundred most valuable national teams, sortable on every figure
- * Transfermarkt publishes for them, searchable by name and narrowed by
- * confederation.
+ * Every national team Transfermarkt values, sortable on every figure it
+ * publishes for them, searchable by name and narrowed by confederation.
  *
  * The position counts within the confederation on screen, and a search only
  * hides rows — so a searched nation still shows where it stands. Below `md`
@@ -80,8 +143,11 @@ export function NationalTeamsTable({
   const [query, setQuery] = useState("");
   const [confederation, setConfederation] = useState(ALL);
 
-  // In the order each one's richest nation appears in the hundred.
-  const confederations = useMemo(() => [...new Set(teams.map((t) => t.confederation))], [teams]);
+  // In the order each one's richest nation appears; a blank one gets no chip.
+  const confederations = useMemo(
+    () => [...new Set(teams.map((t) => t.confederation))].filter(Boolean),
+    [teams],
+  );
   const scoped = useMemo(
     () => (confederation === ALL ? teams : teams.filter((t) => t.confederation === confederation)),
     [teams, confederation],
@@ -96,9 +162,8 @@ export function NationalTeamsTable({
   return (
     <div className="space-y-3">
       <p className="max-w-3xl text-sm text-text-muted">
-        <span className="font-value">{teams.length}</span> national teams, the ones Transfermarkt
-        ranks highest by squad value — sorting another column re-orders that set rather than
-        re-picking it. Value per player = squad value ÷ squad size.
+        <span className="font-value">{teams.length}</span> national teams — every one Transfermarkt
+        puts a value on. Value per player = squad value ÷ squad size.
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -138,37 +203,7 @@ export function NationalTeamsTable({
         />
 
         {shown.map(({ team, rank }) => (
-          <Card key={team.id}>
-            <CardContent className="p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 space-y-1.5">
-                  <NationCell team={team} href={playerLinks[team.name]} />
-                  <Badge variant="secondary">{team.confederation}</Badge>
-                </div>
-                <span className="font-value shrink-0 text-sm text-text-muted">#{rank}</span>
-              </div>
-              <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-border-subtle pt-2 text-xs">
-                <div>
-                  <dt className="text-text-muted">Squad value</dt>
-                  <dd className="font-value">{formatMarketValue(team.totalValue)}</dd>
-                </div>
-                <div className="text-right">
-                  <dt className="text-text-muted">Value per player</dt>
-                  <dd className="font-value text-accent-gold">
-                    {formatValuePerPlayer(team.averageValue)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-text-muted">Squad size</dt>
-                  <dd className="font-value">{team.squadSize}</dd>
-                </div>
-                <div className="text-right">
-                  <dt className="text-text-muted">Avg age</dt>
-                  <dd className="font-value">{team.averageAge.toFixed(1)}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+          <NationCard key={team.id} team={team} rank={rank} href={playerLinks[team.name]} />
         ))}
       </div>
 
@@ -177,25 +212,7 @@ export function NationalTeamsTable({
           <SortableHeader columns={COLUMNS} sort={sort} onToggle={toggle} />
           <TableBody>
             {shown.map(({ team, rank }) => (
-              <TableRow key={team.id}>
-                <TableCell className="font-value text-text-muted">{rank}</TableCell>
-                <TableCell>
-                  <NationCell team={team} href={playerLinks[team.name]} />
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{team.confederation}</Badge>
-                </TableCell>
-                <TableCell className="font-value text-right">{team.squadSize}</TableCell>
-                <TableCell className="font-value text-right">
-                  {team.averageAge.toFixed(1)}
-                </TableCell>
-                <TableCell className="font-value text-right">
-                  {formatMarketValue(team.totalValue)}
-                </TableCell>
-                <TableCell className="font-value text-right text-accent-gold">
-                  {formatValuePerPlayer(team.averageValue)}
-                </TableCell>
-              </TableRow>
+              <NationRow key={team.id} team={team} rank={rank} href={playerLinks[team.name]} />
             ))}
           </TableBody>
         </Table>
@@ -203,8 +220,8 @@ export function NationalTeamsTable({
 
       {shown.length === 0 && (
         <EmptyNote>
-          No {confederation === ALL ? "" : `${confederation} `}national team in the hundred matches
-          “{query.trim()}”.
+          No national team matches “{query.trim()}”
+          {confederation === ALL ? "" : ` in ${confederation}`}.
         </EmptyNote>
       )}
     </div>

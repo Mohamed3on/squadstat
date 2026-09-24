@@ -360,7 +360,7 @@ export interface SquadValueResult {
 
 /**
  * One nation on Transfermarkt's most-valuable-national-teams table. Money in
- * euros. The same hundred-by-total-value set as `SquadValueClub`, without the
+ * euros. Every nation TM puts a value on, in its total-value order, without the
  * top-18 columns, which TM doesn't print for national teams.
  */
 export interface NationalTeamValue {
@@ -368,7 +368,7 @@ export interface NationalTeamValue {
   name: string;
   /** TM's country id: it addresses the flag and matches players' nationalities. */
   landId: number;
-  /** "UEFA", "CONMEBOL", … */
+  /** "UEFA", "CONMEBOL", … — or "" for the odd nation TM leaves blank. */
   confederation: string;
   squadSize: number;
   averageAge: number;

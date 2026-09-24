@@ -7,7 +7,7 @@ import { NationalTeamsTable } from "./NationalTeamsTable";
 export const metadata = createPageMetadata({
   title: "Most Valuable National Teams",
   description:
-    "The 100 most valuable national teams in world football, searchable by country, filterable by confederation, and sortable by squad value, value per player, squad size and average age.",
+    "Every national team in world football by market value, searchable by country, filterable by confederation, and sortable by squad value, value per player, squad size and average age.",
   path: "/national-teams",
   keywords: [
     "most valuable national teams",
