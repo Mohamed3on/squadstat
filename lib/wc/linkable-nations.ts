@@ -21,7 +21,7 @@ async function nationByLandId(): Promise<Map<number, string>> {
 }
 
 /**
- * Map of WC team name -> /players href, for teams whose nation has players there.
+ * Map of national team name -> /players href, for nations with players there.
  * Matched by stable TM landId, so dataset spelling differences don't matter.
  */
 export async function playerLinks(

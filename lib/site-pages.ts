@@ -65,6 +65,12 @@ export const SITE_PAGES: readonly SitePage[] = [
   { href: "/form", name: "Recent Form", kind: "page", keywords: ["form"] },
   { href: "/squad-values", name: "Squad Values", kind: "page", keywords: ["most valuable squads"] },
   {
+    href: "/national-teams",
+    name: "National Teams",
+    kind: "page",
+    keywords: ["most valuable national teams", "countries"],
+  },
+  {
     href: "/expected-position",
     name: "Value vs Table",
     kind: "page",

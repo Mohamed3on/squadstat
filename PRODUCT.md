@@ -57,10 +57,10 @@ for a single club, player or competition.
 
 - **Coverage:** a tracked player pool across the top five leagues (732 players on 2026-09-13; some
   copy still says "500+"), plus the Champions League and the Europa League. Some views reach further: Most Valuable
-  Squads covers the world's top 100, Club Transfers covers the biggest spenders, and team pages
+  Squads and National Teams each cover the world's top 100, Club Transfers covers the biggest spenders, and team pages
   rank clubs outside the tracked leagues.
 - **Views:**
-  - Teams: Recent Form, Value vs Table, Squad Values, Injury Impact.
+  - Teams: Recent Form, Value vs Table, Squad Values, National Teams, Injury Impact.
   - Players: All Players, Over/Under, Biggest Movers.
   - Transfers: Fee vs Value, By Club.
   - One page per league, plus the Champions League and the Europa League.
