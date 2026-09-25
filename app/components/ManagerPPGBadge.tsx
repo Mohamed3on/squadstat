@@ -1,10 +1,8 @@
 "use client";
 
 import type { ManagerInfo } from "@/app/types";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverTip } from "@/components/HoverTip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsTouchDevice } from "@/lib/hooks/use-touch-device";
 
 interface ManagerPPGBadgeProps {
   manager: ManagerInfo;
@@ -29,7 +27,8 @@ export function ManagerSkeleton() {
   );
 }
 
-export function ManagerSection({ manager }: ManagerPPGBadgeProps) {
+/** `tip={false}` drops the badge's own tooltip, for a section already inside one. */
+export function ManagerSection({ manager, tip }: ManagerPPGBadgeProps & { tip?: boolean }) {
   return (
     <div className="@container flex items-center gap-x-2">
       <div className="inline-flex min-w-0 items-center gap-1.5">
@@ -45,14 +44,27 @@ export function ManagerSection({ manager }: ManagerPPGBadgeProps) {
         </a>
         <ManagerSackedBadge manager={manager} />
       </div>
-      <ManagerPPGBadge manager={manager} />
+      <ManagerPPGBadge manager={manager} tip={tip} />
     </div>
   );
 }
 
-export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
-  const isTouchDevice = useIsTouchDevice();
+/** Where the PPG ranks among managers since 1992 with as many games, or null when it isn't ranked. */
+function ppgStanding(manager: ManagerInfo) {
+  if (
+    manager.ppg === null ||
+    manager.ppgRank === undefined ||
+    manager.totalComparableManagers === undefined
+  )
+    return null;
 
+  const isOnly = manager.totalComparableManagers === 1;
+  const isBest = manager.ppgRank === 1 && !isOnly;
+  const isWorst = manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
+  return { isOnly, isBest, isWorst };
+}
+
+export function ManagerPPGBadge({ manager, tip = true }: ManagerPPGBadgeProps & { tip?: boolean }) {
   if (manager.matches === 0) {
     return (
       <span className="shrink-0 text-[10px] @md:text-xs text-text-muted">
@@ -62,12 +74,9 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
     );
   }
 
-  const hasRanking =
-    manager.ppg !== null &&
-    manager.ppgRank !== undefined &&
-    manager.totalComparableManagers !== undefined;
+  const standing = ppgStanding(manager);
 
-  if (!hasRanking) {
+  if (!standing) {
     return (
       <span className="shrink-0 text-[10px] @md:text-xs text-text-secondary">
         <span className="font-value">{manager.matches}</span>{" "}
@@ -76,9 +85,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
     );
   }
 
-  const isOnly = manager.totalComparableManagers === 1;
-  const isBest = manager.ppgRank === 1 && !isOnly;
-  const isWorst = manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
+  const { isOnly, isBest, isWorst } = standing;
 
   // Quiet, uniform token by default; a faint tint flags only the best/worst.
   // The row's own ▲/▼ delta stays the loud signal — this is a secondary annotation.
@@ -90,7 +97,7 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
 
   const badge = (
     <span
-      className={`inline-flex shrink-0 cursor-help items-center gap-1 rounded px-1.5 py-0.5 text-[10px] @md:text-xs transition-opacity hover:opacity-80 ${tone}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] @md:text-xs ${tip ? "cursor-help transition-opacity hover:opacity-80" : ""} ${tone}`}
     >
       {isOnly && (
         <span aria-hidden title="Only manager with this many games since 1992">
@@ -107,7 +114,26 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
     </span>
   );
 
-  const tooltipContent = (
+  if (!tip) return badge;
+
+  return (
+    <HoverTip trigger={badge} className="max-w-[280px] sm:max-w-xs">
+      <ManagerRecord manager={manager} />
+    </HoverTip>
+  );
+}
+
+/**
+ * The manager's PPG and where it ranks since 1992, with the best and worst
+ * beside it — or nothing, when there's no PPG to rank.
+ */
+export function ManagerRecord({ manager }: ManagerPPGBadgeProps) {
+  const standing = manager.matches > 0 ? ppgStanding(manager) : null;
+  if (!standing) return null;
+
+  const { isOnly, isBest, isWorst } = standing;
+
+  return (
     <div className="space-y-2 text-xs sm:text-sm">
       <div className="text-text-secondary">
         <span className="font-value text-text-primary">{manager.ppg!.toFixed(2)}</span> PPG over{" "}
@@ -167,38 +193,5 @@ export function ManagerPPGBadge({ manager }: ManagerPPGBadgeProps) {
         </div>
       )}
     </div>
-  );
-
-  const contentClass =
-    "max-w-[280px] sm:max-w-xs p-3 bg-card text-text-primary border border-border-subtle shadow-[0_8px_32px_rgba(0,0,0,0.4)]";
-
-  return isTouchDevice ? (
-    <Popover>
-      <PopoverTrigger asChild>{badge}</PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="center"
-        sideOffset={8}
-        avoidCollisions={true}
-        collisionPadding={16}
-        className={contentClass}
-      >
-        {tooltipContent}
-      </PopoverContent>
-    </Popover>
-  ) : (
-    <Tooltip>
-      <TooltipTrigger asChild>{badge}</TooltipTrigger>
-      <TooltipContent
-        side="bottom"
-        align="center"
-        sideOffset={8}
-        avoidCollisions={true}
-        collisionPadding={16}
-        className={contentClass}
-      >
-        {tooltipContent}
-      </TooltipContent>
-    </Tooltip>
   );
 }

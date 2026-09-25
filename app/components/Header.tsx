@@ -31,7 +31,7 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/value-analysis": { workflow: true },
   "/biggest-movers": { workflow: true },
   "/squad-values": { workflow: true },
-  "/national-teams": { workflow: true },
+  "/national-teams": { tags: ["manager"], workflow: true },
   "/fee-vs-value": { tags: ["top-transfers"] },
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
   "/leagues/champions-league": { tags: ["cl-values", "cl-results"] },

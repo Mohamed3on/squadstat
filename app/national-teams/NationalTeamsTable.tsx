@@ -1,7 +1,8 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { EmptyNote } from "@/components/EmptyNote";
 import { NationalityFlag } from "@/components/NationalityFlag";
 import {
@@ -15,10 +16,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { BASE_URL } from "@/lib/constants";
 import { formatMarketValue, formatValuePerPlayer } from "@/lib/format";
 import { normalizeForSearch } from "@/lib/normalize";
 import { flagUrl } from "@/lib/transfermarkt/image";
 import type { NationalTeamValue } from "@/app/types";
+import { NationManager } from "./NationManager";
 
 type SortKey =
   | "position"
@@ -27,7 +30,8 @@ type SortKey =
   | "squadSize"
   | "averageAge"
   | "totalValue"
-  | "averageValue";
+  | "averageValue"
+  | "manager";
 
 /** Module-level, as `useTableSort` requires: an inline array re-sorts every render. */
 const COLUMNS: SortColumn<NationalTeamValue, SortKey>[] = [
@@ -40,11 +44,16 @@ const COLUMNS: SortColumn<NationalTeamValue, SortKey>[] = [
   { key: "averageAge", label: "Avg age", numeric: true, value: (t) => t.averageAge },
   { key: "totalValue", label: "Squad value", numeric: true, value: (t) => t.totalValue },
   { key: "averageValue", label: "Value per player", numeric: true, value: (t) => t.averageValue },
+  // Loaded one nation at a time on hover, so there's no column of them to sort.
+  { key: "manager", label: "Manager" },
 ];
 
 const ALL = "all";
 
-/** Flag and name, linked to the nation's players when the site tracks any. */
+/**
+ * Flag and name, linked to the nation's players when the site tracks any, then
+ * out to its extended squad on Transfermarkt.
+ */
 function NationCell({ team, href }: { team: NationalTeamValue; href?: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -56,6 +65,16 @@ function NationCell({ team, href }: { team: NationalTeamValue; href?: string }) 
       ) : (
         <span className="truncate text-sm font-bold">{team.name}</span>
       )}
+      <a
+        href={`${BASE_URL}/x/erweiterterkader/verein/${team.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Extended squad on Transfermarkt"
+        aria-label={`${team.name} extended squad on Transfermarkt`}
+        className="shrink-0 text-text-muted opacity-40 transition-opacity hover:opacity-100"
+      >
+        <ExternalLink className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+      </a>
     </div>
   );
 }
@@ -98,6 +117,12 @@ const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
             <dt className="text-text-muted">Avg age</dt>
             <dd className="font-value">{team.averageAge.toFixed(1)}</dd>
           </div>
+          <div className="col-span-2 flex items-center justify-between gap-3">
+            <dt className="text-text-muted">Manager</dt>
+            <dd className="min-w-0">
+              <NationManager teamId={team.id} nation={team.name} />
+            </dd>
+          </div>
         </dl>
       </CardContent>
     </Card>
@@ -119,6 +144,12 @@ const NationRow = memo(function NationRow({ team, rank, href }: NationProps) {
       <TableCell className="font-value text-right">{formatMarketValue(team.totalValue)}</TableCell>
       <TableCell className="font-value text-right text-accent-gold">
         {formatValuePerPlayer(team.averageValue)}
+      </TableCell>
+      <TableCell>
+        {/* A fixed width, so a name arriving on hover never shifts the other columns. */}
+        <div className="w-40">
+          <NationManager teamId={team.id} nation={team.name} />
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -154,7 +185,9 @@ export function NationalTeamsTable({
   );
   const { sort, rows, toggle, pick, flip } = useTableSort(scoped, COLUMNS, "averageValue");
 
-  const needle = normalizeForSearch(query);
+  // Deferred, so the box takes each keystroke at once and the rows follow when they
+  // can: clearing a search mounts every nation again, manager tooltips and all.
+  const needle = normalizeForSearch(useDeferredValue(query));
   const shown = rows
     .map((team, i) => ({ team, rank: i + 1 }))
     .filter(({ team }) => normalizeForSearch(team.name).includes(needle));

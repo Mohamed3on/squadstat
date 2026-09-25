@@ -13,10 +13,13 @@ export function useManagerQuery(clubId: string) {
   });
 }
 
-export const managerQueryOptions = (clubId: string) => ({
-  queryKey: ["manager", clubId] as const,
+/** `officialOnly` strips friendlies from the PPG: a different answer, so its own key. */
+export const managerQueryOptions = (clubId: string, officialOnly = false) => ({
+  queryKey: officialOnly
+    ? (["manager", clubId, "official"] as const)
+    : (["manager", clubId] as const),
   queryFn: () =>
-    fetch(`/api/manager/${clubId}`)
+    fetch(`/api/manager/${clubId}${officialOnly ? "?official=1" : ""}`)
       .then((r: Response) => r.json())
       .then((d: { manager?: ManagerInfo | null }) => d.manager ?? null),
   staleTime: 86400_000,

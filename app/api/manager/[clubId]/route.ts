@@ -3,8 +3,10 @@ import { getManagerInfo } from "@/lib/fetch-manager";
 
 export async function GET(request: Request, { params }: { params: Promise<{ clubId: string }> }) {
   const { clubId } = await params;
+  // ?official=1 restates PPG on competitive games alone, as national teams want.
+  const officialOnly = new URL(request.url).searchParams.get("official") === "1";
   try {
-    const manager = await getManagerInfo(clubId);
+    const manager = await getManagerInfo(clubId, officialOnly);
     return NextResponse.json(
       { clubId, manager },
       {
