@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useDeferredValue, useMemo, useState } from "react";
+import { memo, useDeferredValue, useMemo, useReducer, useState } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { EmptyNote } from "@/components/EmptyNote";
@@ -31,6 +31,7 @@ type SortKey =
   | "averageAge"
   | "totalValue"
   | "averageValue"
+  | "extendedAverageValue"
   | "manager";
 
 /** Module-level, as `useTableSort` requires: an inline array re-sorts every render. */
@@ -44,6 +45,12 @@ const COLUMNS: SortColumn<NationalTeamValue, SortKey>[] = [
   { key: "averageAge", label: "Avg age", numeric: true, value: (t) => t.averageAge },
   { key: "totalValue", label: "Squad value", numeric: true, value: (t) => t.totalValue },
   { key: "averageValue", label: "Value per player", numeric: true, value: (t) => t.averageValue },
+  {
+    key: "extendedAverageValue",
+    label: "Extended squad",
+    numeric: true,
+    value: (t) => t.extendedAverageValue,
+  },
   // Loaded one nation at a time on hover, so there's no column of them to sort.
   { key: "manager", label: "Manager" },
 ];
@@ -87,9 +94,11 @@ interface NationProps {
 
 // Memoised, so a keystroke only mounts or drops the nations it lets in or out:
 // the rest keep every prop, rank included, since a search never renumbers.
+// Each arms its manager tooltip on the first pointer or focus: see NationManager.
 const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
+  const [armed, arm] = useReducer(() => true, false);
   return (
-    <Card>
+    <Card onPointerEnter={arm} onFocus={arm}>
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1.5">
@@ -117,10 +126,16 @@ const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
             <dt className="text-text-muted">Avg age</dt>
             <dd className="font-value">{team.averageAge.toFixed(1)}</dd>
           </div>
+          {team.extendedAverageValue !== undefined && (
+            <div className="col-span-2 flex items-center justify-between gap-3">
+              <dt className="text-text-muted">Extended squad</dt>
+              <dd className="font-value">{formatValuePerPlayer(team.extendedAverageValue)}</dd>
+            </div>
+          )}
           <div className="col-span-2 flex items-center justify-between gap-3">
             <dt className="text-text-muted">Manager</dt>
             <dd className="min-w-0">
-              <NationManager teamId={team.id} nation={team.name} />
+              <NationManager teamId={team.id} nation={team.name} armed={armed} />
             </dd>
           </div>
         </dl>
@@ -130,8 +145,9 @@ const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
 });
 
 const NationRow = memo(function NationRow({ team, rank, href }: NationProps) {
+  const [armed, arm] = useReducer(() => true, false);
   return (
-    <TableRow>
+    <TableRow onPointerEnter={arm} onFocus={arm}>
       <TableCell className="font-value text-text-muted">{rank}</TableCell>
       <TableCell>
         <NationCell team={team} href={href} />
@@ -145,10 +161,17 @@ const NationRow = memo(function NationRow({ team, rank, href }: NationProps) {
       <TableCell className="font-value text-right text-accent-gold">
         {formatValuePerPlayer(team.averageValue)}
       </TableCell>
+      <TableCell className="font-value text-right">
+        {team.extendedAverageValue === undefined ? (
+          <span className="text-text-muted">—</span>
+        ) : (
+          formatValuePerPlayer(team.extendedAverageValue)
+        )}
+      </TableCell>
       <TableCell>
         {/* A fixed width, so a name arriving on hover never shifts the other columns. */}
         <div className="w-40">
-          <NationManager teamId={team.id} nation={team.name} />
+          <NationManager teamId={team.id} nation={team.name} armed={armed} />
         </div>
       </TableCell>
     </TableRow>
@@ -186,7 +209,7 @@ export function NationalTeamsTable({
   const { sort, rows, toggle, pick, flip } = useTableSort(scoped, COLUMNS, "averageValue");
 
   // Deferred, so the box takes each keystroke at once and the rows follow when they
-  // can: clearing a search mounts every nation again, manager tooltips and all.
+  // can: clearing a search mounts every nation again.
   const needle = normalizeForSearch(useDeferredValue(query));
   const shown = rows
     .map((team, i) => ({ team, rank: i + 1 }))
@@ -196,7 +219,9 @@ export function NationalTeamsTable({
     <div className="space-y-3">
       <p className="max-w-3xl text-sm text-text-muted">
         <span className="font-value">{teams.length}</span> national teams — every one Transfermarkt
-        puts a value on. Value per player = squad value ÷ squad size.
+        puts a value on. Value per player = squad value ÷ squad size. Extended squad = value per
+        player across everyone Transfermarkt lists for the nation, not just its latest call-up — top{" "}
+        <span className="font-value">50</span> only.
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

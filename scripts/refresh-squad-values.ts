@@ -33,6 +33,12 @@ const clubsUrl = (page: number) =>
 const nationsUrl = (page: number) =>
   `${BASE_URL}/vereins-statistik/wertvollstenationalmannschaften/marktwertetop?kontinent_id=0&plus=1&page=${page}`;
 
+/** A nation's extended squad: everyone TM lists around it, not just the latest
+ *  call-up, which can average far lower. One page each, so only the top fifty
+ *  on value per player get one. */
+const EXTENDED_TOP = 50;
+const extendedSquadUrl = (id: string) => `${BASE_URL}/x/erweiterterkader/verein/${id}`;
+
 const CLUB_ID = /\/verein\/(\d+)/;
 const COMPETITION = /\/wettbewerb\/([A-Za-z0-9]+)$/;
 /** TM addresses a flag by its country id: /flagge/tiny/50.png is France. */
@@ -126,6 +132,16 @@ function parseNations(html: string): NationalTeamValue[] {
   return teams;
 }
 
+/** Value per player off the totals row of the extended squad's "Squad details by
+ *  position" box, which reads Total · ø age · value · ø value. 0 when it's missing. */
+function parseExtendedAverage(html: string): number {
+  const $ = cheerio.load(html);
+  const box = $(".box").filter(
+    (_, b) => $(b).find(".content-box-headline").text().trim() === "Squad details by position",
+  );
+  return parseMarketValue(box.find("tfoot td").last().text().trim());
+}
+
 /** A table's last page, off the pagination every page carries. */
 function lastPage(html: string): number {
   const $ = cheerio.load(html);
@@ -202,6 +218,19 @@ async function main() {
   // figures for — gone ones like the Soviet Union, and a few like the Bahamas
   // it has never valued — which a value ranking can't place.
   const teams = nations.filter((t) => t.totalValue > 0);
+
+  const top = [...teams].sort((a, b) => b.averageValue - a.averageValue).slice(0, EXTENDED_TOP);
+  const extended = await Promise.all(
+    top.map((t) => fetchPage(extendedSquadUrl(t.id)).then(parseExtendedAverage)),
+  );
+  const missing = top.filter((_, i) => !extended[i]).map((t) => t.name);
+  if (missing.length > 0) {
+    throw new Error(
+      `No extended-squad value for ${missing.join(", ")} — selectors moved or Transfermarkt is rate limiting.`,
+    );
+  }
+  top.forEach((t, i) => (t.extendedAverageValue = extended[i]));
+
   await save("squad-values", "clubs", clubs, { clubs });
   await save("national-team-values", "national teams", teams, { teams });
 }

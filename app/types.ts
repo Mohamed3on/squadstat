@@ -375,6 +375,9 @@ export interface NationalTeamValue {
   totalValue: number;
   /** Total value ÷ squad size, as Transfermarkt prints it. */
   averageValue: number;
+  /** The same across the extended squad — everyone TM lists around the nation, not
+   *  just the latest call-up. Only the top 50 on value per player carry it. */
+  extendedAverageValue?: number;
 }
 
 export interface NationalTeamValueResult {

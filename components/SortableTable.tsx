@@ -17,7 +17,8 @@ export interface SortColumn<T, K extends string = string> {
   label: string;
   /** Numbers sit right and read largest-first; text sits left and reads A→Z. */
   numeric?: boolean;
-  value?: (row: T) => number | string;
+  /** `undefined` is a row with no figure, which sits last whichever way the column runs. */
+  value?: (row: T) => number | string | undefined;
   /** Extra classes for the header cell, e.g. hiding a column below a breakpoint. */
   className?: string;
 }
@@ -48,11 +49,14 @@ export function useTableSort<T, K extends string>(
   const sorted = useMemo(() => {
     const value = columns.find((c) => c.key === sort.key)?.value;
     if (!value) return [...rows];
-    const ordered = [...rows].sort((a, b) => {
-      const [x, y] = [value(a), value(b)];
-      return typeof x === "string" ? x.localeCompare(String(y)) : x - Number(y);
-    });
-    return sort.desc ? ordered.reverse() : ordered;
+    const ordered = rows
+      .filter((r) => value(r) !== undefined)
+      .sort((a, b) => {
+        const [x, y] = [value(a)!, value(b)!];
+        return typeof x === "string" ? x.localeCompare(String(y)) : x - Number(y);
+      });
+    if (sort.desc) ordered.reverse();
+    return [...ordered, ...rows.filter((r) => value(r) === undefined)];
   }, [rows, columns, sort]);
 
   return {
