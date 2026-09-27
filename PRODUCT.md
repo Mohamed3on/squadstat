@@ -22,7 +22,7 @@ They arrive three ways:
 ## Product Purpose
 
 SquadStat turns Transfermarkt data into views of the Premier League, La Liga, Bundesliga, Serie A,
-Ligue 1, the Champions League and the Europa League. Together they show what the league table misses: team form,
+Ligue 1, the Champions League, the Europa League and the Nations League. Together they show what the league table misses: team form,
 value vs table, player output vs price, market-value trends, injury cost, transfer fees vs value,
 and squad values.
 
@@ -56,14 +56,14 @@ for a single club, player or competition.
 ## Capabilities and Constraints
 
 - **Coverage:** a tracked player pool across the top five leagues (732 players on 2026-09-13; some
-  copy still says "500+"), plus the Champions League and the Europa League. Some views reach further: Most Valuable
+  copy still says "500+"), plus the Champions League, the Europa League and Nations Leagues A and B. Some views reach further: Most Valuable
   Squads covers the world's top 100, National Teams every nation Transfermarkt values, Club Transfers covers the biggest spenders, and team pages
   rank clubs outside the tracked leagues.
 - **Views:**
   - Teams: Recent Form, Value vs Table, Squad Values, National Teams, Injury Impact.
   - Players: All Players, Over/Under, Biggest Movers.
   - Transfers: Fee vs Value, By Club.
-  - One page per league, plus the Champions League and the Europa League.
+  - One page per league, plus the Champions League, the Europa League and Nations Leagues A and B.
   - Detail pages for every player, team and league.
   - Quick Views, and How It Works (the methodology).
 - **Single source:** Transfermarkt, scraped. Every page credits it. There is no other data
@@ -98,8 +98,8 @@ for a single club, player or competition.
   - Committed snapshots in `data/`: player pool, squad values, transfer balance, biggest movers,
     clubs.
   - The frozen World Cup archive in `data/wc/`.
-  - Live Transfermarkt scrapes for form, standings, injuries, managers, and the Champions and
-    Europa Leagues.
+  - Live Transfermarkt scrapes for form, standings, injuries, managers, the Champions and
+    Europa Leagues, and the Nations League.
 - **Methodology:** `/how-it-works` explains each formula.
 - **Assets:** `app/icon.png`, `public/og.png`, and the generated share images.
 - **Traffic:** Vercel Web Analytics is installed. The numbers live in Vercel, not in the repo.

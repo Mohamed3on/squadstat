@@ -1,6 +1,7 @@
 import { getCompClubs, getCompSeason } from "@/lib/uefa/fetch";
 import { buildModel } from "@/lib/uefa/model";
 import type { Competition } from "@/lib/uefa/types";
+import { getTeamDetailHref } from "@/lib/format";
 import { getClubIdsWithPages } from "@/lib/team-detail";
 import { LeaguePhase, LinkedClubsProvider } from "./LeaguePhase";
 
@@ -13,9 +14,12 @@ export async function LeaguePhasePage({ comp }: { comp: Competition }) {
     getClubIdsWithPages(),
   ]);
   const model = buildModel(clubs, season);
+  const links = Object.fromEntries(
+    clubs.filter((c) => withPages.has(c.id)).map((c) => [c.id, getTeamDetailHref(c.id)]),
+  );
   return (
     <div className="py-6 sm:py-10">
-      <LinkedClubsProvider linked={clubs.map((c) => c.id).filter((id) => withPages.has(id))}>
+      <LinkedClubsProvider links={links}>
         <LeaguePhase model={model} comp={comp} />
       </LinkedClubsProvider>
     </div>

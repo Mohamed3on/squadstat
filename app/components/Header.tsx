@@ -36,6 +36,8 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
   "/leagues/champions-league": { tags: ["cl-values", "cl-results"] },
   "/leagues/europa-league": { tags: ["el-values", "el-results"] },
+  "/leagues/nations-league": { tags: ["unla-values", "unla-results"] },
+  "/leagues/nations-league-b": { tags: ["unlb-values", "unlb-results"] },
 };
 
 async function refreshPage(pathname: string) {
@@ -99,7 +101,8 @@ const NAV_GROUPS: readonly { label: string; items: readonly NavLink[] }[] = [
 
 // The Champions League rides with the leagues but stays out of lib/leagues.ts:
 // LEAGUES drives the player pool, the colour maps and /leagues/[slug], none of
-// which a cross-border cup belongs to. Its page is its own static segment.
+// which a cross-border cup belongs to. Its page is its own static segment. So is
+// the Nations League's; League B shares its crest, so it is linked from League A.
 const LEAGUE_NAV = [
   ...LEAGUES.map((l) => ({
     slug: l.slug,
@@ -118,6 +121,12 @@ const LEAGUE_NAV = [
     name: "Europa League",
     href: "/leagues/europa-league",
     logoUrl: leagueLogoUrl("EL"),
+  },
+  {
+    slug: "nations-league",
+    name: "Nations League",
+    href: "/leagues/nations-league",
+    logoUrl: leagueLogoUrl("UNLA"),
   },
 ];
 

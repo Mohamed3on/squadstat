@@ -43,6 +43,20 @@ export const SITE_PAGES: readonly SitePage[] = [
     logoUrl: leagueLogoUrl("EL"),
   },
   {
+    href: "/leagues/nations-league",
+    name: "Nations League A",
+    kind: "competition",
+    keywords: ["nations league", "unl", "uefa", "national teams"],
+    logoUrl: leagueLogoUrl("UNLA"),
+  },
+  {
+    href: "/leagues/nations-league-b",
+    name: "Nations League B",
+    kind: "competition",
+    keywords: ["nations league", "unl", "uefa", "national teams", "promotion"],
+    logoUrl: leagueLogoUrl("UNLB"),
+  },
+  {
     href: "/wc",
     name: "World Cup 2026 Simulation",
     kind: "competition",

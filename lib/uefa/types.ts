@@ -1,6 +1,7 @@
-// Types for the UEFA 36-club league phase, shared by the scraper (fetch.ts), the
-// pure model (model.ts) and the client components. Kept dependency-free so a
-// client bundle importing them never reaches for cheerio.
+// Types for the UEFA 36-club league phase and the Nations League, shared by the
+// scraper (fetch.ts), the pure models (model.ts, nations-league.ts) and the client
+// components. Kept dependency-free so a client bundle importing them never reaches
+// for cheerio.
 
 /** The Europa League copied the Champions League format wholesale — 36 clubs,
  *  eight league-phase games, the same 8/16/12 split and the same knockout
@@ -30,6 +31,37 @@ export const COMPETITIONS: Record<CompCode, Competition> = {
   },
 };
 
+/** The Nations League's top two tiers run the same way — four groups of four, six
+ *  games apiece — and one scraper, model and page body serves both. Only League A
+ *  plays on for a trophy: two-legged quarter-finals, then the Finals. League B's
+ *  prize is going up. */
+export type NationsLeagueCode = "UNLA" | "UNLB";
+
+export type NationsLeague = {
+  code: NationsLeagueCode; // Transfermarkt's competition id, and the cache-tag prefix
+  slug: string; // /leagues/<slug>
+  tmSlug: string; // transfermarkt.com/<tmSlug>/…
+  name: string; // "Nations League A"
+  finals: boolean; // plays a knockout after the groups
+};
+
+export const NATIONS_LEAGUES: Record<NationsLeagueCode, NationsLeague> = {
+  UNLA: {
+    code: "UNLA",
+    slug: "nations-league",
+    tmSlug: "uefa-nations-league-a",
+    name: "Nations League A",
+    finals: true,
+  },
+  UNLB: {
+    code: "UNLB",
+    slug: "nations-league-b",
+    tmSlug: "uefa-nations-league-b",
+    name: "Nations League B",
+    finals: false,
+  },
+};
+
 /** A club in the league phase, as the participants page lists it. */
 export type Club = {
   id: string; // Transfermarkt club id — the join key between both pages
@@ -37,6 +69,7 @@ export type Club = {
   squad: number;
   avgAge: number;
   mv: number; // market value per player (TM's ø) in millions — what the value rank runs on
+  landId?: string; // a nation's Transfermarkt country id, which addresses its flag
 };
 
 /** One row of the 36-club league-phase table. */
@@ -95,4 +128,11 @@ export type Season = {
   table: TableRow[];
   fixtures: Fixture[];
   ko: KoLeg[];
+};
+
+/** A Nations League season: four group tables in one, and — League A only — the
+ *  knockout legs, which Transfermarkt files under a competition of their own. */
+export type NationsSeason = Omit<Season, "table" | "ko"> & {
+  table: (TableRow & { group: number })[];
+  ko: KoLeg[] | null; // null for a league with no knockout
 };

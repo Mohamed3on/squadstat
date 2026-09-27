@@ -2,7 +2,8 @@
 // phase, shared by the Champions League and the Europa League (see COMPETITIONS).
 // Pure: buildModel(clubs, season) turns a roster + market values + whatever
 // Transfermarkt has published so far into the value-vs-table rows and a
-// knockout bracket. No fetching, so the client can import it freely.
+// knockout bracket. No fetching, so the client can import it freely. The
+// tie-settling and bracket drawing below are shared with nations-league.ts.
 
 import type { Club, KoLeg, Round, Season, TableRow } from "./types";
 
@@ -125,20 +126,102 @@ const ROUNDS: { round: Round; count: number; label: string }[] = [
 
 const clip = (name: string) => (name.length > 18 ? name.slice(0, 17).trimEnd() + "…" : name);
 
+/** The participants page spells clubs out ("Paris Saint-Germain"); the table
+ *  abbreviates them ("PSG"). Bracket cards want the abbreviation, so prefer
+ *  Transfermarkt's own rather than blindly clipping the long name. */
+export function liteClubs(clubs: Club[], table: { id: string; short: string }[]) {
+  const abbrev = new Map(table.map((r) => [r.id, r.short]));
+  return new Map(
+    clubs.map((c): [string, ClubLite] => [
+      c.id,
+      { id: c.id, name: c.name, short: clip(abbrev.get(c.id) ?? c.name), mv: c.mv },
+    ]),
+  );
+}
+
+/** A club shown in a deeper round has advanced — the same signal lib/wc/live.ts
+ *  trusts first, because TM wires the next round's names in before it settles
+ *  aggregate scores. `depth` numbers the rounds from the shallowest. */
+export function advancement(ko: KoLeg[], depth: Partial<Record<Round, number>>) {
+  const deepest = new Map<string, number>();
+  for (const leg of ko) {
+    const d = depth[leg.round] ?? 0;
+    for (const id of [leg.homeId, leg.awayId]) {
+      if (id) deepest.set(id, Math.max(deepest.get(id) ?? 0, d));
+    }
+  }
+  return (id: string, d: number) => (deepest.get(id) ?? 0) > d;
+}
+
+/** Where a tie stands. Winner: TM showing a side a round deeper is decisive;
+ *  otherwise the aggregate; otherwise the more valuable squad. */
+export function settle(
+  legs: KoLeg[],
+  homeId: string | null,
+  awayId: string | null,
+  advanced: (id: string) => boolean,
+  mvOf: (id: string | null) => number,
+) {
+  const first = legs[0];
+  const real = !!(first?.homeId && first?.awayId);
+  const played = legs.length > 0 && legs.every((l) => l.hs !== null && l.as !== null);
+
+  let winner = [homeId, awayId].find((id) => id && advanced(id)) ?? null;
+  let decided = !!winner;
+
+  let score: string | null = null;
+  let pens = false;
+  if (played && homeId && awayId) {
+    // Leg two swaps the sides, and a shootout tally replaces that leg's score.
+    let h = 0;
+    let a = 0;
+    for (const l of legs) {
+      const flip = l.homeId ? l.homeId !== homeId : l.leg === 2;
+      h += (flip ? l.as : l.hs) ?? 0;
+      a += (flip ? l.hs : l.as) ?? 0;
+      pens ||= l.pens;
+    }
+    score = `${h}:${a}`;
+    if (!decided && h !== a) {
+      winner = h > a ? homeId : awayId;
+      decided = real;
+    }
+  }
+  if (!winner) winner = mvOf(homeId) >= mvOf(awayId) ? homeId : awayId;
+  return { real, winner, decided, score, pens };
+}
+
+/** The connector from a tie to the one its winner goes on to. */
+export function edge(c: Card, parent: Card): Edge {
+  const sx = c.x + CARD_W;
+  const ex = parent.x;
+  const mx = (sx + ex) / 2;
+  return {
+    d: `M${sx} ${c.y}L${mx} ${c.y}L${mx} ${parent.y}L${ex} ${parent.y}`,
+    club: c.winner ?? "",
+  };
+}
+
+/** Where a tie sits in a plain binary tree: its round's column, at the midpoint
+ *  of the two ties feeding it. `row` counts from 1 within the column. */
+export const place = (col: number, row: number) => ({
+  x: col * STEP,
+  y: TOP + ((row - 0.5) * 2 ** col - 0.5) * ROW,
+});
+
+/** The canvas a bracket draws on: a column per round, `rows` ties tall. */
+export const frame = (labels: string[], rows: number) => ({
+  labels: labels.map((label, i) => ({ label, x: i * STEP })),
+  width: labels.length * STEP - (STEP - CARD_W),
+  height: TOP + rows * ROW,
+  cardW: CARD_W,
+  cardH: CARD_H,
+});
+
 export type UefaModel = ReturnType<typeof buildModel>;
 
 export function buildModel(clubs: Club[], season: Season) {
-  // The participants page spells clubs out ("Paris Saint-Germain"); the table
-  // abbreviates them ("PSG"). Bracket cards want the abbreviation, so prefer
-  // Transfermarkt's own rather than blindly clipping the long name.
-  const abbrev = new Map(season.table.map((r) => [r.id, r.short]));
-  const lite = (c: Club): ClubLite => ({
-    id: c.id,
-    name: c.name,
-    short: clip(abbrev.get(c.id) ?? c.name),
-    mv: c.mv,
-  });
-  const byId = new Map(clubs.map((c) => [c.id, lite(c)]));
+  const byId = liteClubs(clubs, season.table);
   const mvOf = (id: string | null) => (id && byId.get(id)?.mv) || 0;
 
   // ---- League phase: where each club sits vs what its squad is worth ----
@@ -168,7 +251,7 @@ export function buildModel(clubs: Club[], season: Season) {
       const expStage = expectedStage(rank);
       const started = !!t && t.pl > 0;
       return {
-        club: lite(c),
+        club: byId.get(c.id)!,
         pos,
         pl: t?.pl ?? 0,
         gd: t?.gd ?? 0,
@@ -199,21 +282,8 @@ export function buildModel(clubs: Club[], season: Season) {
     legsOf.set(key, [...(legsOf.get(key) ?? []), leg]);
   }
 
-  // A club shown in a deeper round has advanced — the same signal lib/wc/live.ts
-  // trusts first, because TM wires the next round's names in before it settles
-  // aggregate scores.
   const depth: Record<Round, number> = { PO: 1, R16: 2, QF: 3, SF: 4, F: 5 };
-  const atDepth = new Map<number, Set<string>>();
-  for (const leg of season.ko) {
-    const set = atDepth.get(depth[leg.round]) ?? new Set<string>();
-    if (leg.homeId) set.add(leg.homeId);
-    if (leg.awayId) set.add(leg.awayId);
-    atDepth.set(depth[leg.round], set);
-  }
-  const appearsDeeper = (id: string, d: number) => {
-    for (let n = d + 1; n <= 5; n++) if (atDepth.get(n)?.has(id)) return true;
-    return false;
-  };
+  const appearsDeeper = advancement(season.ko, depth);
 
   const cards = new Map<string, Card>();
   const resolve = (round: Round, num: number): Card => {
@@ -243,38 +313,7 @@ export function buildModel(clubs: Club[], season: Season) {
     if (!homeId && homeSeed) homeId = finalTable.get(homeSeed)?.id ?? null;
     if (!awayId && awaySeed) awayId = finalTable.get(awaySeed)?.id ?? null;
 
-    const real = !!(first?.homeId && first?.awayId);
-    const played = legs.length > 0 && legs.every((l) => l.hs !== null && l.as !== null);
-
-    // Winner: TM showing a club a round deeper is decisive; otherwise the
-    // aggregate; otherwise the more valuable squad.
-    let winner: string | null = null;
-    let decided = false;
-    const advanced = [homeId, awayId].find((id) => id && appearsDeeper(id, depth[round]));
-    if (advanced) {
-      winner = advanced;
-      decided = true;
-    }
-
-    let score: string | null = null;
-    let pens = false;
-    if (played && homeId && awayId) {
-      // Leg two swaps the sides, and a shootout tally replaces that leg's score.
-      let h = 0;
-      let a = 0;
-      for (const l of legs) {
-        const flip = l.homeId ? l.homeId !== homeId : l.leg === 2;
-        h += (flip ? l.as : l.hs) ?? 0;
-        a += (flip ? l.hs : l.as) ?? 0;
-        pens ||= l.pens;
-      }
-      score = `${h}:${a}`;
-      if (!decided && h !== a) {
-        winner = h > a ? homeId : awayId;
-        decided = real;
-      }
-    }
-    if (!winner) winner = mvOf(homeId) >= mvOf(awayId) ? homeId : awayId;
+    const tie = settle(legs, homeId, awayId, (id) => appearsDeeper(id, depth[round]), mvOf);
 
     const col = ROUNDS.findIndex((r) => r.round === round);
     const card: Card = {
@@ -285,11 +324,7 @@ export function buildModel(clubs: Club[], season: Season) {
       away: awayId ? (byId.get(awayId) ?? null) : null,
       homeSeed: first?.homeId ? null : homeSeed,
       awaySeed: first?.awayId ? null : awaySeed,
-      winner,
-      real,
-      decided,
-      score,
-      pens,
+      ...tie,
       x: col * STEP,
       y: yOf(round, num),
     };
@@ -305,19 +340,14 @@ export function buildModel(clubs: Club[], season: Season) {
   // later round takes two.
   const edges: Edge[] = allCards
     .filter((c) => c.round !== "F")
-    .map((c) => {
-      const parent =
+    .map((c) =>
+      edge(
+        c,
         c.round === "PO"
           ? cards.get(`R16-${c.num}`)!
-          : cards.get(`${nextRound(c.round)}-${Math.ceil(c.num / 2)}`)!;
-      const sx = c.x + CARD_W;
-      const ex = parent.x;
-      const mx = (sx + ex) / 2;
-      return {
-        d: `M${sx} ${c.y}L${mx} ${c.y}L${mx} ${parent.y}L${ex} ${parent.y}`,
-        club: c.winner ?? "",
-      };
-    });
+          : cards.get(`${nextRound(c.round)}-${Math.ceil(c.num / 2)}`)!,
+      ),
+    );
 
   // ---- Who can still win it ----
   // Out: the bottom twelve, once the league phase is actually over, plus the
@@ -347,11 +377,10 @@ export function buildModel(clubs: Club[], season: Season) {
     bracket: {
       cards: allCards,
       edges,
-      labels: ROUNDS.map((r, i) => ({ label: r.label, x: i * STEP })),
-      width: ROUNDS.length * STEP - (STEP - CARD_W),
-      height: TOP + 8 * ROW,
-      cardW: CARD_W,
-      cardH: CARD_H,
+      ...frame(
+        ROUNDS.map((r) => r.label),
+        8,
+      ),
     },
     /** Most valuable squad not yet out — the projected winner, shown from
      *  matchday one, when it is still just "the best squad in the draw". */

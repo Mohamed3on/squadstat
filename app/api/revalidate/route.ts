@@ -12,6 +12,10 @@ const ALL_TAGS = [
   "cl-results",
   "el-values",
   "el-results",
+  "unla-values",
+  "unla-results",
+  "unlb-values",
+  "unlb-results",
 ];
 
 export async function POST(request: NextRequest) {

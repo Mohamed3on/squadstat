@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import Link from "next/link";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { BASE_URL } from "@/lib/constants";
-import { formatMillions, getTeamDetailHref, ordinal } from "@/lib/format";
+import { formatMillions, ordinal } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
 import {
@@ -19,13 +19,20 @@ import "@/app/components/tournament.css";
 
 type ColKey = "pos" | "club" | "pl" | "gd" | "pts" | "mv" | "valueRank" | "delta";
 
+/** A table row as both pages draw it: the Champions League's league phase, or
+ *  one Nations League group. */
+type Line = Pick<
+  PhaseRow,
+  "club" | "pos" | "pl" | "gd" | "pts" | "valueRank" | "ptsDelta" | "posDelta"
+>;
+
 // Which gap the Δ column measures. While the league phase is running it is
 // points against whoever holds your value-seeded slot — over eight games a place
 // in a 36-club table turns on goal difference, so counting places exaggerates.
 // Once the table has settled, places are the honest unit.
-type Measure = { key: "pts" | "pos"; label: string; of: (r: PhaseRow) => number | null };
-const BY_POINTS: Measure = { key: "pts", label: "Δ pts", of: (r) => r.ptsDelta };
-const BY_PLACES: Measure = { key: "pos", label: "Δ pos", of: (r) => r.posDelta };
+export type Measure = { key: "pts" | "pos"; label: string; of: (r: Line) => number | null };
+export const BY_POINTS: Measure = { key: "pts", label: "Δ pts", of: (r) => r.ptsDelta };
+export const BY_PLACES: Measure = { key: "pos", label: "Δ pos", of: (r) => r.posDelta };
 
 // `numeric` here means "reads largest-first" — it sets the direction a column
 // takes when you first sort by it. Points and money read largest-first; a
@@ -48,23 +55,25 @@ const COLUMNS: Record<Measure["key"], SortColumn<PhaseRow, ColKey>[]> = {
   pos: columnsFor(BY_PLACES),
 };
 
-const Crest = ({ id }: { id: string }) => (
-  <img className="crest" src={crestUrl(id)} alt="" loading="lazy" />
-);
-
-// The clubs with a /teams page (see getClubIdsWithPages). The rest — AEK, Bodø/Glimt
-// and the like — link out to Transfermarkt rather than to a not-found page.
-const LinkedClubs = createContext<ReadonlySet<string>>(new Set());
+// Where each side links on this site — a club's /teams page (see
+// getClubIdsWithPages), a nation's players — and, for nations, the flag they wear
+// in place of a crest. Clubs with no page here — AEK, Bodø/Glimt and the like —
+// link out to Transfermarkt rather than to a not-found page.
+type LinkedClubs = { links: Record<string, string>; badges?: Record<string, string> };
+const LinkedClubs = createContext<LinkedClubs>({ links: {} });
 
 export function LinkedClubsProvider({
-  linked,
+  links,
+  badges,
   children,
-}: {
-  linked: string[];
-  children: ReactNode;
-}) {
-  const value = useMemo(() => new Set(linked), [linked]);
+}: LinkedClubs & { children: ReactNode }) {
+  const value = useMemo(() => ({ links, badges }), [links, badges]);
   return <LinkedClubs.Provider value={value}>{children}</LinkedClubs.Provider>;
+}
+
+function Crest({ id }: { id: string }) {
+  const src = useContext(LinkedClubs).badges?.[id] ?? crestUrl(id);
+  return <img className="crest" src={src} alt="" loading="lazy" />;
 }
 
 function ClubLink({
@@ -76,8 +85,9 @@ function ClubLink({
   className?: string;
   children: ReactNode;
 }) {
-  return useContext(LinkedClubs).has(id) ? (
-    <Link href={getTeamDetailHref(id)} className={clsx("hover:underline", className)}>
+  const href = useContext(LinkedClubs).links[id];
+  return href ? (
+    <Link href={href} className={clsx("hover:underline", className)}>
       {children}
     </Link>
   ) : (
@@ -93,7 +103,7 @@ function ClubLink({
   );
 }
 
-function ClubName({ club }: { club: ClubLite }) {
+export function ClubName({ club }: { club: ClubLite }) {
   return (
     <>
       <Crest id={club.id} />
@@ -168,7 +178,7 @@ function LeagueTable({
               active={active}
               onHover={onHover}
               cutline={banded && (r.pos === 9 || r.pos === 25) ? ZONE_LABEL[r.zone] : null}
-              banded={banded}
+              band={banded && `z-${r.zone}`}
               measure={measure}
             />
           ))}
@@ -178,19 +188,19 @@ function LeagueTable({
   );
 }
 
-function Row({
+export function Row({
   row: r,
   active,
   onHover,
-  cutline,
-  banded,
+  cutline = null,
+  band,
   measure,
 }: {
-  row: PhaseRow;
+  row: Line;
   active: string | null;
   onHover: (id: string | null) => void;
-  cutline: string | null;
-  banded: boolean;
+  cutline?: string | null;
+  band: string | false; // the zone stripe down the position column
   measure: Measure;
 }) {
   return (
@@ -201,7 +211,7 @@ function Row({
         </tr>
       )}
       <tr
-        className={clsx("row", banded && `z-${r.zone}`, active === r.club.id && "on")}
+        className={clsx("row", band, active === r.club.id && "on")}
         onMouseEnter={() => onHover(r.club.id)}
         onMouseLeave={() => onHover(null)}
       >
@@ -223,6 +233,17 @@ function Row({
 }
 
 // ---- Fixtures ----
+
+export function Fixtures({ fixtures, matchdays }: { fixtures: Fixture[]; matchdays: number }) {
+  return (
+    <>
+      <div className="section-title">Fixtures</div>
+      {Array.from({ length: matchdays }, (_, i) => i + 1).map((md) => (
+        <Matchday key={md} md={md} fixtures={fixtures.filter((f) => f.matchday === md)} />
+      ))}
+    </>
+  );
+}
 
 function Matchday({ md, fixtures }: { md: number; fixtures: Fixture[] }) {
   // A matchday runs over two or three evenings, so the games are grouped by the
@@ -366,8 +387,7 @@ function Side({
   );
 }
 
-function Bracket({ model }: { model: UefaModel }) {
-  const { bracket } = model;
+export function Bracket({ bracket }: { bracket: UefaModel["bracket"] }) {
   const [active, setActive] = useState<string | null>(null);
   return (
     <div className="t-scroll">
@@ -417,6 +437,119 @@ function Bracket({ model }: { model: UefaModel }) {
   );
 }
 
+// ---- Headline cards ----
+
+/** The most valuable side still in it — shown from day one, when it is simply the
+ *  best squad in the draw. */
+export function ProjectedWinner({
+  club,
+  alive,
+  total,
+  noun,
+}: {
+  club: ClubLite;
+  alive: number;
+  total: number;
+  noun: "club" | "nation";
+}) {
+  // Once a single side is left the projection has stopped projecting anything.
+  const won = alive === 1;
+  return (
+    <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[color:var(--tny-gold)]/40 bg-[var(--tny-panel)] p-4 text-center sm:flex-row sm:justify-between sm:text-left">
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
+          {won ? "Winner" : "Projected winner"}
+        </div>
+        <div className="mt-1 flex items-center justify-center gap-2 text-base font-semibold sm:justify-start">
+          <span aria-hidden>🏆</span>
+          <ClubName club={club} />
+        </div>
+      </div>
+      <div className="text-xs text-[var(--tny-muted)] sm:text-right">
+        <div>{won ? `The last ${noun} standing` : "The most valuable squad still in it"}</div>
+        <div className="mt-0.5">
+          <span className="font-value">{formatMillions(club.mv)}</span> per player ·{" "}
+          <span className="font-value">{alive}</span> of <span className="font-value">{total}</span>{" "}
+          {noun}s left
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The biggest gap above and below the money. Early on several sides share it
+ *  either way, so each card lists every one of them, most valuable first. */
+export function Callouts({
+  rows,
+  measure,
+  place = "Table",
+}: {
+  rows: Line[];
+  measure: Measure;
+  place?: string; // what the position ranks within
+}) {
+  const played = rows.filter((r) => measure.of(r) !== null);
+  const gap = (r: Line) => measure.of(r)!;
+  const top = Math.max(...played.map(gap));
+  const bottom = Math.min(...played.map(gap));
+  const levelOn = (g: number) =>
+    played.filter((r) => gap(r) === g).sort((a, b) => b.club.mv - a.club.mv);
+  if (!(top > 0 && bottom < 0)) return null;
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {[
+        { value: top, word: "Punching above its value", cls: "over" },
+        { value: bottom, word: "Falling short of its value", cls: "under" },
+      ].map(({ value, word, cls }) => {
+        const clubs = levelOn(value);
+        return (
+          <div
+            key={word}
+            className="rounded-2xl border border-[var(--tny-line)] bg-[var(--tny-panel)] p-4"
+          >
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
+                {word}
+              </div>
+              <span className={clsx("delta", cls)}>
+                {value > 0 ? "▲" : "▼"} {Math.abs(value)}
+                {measure === BY_POINTS ? " pts" : ""}
+                {clubs.length > 1 ? " each" : ""}
+              </span>
+            </div>
+            <table className="mt-3 w-full text-sm">
+              <thead>
+                <tr className="whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-[var(--tny-muted)]">
+                  {/* The side takes the slack, so both ranks sit together on the right. */}
+                  <th className="w-full pb-1 text-left font-normal">
+                    <span className="sr-only">Team</span>
+                  </th>
+                  <th className="pb-1 text-right font-normal">{place}</th>
+                  <th className="pb-1 pl-4 text-right font-normal">Value rank</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--tny-line)]">
+                {clubs.map((r) => (
+                  <tr key={r.club.id}>
+                    <td className="py-2">
+                      <div className="flex items-center gap-2 font-semibold">
+                        <ClubName club={r.club} />
+                      </div>
+                    </td>
+                    <td className="py-2 text-right font-value">{ordinal(r.pos)}</td>
+                    <td className="py-2 pl-4 text-right font-value">{ordinal(r.valueRank)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ---- Page ----
 
 export function LeaguePhase({ model, comp }: { model: UefaModel; comp: Competition }) {
@@ -424,16 +557,6 @@ export function LeaguePhase({ model, comp }: { model: UefaModel; comp: Competiti
   // Mid-league-phase, places swing on goal difference, so the gap is counted in
   // points; once the eight games are in, places are the honest unit.
   const measure = model.leaguePhaseComplete ? BY_PLACES : BY_POINTS;
-  const played = model.rows.filter((r) => measure.of(r) !== null);
-  const gap = (r: PhaseRow) => measure.of(r)!;
-  const top = Math.max(...played.map(gap));
-  const bottom = Math.min(...played.map(gap));
-  // Early in the league phase several clubs share the biggest gap either way, so each
-  // card lists every one of them, most valuable first.
-  const levelOn = (g: number) =>
-    played.filter((r) => gap(r) === g).sort((a, b) => a.valueRank - b.valueRank);
-  // Once a single club is left the projection has stopped projecting anything.
-  const won = model.alive === 1;
 
   return (
     <div className="tourney page-container">
@@ -460,79 +583,14 @@ export function LeaguePhase({ model, comp }: { model: UefaModel; comp: Competiti
       </header>
 
       {model.projected && (
-        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[color:var(--tny-gold)]/40 bg-[var(--tny-panel)] p-4 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
-              {won ? "Winner" : "Projected winner"}
-            </div>
-            <div className="mt-1 flex items-center justify-center gap-2 text-base font-semibold sm:justify-start">
-              <span aria-hidden>🏆</span>
-              <ClubName club={model.projected} />
-            </div>
-          </div>
-          <div className="text-xs text-[var(--tny-muted)] sm:text-right">
-            <div>{won ? "The last club standing" : "The most valuable squad still in it"}</div>
-            <div className="mt-0.5">
-              <span className="font-value">{formatMillions(model.projected.mv)}</span> per player ·{" "}
-              <span className="font-value">{model.alive}</span> of{" "}
-              <span className="font-value">{model.rows.length}</span> clubs left
-            </div>
-          </div>
-        </div>
+        <ProjectedWinner
+          club={model.projected}
+          alive={model.alive}
+          total={model.rows.length}
+          noun="club"
+        />
       )}
-
-      {top > 0 && bottom < 0 && (
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {[
-            { value: top, word: "Punching above its value", cls: "over" },
-            { value: bottom, word: "Falling short of its value", cls: "under" },
-          ].map(({ value, word, cls }) => {
-            const clubs = levelOn(value);
-            return (
-              <div
-                key={word}
-                className="rounded-2xl border border-[var(--tny-line)] bg-[var(--tny-panel)] p-4"
-              >
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--tny-muted)]">
-                    {word}
-                  </div>
-                  <span className={clsx("delta", cls)}>
-                    {value > 0 ? "▲" : "▼"} {Math.abs(value)}
-                    {measure === BY_POINTS ? " pts" : ""}
-                    {clubs.length > 1 ? " each" : ""}
-                  </span>
-                </div>
-                <table className="mt-3 w-full text-sm">
-                  <thead>
-                    <tr className="whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-[var(--tny-muted)]">
-                      {/* The club takes the slack, so both ranks sit together on the right. */}
-                      <th className="w-full pb-1 text-left font-normal">
-                        <span className="sr-only">Club</span>
-                      </th>
-                      <th className="pb-1 text-right font-normal">Table</th>
-                      <th className="pb-1 pl-4 text-right font-normal">Value rank</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--tny-line)]">
-                    {clubs.map((r) => (
-                      <tr key={r.club.id}>
-                        <td className="py-2">
-                          <div className="flex items-center gap-2 font-semibold">
-                            <ClubName club={r.club} />
-                          </div>
-                        </td>
-                        <td className="py-2 text-right font-value">{ordinal(r.pos)}</td>
-                        <td className="py-2 pl-4 text-right font-value">{ordinal(r.valueRank)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <Callouts rows={model.rows} measure={measure} />
 
       <div className="section-title">
         League phase · matchday {model.matchday} of {model.matchdays}
@@ -551,7 +609,7 @@ export function LeaguePhase({ model, comp }: { model: UefaModel; comp: Competiti
               ? "Real ties where the draw has been made; the rest projected, with the higher value per player advancing."
               : "Projected from the final table under UEFA's seeding rules, with the higher value per player winning every tie."}
           </p>
-          <Bracket model={model} />
+          <Bracket bracket={model.bracket} />
         </>
       ) : (
         <p className="hint">
@@ -560,10 +618,7 @@ export function LeaguePhase({ model, comp }: { model: UefaModel; comp: Competiti
         </p>
       )}
 
-      <div className="section-title">Fixtures</div>
-      {Array.from({ length: model.matchdays }, (_, i) => i + 1).map((md) => (
-        <Matchday key={md} md={md} fixtures={model.fixtures.filter((f) => f.matchday === md)} />
-      ))}
+      <Fixtures fixtures={model.fixtures} matchdays={model.matchdays} />
 
       <div className="t-foot">
         Market values and results from Transfermarkt, refreshed through the day.

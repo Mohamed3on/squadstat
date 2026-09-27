@@ -1,15 +1,16 @@
 // Scraper for the two UEFA competitions that run the 36-club league phase (see
-// COMPETITIONS). Two Transfermarkt pages each, cached separately because they
-// move at different speeds: squad values drift daily, results land on matchday
-// nights. Both go through fetchPage, so relay routing, the concurrency limiter
-// and the retry ladder are already handled.
+// COMPETITIONS), and for the Nations League's top two tiers (NATIONS_LEAGUES).
+// Two Transfermarkt pages each, cached separately because they move at different
+// speeds: squad values drift daily, results land on matchday nights. All go
+// through fetchPage, so relay routing, the concurrency limiter and the retry
+// ladder are already handled.
 
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { tmCurrentSeasonId } from "@/lib/player-aggregation";
-import { COMPETITIONS } from "./types";
+import { COMPETITIONS, NATIONS_LEAGUES } from "./types";
 import type {
   Club,
   Fixture,
@@ -20,10 +21,15 @@ import type {
   CompCode,
   Competition,
   Kick,
+  NationsLeague,
+  NationsLeagueCode,
+  NationsSeason,
 } from "./types";
 
-const tmUrl = (c: Competition, page: string) =>
-  `https://www.transfermarkt.com/${c.tmSlug}/${page}/pokalwettbewerb/${c.code}/saison_id/${season()}`;
+type Source = { tmSlug: string; code: string };
+
+const tmUrl = (c: Source, page: string, s = season()) =>
+  `https://www.transfermarkt.com/${c.tmSlug}/${page}/pokalwettbewerb/${c.code}/saison_id/${s}`;
 
 // Both competitions start in September, so TM's Aug 1 rollover always names the
 // right season — no coverage-based selection needed (see lib/season-selection.ts,
@@ -65,10 +71,10 @@ const cellsOf = ($: cheerio.CheerioAPI, tr: any): string[] =>
     .map((_, c) => $(c).text().trim().replace(/\s+/g, " "))
     .get();
 
-// --- participants: the 36 clubs and what their squads are worth ---
+// --- participants: every club or nation and what its squad is worth ---
 
-async function fetchClubs(comp: Competition): Promise<Club[]> {
-  const $ = cheerio.load(await fetchPage(tmUrl(comp, "teilnehmer"), 86400));
+async function fetchClubs(c: Source, min: number, s = season()): Promise<Club[]> {
+  const $ = cheerio.load(await fetchPage(tmUrl(c, "teilnehmer", s), 86400));
   const clubs: Club[] = [];
   $("table.items")
     .first()
@@ -85,20 +91,30 @@ async function fetchClubs(comp: Competition): Promise<Club[]> {
         squad: parseInt(tds.eq(2).text().trim(), 10) || 0,
         avgAge: parseFloat(tds.eq(3).text().trim()) || 0,
         mv: euros / 1_000_000,
+        // A nation's first cell is its flag where a club's is its crest.
+        landId: tds
+          .eq(0)
+          .find("img")
+          .attr("src")
+          ?.match(/\/flagge\/\w+\/(\d+)\./)?.[1],
       });
     });
-  if (clubs.length < 30) {
-    throw new Error(`[${comp.code}] participants parse found only ${clubs.length} clubs`);
+  if (clubs.length < min) {
+    throw new Error(`[${c.code}] participants parse found only ${clubs.length} clubs`);
   }
   return clubs;
 }
 
 // --- schedule page: league table + all 144 fixtures + the knockout bracket ---
 
-function parseTable($: cheerio.CheerioAPI): TableRow[] {
-  const box = $(".content-box-headline")
+/** The boxes Transfermarkt heads "Group …": the Champions League's single league
+ *  phase ("Group GP"), each of a Nations League's four groups. */
+const groupBoxes = ($: cheerio.CheerioAPI) =>
+  $(".content-box-headline")
     .filter((_, el) => /^Group\b/.test($(el).text().trim()))
     .closest(".box");
+
+function parseTable($: cheerio.CheerioAPI, box = groupBoxes($)): TableRow[] {
   const rows: TableRow[] = [];
   box.find("table.items tr").each((_, tr) => {
     const tds = $(tr).find("td");
@@ -121,8 +137,13 @@ function parseTable($: cheerio.CheerioAPI): TableRow[] {
   return rows;
 }
 
-function parseFixtures($: cheerio.CheerioAPI): Fixture[] {
-  const table = $("td.hauptlink")
+/** The fixtures under a "Schedule" heading, without matchdays — TM never labels them. */
+function scheduleRows(
+  $: cheerio.CheerioAPI,
+  scope: cheerio.Cheerio<any> = $.root(),
+): Omit<Fixture, "matchday">[] {
+  const table = scope
+    .find("td.hauptlink")
     .filter((_, el) => $(el).text().trim() === "Schedule")
     .first()
     .closest("table");
@@ -154,7 +175,11 @@ function parseFixtures($: cheerio.CheerioAPI): Fixture[] {
       ...cur,
     });
   });
+  return out;
+}
 
+function parseFixtures($: cheerio.CheerioAPI): Fixture[] {
+  const out = scheduleRows($);
   // TM lists fixtures chronologically without matchday labels. Every matchday is
   // the same size — 18 games over two or three evenings — so chunk the sorted
   // list into eight equal blocks. Walking date-blocks instead looks safer but
@@ -243,7 +268,7 @@ async function fetchSeason(comp: Competition): Promise<Season> {
 const loaders = (comp: Competition) => {
   const t = comp.code.toLowerCase();
   return {
-    clubs: unstable_cache(() => fetchClubs(comp), [`${t}-clubs`], {
+    clubs: unstable_cache(() => fetchClubs(comp, 30), [`${t}-clubs`], {
       revalidate: 86400,
       tags: [`${t}-values`],
     }),
@@ -264,5 +289,82 @@ const LOADERS: Record<CompCode, ReturnType<typeof loaders>> = {
 export const getCompClubs = (code: CompCode) => LOADERS[code].clubs();
 export const getCompSeason = (code: CompCode) => LOADERS[code].season();
 
-/** Parsers exposed for the fixture-backed tests in model.test.ts. */
-export const __parsers = { parseTable, parseFixtures, parseKo };
+// --- the Nations League: four groups on one page, League A's knockout on another ---
+
+// The Nations League runs every other season, its groups in the autumn of even
+// years, so the odd season between editions keeps the one that finished that summer.
+const nationsSeason = () => season() - (season() % 2);
+
+// Transfermarkt files League A's quarter-finals and Finals as a competition of their own.
+const FINALS: Source = { tmSlug: "uefa-nations-league-finals", code: "UNFI" };
+
+function parseGroups($: cheerio.CheerioAPI): Pick<NationsSeason, "table" | "fixtures"> {
+  const table: NationsSeason["table"] = [];
+  const fixtures: Fixture[] = [];
+  groupBoxes($).each((_, el) => {
+    const box = $(el);
+    const group = parseInt(
+      box.find(".content-box-headline").first().text().replace(/\D+/g, ""),
+      10,
+    );
+    table.push(...parseTable($, box).map((r) => ({ ...r, group })));
+    // A group of four plays two games a matchday and its matchdays never overlap,
+    // so its fixtures in kickoff order pair off into them.
+    const games = scheduleRows($, box).sort((a, b) => a.kickoff - b.kickoff);
+    fixtures.push(...games.map((f, i) => ({ ...f, matchday: Math.floor(i / 2) + 1 })));
+  });
+  return { table, fixtures: fixtures.sort((a, b) => a.kickoff - b.kickoff) };
+}
+
+/** Transfermarkt answers a season it doesn't have yet with its latest one, which
+ *  until this edition's draw is the last edition's knockout — so the knockout page
+ *  only counts once the season it serves is the one asked for. */
+function parseFinals($: cheerio.CheerioAPI, s: number): KoLeg[] {
+  return $("select[name=saison_id] option[selected]").attr("value") === String(s) ? parseKo($) : [];
+}
+
+async function fetchNationsSeason(nl: NationsLeague): Promise<NationsSeason> {
+  const s = nationsSeason();
+  const [groups, finals] = await Promise.all([
+    fetchPage(tmUrl(nl, "gesamtspielplan", s), 21600),
+    nl.finals ? fetchPage(tmUrl(FINALS, "gesamtspielplan", s), 21600) : null,
+  ]);
+  const { table, fixtures } = parseGroups(cheerio.load(groups));
+  if (table.length < 16 || fixtures.length < 48) {
+    throw new Error(
+      `[${nl.code}] schedule parse: ${table.length} table rows, ${fixtures.length} fixtures`,
+    );
+  }
+  return {
+    label: `${String(s).slice(2)}/${String(s + 1).slice(2)}`,
+    fetchedAt: Date.now(),
+    table,
+    fixtures,
+    ko: finals === null ? null : parseFinals(cheerio.load(finals), s),
+  };
+}
+
+const nationsLoaders = (nl: NationsLeague) => {
+  const t = nl.code.toLowerCase();
+  return {
+    nations: unstable_cache(() => fetchClubs(nl, 16, nationsSeason()), [`${t}-nations`], {
+      revalidate: 86400,
+      tags: [`${t}-values`],
+    }),
+    season: unstable_cache(() => fetchNationsSeason(nl), [`${t}-season`], {
+      revalidate: 21600,
+      tags: [`${t}-results`],
+    }),
+  };
+};
+
+const NATIONS_LOADERS: Record<NationsLeagueCode, ReturnType<typeof nationsLoaders>> = {
+  UNLA: nationsLoaders(NATIONS_LEAGUES.UNLA),
+  UNLB: nationsLoaders(NATIONS_LEAGUES.UNLB),
+};
+
+export const getNations = (code: NationsLeagueCode) => NATIONS_LOADERS[code].nations();
+export const getNationsSeason = (code: NationsLeagueCode) => NATIONS_LOADERS[code].season();
+
+/** Parsers exposed for the fixture-backed tests in model.test.ts and nations-league.test.ts. */
+export const __parsers = { parseTable, parseFixtures, parseKo, parseGroups, parseFinals };

@@ -1061,7 +1061,7 @@
   }
 }
 
-/* ---- UEFA league-phase page additions (/leagues/champions-league, /europa-league) ---- */
+/* ---- UEFA page additions (/leagues/champions-league, /europa-league, /nations-league*) ---- */
 
 /* Club crests stand in for the World Cup's flag emoji, in bracket cards and rows.
    inline-block because Tailwind's preflight makes every img a block, which would
@@ -1085,8 +1085,10 @@
   width: 100%;
 }
 
-/* The league phase's three bands, striped down the position column. */
-.tourney .mv-table tr.z-r16 td:first-child {
+/* The league phase's three bands, striped down the position column. A Nations
+   League group's places going through or up share the last-16 green. */
+.tourney .mv-table tr.z-r16 td:first-child,
+.tourney .mv-table tr.z-up td:first-child {
   box-shadow: inset 3px 0 0 var(--tny-win);
 }
 .tourney .mv-table tr.z-po td:first-child {
