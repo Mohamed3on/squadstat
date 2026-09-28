@@ -5,133 +5,117 @@
 // Champions League bracket. Pure, like model.ts, so the client can import it freely.
 
 import {
+  ROUND_LABEL,
   advancement,
   edge,
   frame,
+  knockedOut,
   liteClubs,
+  mostValuable,
   place,
+  progress,
   settle,
+  valueGaps,
   type Card,
   type ClubLite,
+  type Knockout,
+  type StandingRow,
+  type UefaView,
 } from "./model";
-import type { Club, KoLeg, NationsSeason, Round } from "./types";
+import type { Club, GroupsComp, KoLeg, NationsSeason, Round } from "./types";
 
-export type GroupRow = {
-  club: ClubLite;
-  group: number;
-  /** Place in the group, in Transfermarkt's row order: it has already applied the
-   *  head-to-head tie-breaks its displayed rank leaves level (1, 1, 3, 3). */
-  pos: number;
-  pl: number;
-  gd: number;
-  pts: number;
-  valueRank: number; // place in the group by value per player
-  /** Points minus the points of whoever holds this nation's value-seeded place. */
-  ptsDelta: number | null;
-  /** valueRank − pos, which only means anything once the group is over. */
-  posDelta: number | null;
-};
+export type GroupRow = StandingRow & { group: number };
 
 type Sides = [string | null, string | null];
 
-export type NationsModel = ReturnType<typeof buildNationsModel>;
-
-export function buildNationsModel(nations: Club[], season: NationsSeason) {
+export function buildNationsModel(
+  nations: Club[],
+  season: NationsSeason,
+  bands: GroupsComp["bands"],
+): UefaView {
   const byId = liteClubs(nations, season.table);
-  const matchday = season.fixtures.reduce((m, f) => (f.played ? Math.max(m, f.matchday) : m), 0);
-  const matchdays = Math.max(1, ...season.fixtures.map((f) => f.matchday));
-
   const groups = [...new Set(season.table.map((r) => r.group))]
     .sort((a, b) => a - b)
-    .map((group) => {
-      const table = season.table
-        .filter((r) => r.group === group && byId.has(r.id))
-        .sort((a, b) => a.order - b.order);
-      const byValue = [...table].sort((a, b) => byId.get(b.id)!.mv - byId.get(a.id)!.mv);
-      return table.map((t, i): GroupRow => {
-        const valueRank = byValue.indexOf(t) + 1;
-        const started = t.pl > 0;
-        return {
-          club: byId.get(t.id)!,
-          group,
-          pos: i + 1,
-          pl: t.pl,
-          gd: t.gd,
-          pts: t.pts,
-          valueRank,
-          ptsDelta: started ? t.pts - table[valueRank - 1].pts : null,
-          posDelta: started ? valueRank - (i + 1) : null,
-        };
-      });
-    });
+    .map((group): GroupRow[] =>
+      valueGaps(
+        // Transfermarkt's row order: it has applied the head-to-head tie-breaks its
+        // displayed rank leaves level (1, 1, 3, 3).
+        season.table
+          .filter((t) => t.group === group && byId.has(t.id))
+          .sort((a, b) => a.order - b.order)
+          .map((t) => ({ club: byId.get(t.id)!, group, pl: t.pl, gd: t.gd, pts: t.pts })),
+      ).map((r) => ({ ...r, zone: bands.find((b) => r.pos <= b.upTo)?.zone ?? null })),
+    );
   const rows = groups.flat();
-  const over = (g: GroupRow[]) => g.every((r) => r.pl >= matchdays);
+  const { matchday, matchdays, complete } = progress(season.fixtures, rows);
 
   // Who can still finish in their group's top `k`: once it's over, whoever did;
   // until then anyone whose best case — every game left won — still reaches the
   // points the k-th placed side has today.
   const canFinish = (g: GroupRow[], r: GroupRow, k: number) =>
-    over(g) ? r.pos <= k : r.pts + 3 * (matchdays - r.pl) >= g[k - 1].pts;
+    g.every((x) => x.pl >= matchdays) ? r.pos <= k : r.pts + 3 * (matchdays - r.pl) >= g[k - 1].pts;
+  const contenders = (g: GroupRow[], k: number) => g.filter((r) => canFinish(g, r, k));
 
   return {
     label: season.label,
-    fetchedAt: season.fetchedAt,
-    groups,
     rows,
+    tables: groups.map((g) => ({ title: `Group ${g[0].group}`, rows: g })),
     matchday,
     matchdays,
-    complete: rows.length > 0 && over(rows),
-    /** Each group's projected winner: the most valuable nation that can still top
-     *  it, or the one that did. League B's prize, since its winners go up. */
-    leaders: groups.map((g) => ({
-      group: g[0].group,
-      club: mostValuable(g.filter((r) => canFinish(g, r, 1))),
-      decided: over(g),
-    })),
+    complete,
     fixtures: season.fixtures,
-    knockout: season.ko && knockout(groups, season.ko, byId, (g, r) => canFinish(g, r, 2)),
+    knockout:
+      season.ko &&
+      knockout(
+        groups,
+        season.ko,
+        byId,
+        groups.flatMap((g) => contenders(g, 2)),
+      ),
+    // A league with no knockout plays for promotion, so its prize is each group:
+    // the most valuable nation still able to top it (the leader always can).
+    leaders: season.ko
+      ? null
+      : groups.map((g) => ({
+          group: g[0].group,
+          club: mostValuable(contenders(g, 1).map((r) => r.club))!,
+        })),
   };
 }
-
-const mostValuable = (rows: GroupRow[]) =>
-  rows.reduce((a, b) => (b.club.mv > a.club.mv ? b : a)).club;
 
 // Real sides once Transfermarkt has published both, the projection until then.
 const sidesOf = (legs: KoLeg[], proj: Sides): Sides =>
   legs[0]?.homeId && legs[0]?.awayId ? [legs[0].homeId, legs[0].awayId] : proj;
 
-/** League A's knockout, from its quarter-finals to the final, and who can still win it. */
+/** League A's knockout, from its quarter-finals to the final. `contenders` are the
+ *  nations still able to make their group's top two. */
 function knockout(
   groups: GroupRow[][],
   ko: KoLeg[],
   byId: Map<string, ClubLite>,
-  through: (g: GroupRow[], r: GroupRow) => boolean,
-) {
-  const mvOf = (id: string | null) => (id && byId.get(id)?.mv) || 0;
-  const depth: Partial<Record<Round, number>> = { QF: 1, SF: 2, F: 3 };
+  contenders: GroupRow[],
+): Knockout {
+  const depth = { QF: 1, SF: 2, F: 3 } as const;
   const appearsDeeper = advancement(ko, depth);
   const legsOf = (round: Round, num?: number) =>
     ko
       .filter((l) => l.round === round && (num === undefined || l.num === num))
       .sort((a, b) => a.leg - b.leg);
-
-  const cards: Card[] = [];
-  const card = (round: Round, num: number, row: number, sides: Sides, legs: KoLeg[]) => {
-    const [homeId, awayId] = sides;
-    const c: Card = {
-      id: `${round}-${num}`,
-      round,
-      num,
-      home: homeId ? (byId.get(homeId) ?? null) : null,
-      away: awayId ? (byId.get(awayId) ?? null) : null,
-      homeSeed: null,
-      awaySeed: null,
-      ...settle(legs, homeId, awayId, (id) => appearsDeeper(id, depth[round]!), mvOf),
-      ...place(depth[round]! - 1, row),
-    };
-    cards.push(c);
-    return c;
-  };
+  const card = (
+    round: keyof typeof depth,
+    num: number,
+    row: number,
+    [homeId, awayId]: Sides,
+    legs: KoLeg[],
+  ): Card => ({
+    id: `${round}-${num}`,
+    round,
+    num,
+    homeSeed: null,
+    awaySeed: null,
+    ...settle(legs, homeId, awayId, (id) => appearsDeeper(id, depth[round]), byId),
+    ...place(depth[round] - 1, row),
+  });
 
   const draw = projectDraw(groups);
   const qfSides = [1, 2, 3, 4].map((n) => sidesOf(legsOf("QF", n), draw[n - 1]));
@@ -143,46 +127,40 @@ function knockout(
   // and 3 v 4. Quarter-final 1 stays on top either way.
   const known = legsOf("SF")
     .map((l) => [qfOf(l.homeId), qfOf(l.awayId)].sort((a, b) => a - b))
-    .find(([a]) => a > 0);
-  const other = [1, 2, 3, 4].filter((n) => !known?.includes(n));
-  const pairs = !known
-    ? [other.slice(0, 2), other.slice(2)]
-    : known[0] === 1
-      ? [known, other]
-      : [other, known];
+    .find(([a]) => a > 0) ?? [1, 2];
+  const pairs = [known, [1, 2, 3, 4].filter((n) => !known.includes(n))].sort((a, b) => a[0] - b[0]);
 
   const qf = pairs.flat().map((n, i) => card("QF", n, i + 1, qfSides[n - 1], legsOf("QF", n)));
   const sf = pairs.map((pair, i) => {
     const legs = legsOf("SF").filter(
       (l) => pair.includes(qfOf(l.homeId)) || pair.includes(qfOf(l.awayId)),
     );
-    const [a, b] = pair.map((n) => qf.find((c) => c.num === n)!.winner);
-    return card("SF", i + 1, i + 1, sidesOf(legs, [a, b]), legs);
+    return card("SF", i + 1, i + 1, sidesOf(legs, [qf[2 * i].winner, qf[2 * i + 1].winner]), legs);
   });
   const finalLegs = legsOf("F", 1);
   const final = card("F", 1, 1, sidesOf(finalLegs, [sf[0].winner, sf[1].winner]), finalLegs);
-
-  const edges = [
-    ...qf.map((c) => edge(c, sf[pairs.findIndex((p) => p.includes(c.num))])),
-    ...sf.map((c) => edge(c, final)),
-  ];
+  const cards = [...qf, ...sf, final];
 
   // Out: anyone who can no longer make their group's top two, and the loser of
   // every tie Transfermarkt has settled. The projected winner is the most valuable
   // nation left — what the bracket resolves to, as every open tie goes to value.
-  const out = new Set<string>();
-  for (const g of groups) for (const r of g) if (!through(g, r)) out.add(r.club.id);
-  for (const c of cards) {
-    if (!c.decided) continue;
-    for (const side of [c.home, c.away]) if (side && side.id !== c.winner) out.add(side.id);
-  }
-  const alive = groups.flat().filter((r) => !out.has(r.club.id));
+  const out = knockedOut(cards);
+  const alive = contenders.filter((r) => !out.has(r.club.id));
 
   return {
-    /** True once Transfermarkt has published any knockout tie. */
     drawn: ko.length > 0,
-    bracket: { cards, edges, ...frame(["Quarter-finals", "Semi-finals", "Final"], 4) },
-    projected: alive.length ? mostValuable(alive) : null,
+    bracket: {
+      cards,
+      edges: [
+        ...qf.map((c, i) => edge(c, sf[Math.floor(i / 2)])),
+        ...sf.map((c) => edge(c, final)),
+      ],
+      ...frame(
+        (["QF", "SF", "F"] as const).map((r) => ROUND_LABEL[r]),
+        4,
+      ),
+    },
+    projected: mostValuable(alive.map((r) => r.club)),
     alive: alive.length,
   };
 }

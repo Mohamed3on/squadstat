@@ -1,6 +1,6 @@
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPETITIONS } from "@/lib/uefa/types";
-import { LeaguePhasePage } from "../_uefa/LeaguePhasePage";
+import { UefaPage } from "../_uefa/UefaPage";
 
 // Request-rendered like the other Transfermarkt-backed league pages: the data
 // layer underneath is unstable_cache'd, so a request render stays cheap, and a
@@ -24,5 +24,5 @@ export const metadata = createPageMetadata({
 });
 
 export default function EuropaLeaguePage() {
-  return <LeaguePhasePage comp={COMPETITIONS.EL} />;
+  return <UefaPage comp={COMPETITIONS.EL} />;
 }

@@ -22,6 +22,7 @@ import { Menu, HelpCircle, RefreshCw } from "lucide-react";
 import { PlayerSearch } from "./PlayerSearch";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
+import { COMPETITION_LIST, cacheTags, compHref, familyOf } from "@/lib/uefa/types";
 
 const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = {
   "/form": { tags: ["form-analysis", "manager"] },
@@ -34,10 +35,14 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/national-teams": { tags: ["manager"], workflow: true },
   "/fee-vs-value": { tags: ["top-transfers"] },
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
-  "/leagues/champions-league": { tags: ["cl-values", "cl-results"] },
-  "/leagues/europa-league": { tags: ["el-values", "el-results"] },
-  "/leagues/nations-league": { tags: ["unla-values", "unla-results"] },
-  "/leagues/nations-league-b": { tags: ["unlb-values", "unlb-results"] },
+  // A Nations League page takes its values from the national-team data, as
+  // /national-teams does, so its refresh also queues that data's workflow.
+  ...Object.fromEntries(
+    COMPETITION_LIST.map((c) => [
+      compHref(c),
+      { tags: cacheTags(c), workflow: c.format === "groups" },
+    ]),
+  ),
 };
 
 async function refreshPage(pathname: string) {
@@ -99,35 +104,25 @@ const NAV_GROUPS: readonly { label: string; items: readonly NavLink[] }[] = [
   },
 ];
 
-// The Champions League rides with the leagues but stays out of lib/leagues.ts:
+// The UEFA competitions ride with the leagues but stay out of lib/leagues.ts:
 // LEAGUES drives the player pool, the colour maps and /leagues/[slug], none of
-// which a cross-border cup belongs to. Its page is its own static segment. So is
-// the Nations League's; League B shares its crest, so it is linked from League A.
+// which a cross-border cup belongs to. Each is its own static segment, with one
+// crest per family — lit on any of its pages, the Nations League's tiers included.
 const LEAGUE_NAV = [
   ...LEAGUES.map((l) => ({
     slug: l.slug,
     name: l.name,
     href: `/leagues/${l.slug}`,
+    paths: [`/leagues/${l.slug}`],
     logoUrl: getLeagueLogoUrl(l.name),
   })),
-  {
-    slug: "champions-league",
-    name: "Champions League",
-    href: "/leagues/champions-league",
-    logoUrl: leagueLogoUrl("CL"),
-  },
-  {
-    slug: "europa-league",
-    name: "Europa League",
-    href: "/leagues/europa-league",
-    logoUrl: leagueLogoUrl("EL"),
-  },
-  {
-    slug: "nations-league",
-    name: "Nations League",
-    href: "/leagues/nations-league",
-    logoUrl: leagueLogoUrl("UNLA"),
-  },
+  ...COMPETITION_LIST.filter((c) => familyOf(c)[0] === c).map((c) => ({
+    slug: c.slug,
+    name: c.family,
+    href: compHref(c),
+    paths: familyOf(c).map(compHref),
+    logoUrl: leagueLogoUrl(c.code),
+  })),
 ];
 
 type LeagueNavItem = (typeof LEAGUE_NAV)[number];
@@ -299,7 +294,7 @@ export function Header() {
           <span aria-hidden="true" className="h-5 w-px bg-border-subtle" />
           <nav aria-label="Leagues" className="flex items-center gap-1">
             {LEAGUE_NAV.map((l) => (
-              <LeagueCrest key={l.slug} league={l} isActive={pathname === l.href} />
+              <LeagueCrest key={l.slug} league={l} isActive={l.paths.includes(pathname)} />
             ))}
           </nav>
         </div>
@@ -379,7 +374,7 @@ export function Header() {
                   <SheetGroupLabel>Leagues</SheetGroupLabel>
                   {LEAGUE_NAV.map((l) => (
                     <SheetClose key={l.slug} asChild>
-                      <SheetLink href={l.href} label={l.name} isActive={pathname === l.href}>
+                      <SheetLink href={l.href} label={l.name} isActive={l.paths.includes(pathname)}>
                         <img
                           src={l.logoUrl}
                           alt=""

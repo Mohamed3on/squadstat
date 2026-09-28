@@ -3,9 +3,10 @@
 // Pure: buildModel(clubs, season) turns a roster + market values + whatever
 // Transfermarkt has published so far into the value-vs-table rows and a
 // knockout bracket. No fetching, so the client can import it freely. The
-// tie-settling and bracket drawing below are shared with nations-league.ts.
+// measures, tie-settling and bracket drawing below are nations-league.ts's too,
+// and both hand the page the same UefaView.
 
-import type { Club, KoLeg, Round, Season, TableRow } from "./types";
+import type { Club, Fixture, KoLeg, Round, Season } from "./types";
 
 export type ClubLite = { id: string; name: string; short: string; mv: number };
 
@@ -48,20 +49,25 @@ export const ZONE_LABEL: Record<Zone, string> = {
   out: "Out after the league phase",
 };
 
-export type PhaseRow = {
+/** A side in a table, against the place its value per player seeds it. */
+export type StandingRow = {
   club: ClubLite;
   pos: number;
   pl: number;
   gd: number;
-  gf: number;
   pts: number;
   valueRank: number;
-  /** Points minus the points of whoever currently holds this club's value-seeded
-   *  position. The league-phase measure: over eight games a place in a 36-club
-   *  table turns on goal difference, so counting places exaggerates. */
+  /** Points minus the points of whoever holds this side's value-seeded place.
+   *  The measure while a table runs: over a handful of games a place turns on
+   *  goal difference, so counting places exaggerates. */
   ptsDelta: number | null;
-  /** valueRank − pos, which only means anything once the league phase has settled. */
+  /** valueRank − pos, which only means anything once the table has settled. */
   posDelta: number | null;
+  zone: string | null; // the stripe down the table: straight through, a play-off, out
+};
+
+export type PhaseRow = StandingRow & {
+  gf: number;
   zone: Zone;
   expZone: Zone;
   expStage: number;
@@ -87,6 +93,30 @@ export type Card = {
 };
 
 export type Edge = { d: string; club: string };
+
+/** A knockout and who can still win it. */
+export type Knockout = {
+  drawn: boolean; // Transfermarkt has published a tie
+  bracket: { cards: Card[]; edges: Edge[] } & ReturnType<typeof frame>;
+  /** The most valuable side not yet out — shown from matchday one, when it is
+   *  still just "the best squad in the draw". */
+  projected: ClubLite | null;
+  alive: number; // how many can still win it
+};
+
+/** Everything a UEFA page draws, whichever format it plays. */
+export type UefaView = {
+  label: string; // "26/27"
+  rows: StandingRow[]; // every side, for the biggest gaps either way
+  tables: { title: string | null; rows: StandingRow[] }[];
+  matchday: number; // the latest with a result in
+  matchdays: number;
+  complete: boolean; // every side has played all its games
+  fixtures: Fixture[];
+  knockout: Knockout | null;
+  /** Each group's projected winner, for a league that plays for promotion. */
+  leaders: { group: number; club: ClubLite }[] | null;
+};
 
 // ---- The bracket skeleton (UEFA competition regulations, Article 19 + Annex B) ----
 //
@@ -123,6 +153,10 @@ const ROUNDS: { round: Round; count: number; label: string }[] = [
   { round: "SF", count: 2, label: "Semi-finals" },
   { round: "F", count: 1, label: "Final" },
 ];
+export const ROUND_LABEL = Object.fromEntries(ROUNDS.map((r) => [r.round, r.label])) as Record<
+  Round,
+  string
+>;
 
 const clip = (name: string) => (name.length > 18 ? name.slice(0, 17).trimEnd() + "…" : name);
 
@@ -137,6 +171,37 @@ export function liteClubs(clubs: Club[], table: { id: string; short: string }[])
       { id: c.id, name: c.name, short: clip(abbrev.get(c.id) ?? c.name), mv: c.mv },
     ]),
   );
+}
+
+export const mostValuable = (clubs: ClubLite[]) =>
+  clubs.reduce<ClubLite | null>((a, b) => (!a || b.mv > a.mv ? b : a), null);
+
+/** Rows in finishing order, each measured against the place its value per player
+ *  seeds it: points against whoever holds that place and, once it has settled,
+ *  places. A side yet to play has no gap either way. */
+export function valueGaps<R extends { club: ClubLite; pl: number; pts: number }>(rows: R[]) {
+  const byValue = [...rows].sort((a, b) => b.club.mv - a.club.mv);
+  return rows.map((r, i) => {
+    const valueRank = byValue.indexOf(r) + 1;
+    const started = r.pl > 0;
+    return {
+      ...r,
+      pos: i + 1,
+      valueRank,
+      ptsDelta: started ? r.pts - rows[valueRank - 1].pts : null,
+      posDelta: started ? valueRank - (i + 1) : null,
+    };
+  });
+}
+
+/** How far the fixtures have got. */
+export function progress(fixtures: Fixture[], rows: { pl: number }[]) {
+  const matchdays = Math.max(1, ...fixtures.map((f) => f.matchday));
+  return {
+    matchday: fixtures.reduce((m, f) => (f.played ? Math.max(m, f.matchday) : m), 0),
+    matchdays,
+    complete: rows.length > 0 && rows.every((r) => r.pl >= matchdays),
+  };
 }
 
 /** A club shown in a deeper round has advanced — the same signal lib/wc/live.ts
@@ -160,8 +225,10 @@ export function settle(
   homeId: string | null,
   awayId: string | null,
   advanced: (id: string) => boolean,
-  mvOf: (id: string | null) => number,
+  byId: Map<string, ClubLite>,
 ) {
+  const home = (homeId && byId.get(homeId)) || null;
+  const away = (awayId && byId.get(awayId)) || null;
   const first = legs[0];
   const real = !!(first?.homeId && first?.awayId);
   const played = legs.length > 0 && legs.every((l) => l.hs !== null && l.as !== null);
@@ -187,8 +254,18 @@ export function settle(
       decided = real;
     }
   }
-  if (!winner) winner = mvOf(homeId) >= mvOf(awayId) ? homeId : awayId;
-  return { real, winner, decided, score, pens };
+  if (!winner) winner = (home?.mv ?? 0) >= (away?.mv ?? 0) ? homeId : awayId;
+  return { home, away, real, winner, decided, score, pens };
+}
+
+/** The loser of every tie Transfermarkt has settled. */
+export function knockedOut(cards: Card[]) {
+  const out = new Set<string>();
+  for (const c of cards) {
+    if (!c.decided) continue;
+    for (const side of [c.home, c.away]) if (side && side.id !== c.winner) out.add(side.id);
+  }
+  return out;
 }
 
 /** The connector from a tie to the one its winner goes on to. */
@@ -202,11 +279,11 @@ export function edge(c: Card, parent: Card): Edge {
   };
 }
 
-/** Where a tie sits in a plain binary tree: its round's column, at the midpoint
- *  of the two ties feeding it. `row` counts from 1 within the column. */
-export const place = (col: number, row: number) => ({
+/** Where a tie sits: its round's column, at the midpoint of the two ties feeding
+ *  it — `depth` halvings above the first round's rows, which `row` counts from 1. */
+export const place = (col: number, row: number, depth = col) => ({
   x: col * STEP,
-  y: TOP + ((row - 0.5) * 2 ** col - 0.5) * ROW,
+  y: TOP + ((row - 0.5) * 2 ** depth - 0.5) * ROW,
 });
 
 /** The canvas a bracket draws on: a column per round, `rows` ties tall. */
@@ -218,59 +295,50 @@ export const frame = (labels: string[], rows: number) => ({
   cardH: CARD_H,
 });
 
-export type UefaModel = ReturnType<typeof buildModel>;
-
-export function buildModel(clubs: Club[], season: Season) {
+export function buildModel(clubs: Club[], season: Season): UefaView {
   const byId = liteClubs(clubs, season.table);
-  const mvOf = (id: string | null) => (id && byId.get(id)?.mv) || 0;
 
   // ---- League phase: where each club sits vs what its squad is worth ----
-  const valueRank = new Map<string, number>();
-  [...clubs].sort((a, b) => b.mv - a.mv).forEach((c, i) => valueRank.set(c.id, i + 1));
-
   // Transfermarkt's displayed rank ties while clubs are level (3, 3, 5, 6, 6, 6, 9…),
   // which would leave holes in the 1-36 ladder the zones and the bracket seeding both
   // read. Densify it: points, then goal difference, then goals scored, then TM's own
-  // row order — which already carries the official tie-breaks it has applied.
-  const dense = new Map<string, number>();
-  [...season.table]
-    .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.order - b.order)
-    .forEach((r, i) => dense.set(r.id, i + 1));
-
-  // The table is the source of truth for position; clubs TM hasn't listed yet
-  // (it publishes the table only once the draw is made) fall back to value order.
+  // row order — which already carries the official tie-breaks it has applied. Clubs
+  // TM hasn't listed yet (it publishes the table only once the draw is made) follow
+  // in value order.
   const tableById = new Map(season.table.map((r) => [r.id, r]));
-  const ptsAt = new Map<number, number>();
-  for (const r of season.table) ptsAt.set(dense.get(r.id)!, r.pts);
+  const order = (id: string) => tableById.get(id)?.order ?? Infinity;
+  const rows: PhaseRow[] = valueGaps(
+    clubs
+      .map((c) => {
+        const t = tableById.get(c.id);
+        return {
+          club: byId.get(c.id)!,
+          pl: t?.pl ?? 0,
+          gd: t?.gd ?? 0,
+          gf: t?.gf ?? 0,
+          pts: t?.pts ?? 0,
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.pts - a.pts ||
+          b.gd - a.gd ||
+          b.gf - a.gf ||
+          order(a.club.id) - order(b.club.id) ||
+          b.club.mv - a.club.mv,
+      ),
+  ).map((r) => {
+    const expStage = expectedStage(r.valueRank);
+    return {
+      ...r,
+      zone: zoneOf(r.pos),
+      expZone: zoneOf(r.valueRank),
+      expStage,
+      expLabel: STAGE_LABEL[expStage],
+    };
+  });
 
-  const rows: PhaseRow[] = clubs
-    .map((c) => {
-      const t: TableRow | undefined = tableById.get(c.id);
-      const rank = valueRank.get(c.id)!;
-      const pos = dense.get(c.id) ?? rank;
-      const expStage = expectedStage(rank);
-      const started = !!t && t.pl > 0;
-      return {
-        club: byId.get(c.id)!,
-        pos,
-        pl: t?.pl ?? 0,
-        gd: t?.gd ?? 0,
-        gf: t?.gf ?? 0,
-        pts: t?.pts ?? 0,
-        valueRank: rank,
-        ptsDelta: started ? t.pts - (ptsAt.get(rank) ?? t.pts) : null,
-        posDelta: started ? rank - pos : null,
-        zone: zoneOf(pos),
-        expZone: zoneOf(rank),
-        expStage,
-        expLabel: STAGE_LABEL[expStage],
-      };
-    })
-    .sort((a, b) => a.pos - b.pos);
-
-  const matchday = season.fixtures.reduce((m, f) => (f.played ? Math.max(m, f.matchday) : m), 0);
-  const matchdays = Math.max(1, ...season.fixtures.map((f) => f.matchday));
-  const leaguePhaseComplete = rows.length > 0 && rows.every((r) => r.pl >= matchdays);
+  const { matchday, matchdays, complete } = progress(season.fixtures, rows);
   const finalTable = new Map(rows.map((r) => [r.pos, r.club]));
 
   // ---- Knockout bracket ----
@@ -313,20 +381,16 @@ export function buildModel(clubs: Club[], season: Season) {
     if (!homeId && homeSeed) homeId = finalTable.get(homeSeed)?.id ?? null;
     if (!awayId && awaySeed) awayId = finalTable.get(awaySeed)?.id ?? null;
 
-    const tie = settle(legs, homeId, awayId, (id) => appearsDeeper(id, depth[round]), mvOf);
-
     const col = ROUNDS.findIndex((r) => r.round === round);
     const card: Card = {
       id,
       round,
       num,
-      home: homeId ? (byId.get(homeId) ?? null) : null,
-      away: awayId ? (byId.get(awayId) ?? null) : null,
       homeSeed: first?.homeId ? null : homeSeed,
       awaySeed: first?.awayId ? null : awaySeed,
-      ...tie,
-      x: col * STEP,
-      y: yOf(round, num),
+      ...settle(legs, homeId, awayId, (id) => appearsDeeper(id, depth[round]), byId),
+      // Play-off and last 16 share the first eight rows; each later round halves.
+      ...place(col, num, Math.max(0, col - 1)),
     };
     cards.set(id, card);
     return card;
@@ -355,52 +419,35 @@ export function buildModel(clubs: Club[], season: Season) {
   // in, so the projected winner is simply the most valuable squad left — which is
   // also what the bracket above resolves to, since every undecided tie there goes
   // to the higher value per player.
-  const out = new Set<string>();
-  if (leaguePhaseComplete) {
-    for (const r of rows) if (r.zone === "out") out.add(r.club.id);
-  }
-  for (const c of allCards) {
-    if (!c.decided) continue;
-    for (const side of [c.home, c.away]) if (side && side.id !== c.winner) out.add(side.id);
-  }
-  const alive = rows.filter((r) => !out.has(r.club.id)).sort((a, b) => a.valueRank - b.valueRank);
+  const out = knockedOut(allCards);
+  if (complete) for (const r of rows) if (r.zone === "out") out.add(r.club.id);
+  const alive = rows.filter((r) => !out.has(r.club.id));
 
   return {
     label: season.label,
-    fetchedAt: season.fetchedAt,
     rows,
+    tables: [{ title: null, rows }],
     matchday,
     matchdays,
-    leaguePhaseComplete,
-    /** True once Transfermarkt has published any knockout tie. */
-    koDrawn: season.ko.length > 0,
-    bracket: {
-      cards: allCards,
-      edges,
-      ...frame(
-        ROUNDS.map((r) => r.label),
-        8,
-      ),
-    },
-    /** Most valuable squad not yet out — the projected winner, shown from
-     *  matchday one, when it is still just "the best squad in the draw". */
-    projected: alive[0]?.club ?? null,
-    /** How many of the 36 can still win it. */
-    alive: alive.length,
+    complete,
     fixtures: season.fixtures,
-    clubsById: Object.fromEntries(byId),
+    knockout: {
+      drawn: season.ko.length > 0,
+      bracket: {
+        cards: allCards,
+        edges,
+        ...frame(
+          ROUNDS.map((r) => r.label),
+          8,
+        ),
+      },
+      projected: mostValuable(alive.map((r) => r.club)),
+      alive: alive.length,
+    },
+    leaders: null,
   };
 }
 
 const ORDER: Round[] = ["PO", "R16", "QF", "SF", "F"];
 const prevRound = (r: Round) => ORDER[ORDER.indexOf(r) - 1];
 const nextRound = (r: Round) => ORDER[ORDER.indexOf(r) + 1];
-
-/** Play-off and last-16 sit on the same eight rows; each later round is the
- *  midpoint of the two ties feeding it. */
-function yOf(round: Round, num: number): number {
-  if (round === "PO" || round === "R16") return TOP + (num - 1) * ROW;
-  const a = yOf(prevRound(round), num * 2 - 1);
-  const b = yOf(prevRound(round), num * 2);
-  return (a + b) / 2;
-}

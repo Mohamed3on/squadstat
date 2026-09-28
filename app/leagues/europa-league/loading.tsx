@@ -1,1 +1,1 @@
-export { default } from "../_uefa/LeaguePhaseSkeleton";
+export { default } from "../_uefa/UefaSkeleton";

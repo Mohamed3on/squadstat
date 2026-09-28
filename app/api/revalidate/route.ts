@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { COMPETITION_LIST, cacheTags } from "@/lib/uefa/types";
 
 // wc-* tags are gone: the World Cup pages read frozen data/wc/*.json snapshots.
 const ALL_TAGS = [
@@ -8,14 +9,7 @@ const ALL_TAGS = [
   "team-form",
   "injured",
   "top-transfers",
-  "cl-values",
-  "cl-results",
-  "el-values",
-  "el-results",
-  "unla-values",
-  "unla-results",
-  "unlb-values",
-  "unlb-results",
+  ...COMPETITION_LIST.flatMap(cacheTags),
 ];
 
 export async function POST(request: NextRequest) {

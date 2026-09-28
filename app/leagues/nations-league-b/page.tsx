@@ -1,6 +1,6 @@
 import { createPageMetadata } from "@/lib/metadata";
-import { NATIONS_LEAGUES } from "@/lib/uefa/types";
-import { GroupPhasePage } from "../_uefa/GroupPhasePage";
+import { COMPETITIONS } from "@/lib/uefa/types";
+import { UefaPage } from "../_uefa/UefaPage";
 
 // Request-rendered like the other Transfermarkt-backed league pages: the data
 // layer underneath is unstable_cache'd, so a request render stays cheap, and a
@@ -22,5 +22,5 @@ export const metadata = createPageMetadata({
 });
 
 export default function NationsLeagueBPage() {
-  return <GroupPhasePage nl={NATIONS_LEAGUES.UNLB} />;
+  return <UefaPage comp={COMPETITIONS.UNLB} />;
 }

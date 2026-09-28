@@ -4,7 +4,7 @@ import * as cheerio from "cheerio";
 import { describe, it, expect } from "vitest";
 import { __parsers } from "./fetch";
 import { buildModel, expectedStage, poUnseeded, zoneOf } from "./model";
-import type { Club, Season } from "./types";
+import type { Club } from "./types";
 
 // The finished Champions League 2025/26 league phase, play-off, and bracket
 // through to the final, captured from Transfermarkt's "all fixtures & results"
@@ -16,13 +16,7 @@ const $ = cheerio.load(
   readFileSync(fileURLToPath(new URL("./__fixtures__/cl-2025-26.html", import.meta.url)), "utf8"),
 );
 
-const season: Season = {
-  label: "25/26",
-  fetchedAt: 0,
-  table: __parsers.parseTable($),
-  fixtures: __parsers.parseFixtures($),
-  ko: __parsers.parseKo($),
-};
+const season = __parsers.parseSeason($);
 
 // The fixture is the schedule page, which never spells out squad values. Market
 // value only decides *projections*, and every 25/26 tie has a real result, so a
@@ -36,11 +30,13 @@ const clubs: Club[] = season.table.map((r) => ({
 }));
 
 const model = buildModel(clubs, season);
+const ko = model.knockout!;
 const posOf = new Map(model.rows.map((r) => [r.club.id, r.pos]));
-const cardsIn = (round: string) => model.bracket.cards.filter((c) => c.round === round);
+const cardsIn = (round: string) => ko.bracket.cards.filter((c) => c.round === round);
 
 describe("parsing", () => {
   it("reads the 36-club league table", () => {
+    expect(season.label).toBe("25/26");
     expect(season.table).toHaveLength(36);
     expect(season.table.every((r) => r.pl === 8)).toBe(true);
   });
@@ -53,7 +49,7 @@ describe("parsing", () => {
     expect(season.fixtures.every((f) => f.played)).toBe(true);
   });
 
-  // The minimum markup parseFixtures reads: a table announced by a "Schedule"
+  // The minimum markup the fixtures are read from: a table announced by a "Schedule"
   // hauptlink cell, then a one-cell kickoff header per evening followed by its
   // six-cell fixture rows.
   const scheduleHtml = (evenings: { date: string; games: number }[]) => {
@@ -79,7 +75,7 @@ describe("parsing", () => {
       date: `0${i + 1}/10/2026`,
       games: 18,
     }));
-    const fixtures = __parsers.parseFixtures(
+    const { fixtures } = __parsers.parseSeason(
       scheduleHtml([
         ...evenings,
         { date: "21/01/2027", games: 17 },
@@ -118,7 +114,7 @@ describe("league phase", () => {
       "Sporting",
       "Man City",
     ]);
-    expect(model.leaguePhaseComplete).toBe(true);
+    expect(model.complete).toBe(true);
   });
 
   it("splits the table into the three qualification bands", () => {
@@ -155,29 +151,29 @@ describe("league phase", () => {
 
 describe("bracket, replayed against the real 2025/26 draw", () => {
   it("rebuilds all 23 ties from Transfermarkt, every one real and settled", () => {
-    expect(model.bracket.cards).toHaveLength(23);
-    expect(model.bracket.cards.every((c) => c.real && c.decided)).toBe(true);
-    expect(model.koDrawn).toBe(true);
+    expect(ko.bracket.cards).toHaveLength(23);
+    expect(ko.bracket.cards.every((c) => c.real && c.decided)).toBe(true);
+    expect(ko.drawn).toBe(true);
   });
 
   it("aggregates two legs, and reads the final's shootout", () => {
-    const r16 = model.bracket.cards.find((c) => c.id === "R16-4")!;
+    const r16 = ko.bracket.cards.find((c) => c.id === "R16-4")!;
     expect(r16.home?.name).toBe("Atalanta");
     expect(r16.away?.name).toBe("Bayern Munich");
     expect(r16.score).toBe("2:10"); // 1:6 away, then 1:4
     expect(r16.winner).toBe(r16.away?.id);
 
-    const final = model.bracket.cards.at(-1)!;
+    const final = ko.bracket.cards.at(-1)!;
     expect([final.home?.name, final.away?.name]).toEqual(["PSG", "Arsenal"]);
     expect(final.pens).toBe(true);
-    expect(model.projected?.name).toBe("PSG");
+    expect(ko.projected?.name).toBe("PSG");
   });
 
   it("keeps the real bracket a binary tree from the last 16 up", () => {
     for (const parent of [...cardsIn("QF"), ...cardsIn("SF"), ...cardsIn("F")]) {
       const round = parent.round === "QF" ? "R16" : parent.round === "SF" ? "QF" : "SF";
       const kids = [parent.num * 2 - 1, parent.num * 2].map(
-        (n) => model.bracket.cards.find((c) => c.id === `${round}-${n}`)!,
+        (n) => ko.bracket.cards.find((c) => c.id === `${round}-${n}`)!,
       );
       expect([parent.home?.id, parent.away?.id]).toEqual(kids.map((k) => k.winner));
     }
@@ -205,12 +201,13 @@ describe("bracket, replayed against the real 2025/26 draw", () => {
 describe("bracket, projected before the draw", () => {
   // Same finished table, knockout data withheld — what the page shows in the days
   // between the last matchday and the play-off draw.
-  const projected = buildModel(clubs, { ...season, ko: [] });
-  const pos = new Map(projected.rows.map((r) => [r.club.id, r.pos]));
+  const withheld = buildModel(clubs, { ...season, ko: [] });
+  const projected = withheld.knockout!;
+  const pos = new Map(withheld.rows.map((r) => [r.club.id, r.pos]));
   const at = (id: string) => projected.bracket.cards.find((c) => c.id === id)!;
 
   it("has no real ties, but fills every slot", () => {
-    expect(projected.koDrawn).toBe(false);
+    expect(projected.drawn).toBe(false);
     expect(projected.bracket.cards).toHaveLength(23);
     expect(projected.bracket.cards.every((c) => c.home && c.away)).toBe(true);
     expect(projected.bracket.cards.every((c) => !c.real && !c.decided)).toBe(true);

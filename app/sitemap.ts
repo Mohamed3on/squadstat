@@ -3,6 +3,7 @@ import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { extractClubIdFromLogoUrl } from "@/lib/format";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 import { absoluteUrl } from "@/lib/site-config";
+import { COMPETITION_LIST, compHref } from "@/lib/uefa/types";
 
 const CORE_ROUTES = [
   "/",
@@ -17,15 +18,12 @@ const CORE_ROUTES = [
   "/national-teams",
   "/fee-vs-value",
   "/club-transfers",
-  "/leagues/champions-league",
-  "/leagues/europa-league",
-  "/leagues/nations-league",
-  "/leagues/nations-league-b",
+  ...COMPETITION_LIST.map(compHref),
   "/wc-live",
   "/wc",
   "/wc-schedule",
   "/how-it-works",
-] as const;
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

@@ -1,15 +1,21 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Streams while the two Transfermarkt fetches resolve — hero, the projected
- *  winner, the two callout cards, then the 36-row league table. */
+/** Streams while the Transfermarkt fetches resolve — the heading, the projected
+ *  winner, the two callout cards, then the table. */
 export default function Loading() {
   return (
     <div className="page-container py-6 sm:py-10">
-      <div className="flex flex-col items-center gap-3">
-        <Skeleton className="h-4 w-56" />
-        <Skeleton className="h-10 w-72 sm:h-12 sm:w-96" />
-        <Skeleton className="h-4 w-full max-w-lg" />
-        <Skeleton className="h-4 w-full max-w-md" />
+      {/* Heading: the competition logo beside its title and season, then the rule. */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Skeleton className="h-12 w-12 shrink-0 rounded-lg sm:h-14 sm:w-14" />
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-64 sm:h-8 sm:w-96" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+      </div>
+      <div className="mt-4 max-w-3xl space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
       </div>
 
       {/* Projected winner: its label and the club, with the value line opposite. */}

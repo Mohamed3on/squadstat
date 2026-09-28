@@ -1,5 +1,6 @@
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
+import { COMPETITION_LIST, compHref } from "@/lib/uefa/types";
 
 // Every page a visitor can land on by name, for the ⌘K search. The player and
 // team indexes come from data; this is the static complement, so a page that
@@ -28,34 +29,15 @@ export const SITE_PAGES: readonly SitePage[] = [
       logoUrl: getLeagueLogoUrl(l.name),
     }),
   ),
-  {
-    href: "/leagues/champions-league",
-    name: "Champions League",
-    kind: "competition",
-    keywords: ["ucl", "uefa", "cl"],
-    logoUrl: leagueLogoUrl("CL"),
-  },
-  {
-    href: "/leagues/europa-league",
-    name: "Europa League",
-    kind: "competition",
-    keywords: ["uel", "uefa", "el"],
-    logoUrl: leagueLogoUrl("EL"),
-  },
-  {
-    href: "/leagues/nations-league",
-    name: "Nations League A",
-    kind: "competition",
-    keywords: ["nations league", "unl", "uefa", "national teams"],
-    logoUrl: leagueLogoUrl("UNLA"),
-  },
-  {
-    href: "/leagues/nations-league-b",
-    name: "Nations League B",
-    kind: "competition",
-    keywords: ["nations league", "unl", "uefa", "national teams", "promotion"],
-    logoUrl: leagueLogoUrl("UNLB"),
-  },
+  ...COMPETITION_LIST.map(
+    (c): SitePage => ({
+      href: compHref(c),
+      name: c.name,
+      kind: "competition",
+      keywords: c.keywords,
+      logoUrl: leagueLogoUrl(c.code),
+    }),
+  ),
   {
     href: "/wc",
     name: "World Cup 2026 Simulation",

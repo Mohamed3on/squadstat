@@ -3,16 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCompClubs, getCompSeason } from "@/lib/uefa/fetch";
 import { buildModel } from "@/lib/uefa/model";
-import { COMPETITIONS, type CompCode } from "@/lib/uefa/types";
+import { COMPETITIONS, type LeaguePhaseComp } from "@/lib/uefa/types";
 import { ordinal } from "@/lib/format";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 
 /** Each competition in its own colours — UEFA navy, Europa orange-on-black. */
-const PILL: Record<CompCode, string> = {
+const PILL: Record<LeaguePhaseComp["code"], string> = {
   CL: "bg-[#0b1d5b] text-white",
   EL: "bg-[#ff6b00] text-black",
 };
-const CODES = Object.keys(PILL) as CompCode[];
+const CODES = Object.keys(PILL) as LeaguePhaseComp["code"][];
 
 /**
  * A mark, not a sentence: the competition crest on a coloured pill beside the
