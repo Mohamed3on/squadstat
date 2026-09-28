@@ -733,7 +733,13 @@ function Hero({ comp, view, measure }: { comp: Competition; view: UefaView; meas
           <TabsList aria-label={comp.family}>
             {family.map((c) => (
               <TabsTrigger key={c.code} value={c.code} asChild>
-                <Link href={compHref(c)}>{c.tab}</Link>
+                {/* Each tier is its own request-rendered page, and a dynamic route
+                    prefetches only down to its loading skeleton, so a switch would
+                    blank the whole page to it. Prefetch the page whole instead, and
+                    the tab swaps straight from the router cache. */}
+                <Link href={compHref(c)} prefetch>
+                  {c.tab}
+                </Link>
               </TabsTrigger>
             ))}
           </TabsList>
