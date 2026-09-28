@@ -28,9 +28,9 @@ export const managerQueryOptions = (clubId: string, officialOnly = false) => ({
 });
 
 /** Fetches managers for many clubs at once, returning a lookup map and a loading set. */
-export function useManagersMap(clubIds: string[]) {
+export function useManagersMap(clubIds: string[], officialOnly = false) {
   const queries = useQueries({
-    queries: clubIds.map((clubId) => managerQueryOptions(clubId)),
+    queries: clubIds.map((clubId) => managerQueryOptions(clubId, officialOnly)),
   });
 
   return useMemo(() => {

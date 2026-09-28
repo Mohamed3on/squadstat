@@ -35,12 +35,13 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   "/national-teams": { tags: ["manager"], workflow: true },
   "/fee-vs-value": { tags: ["top-transfers"] },
   "/club-transfers": { tags: ["top-transfers"], workflow: true },
-  // A Nations League page takes its values from the national-team data, as
-  // /national-teams does, so its refresh also queues that data's workflow.
+  // A UEFA page names the managers of its over- and under-performers, so its refresh
+  // clears theirs too. A Nations League page takes its values from the national-team
+  // data, as /national-teams does, so its refresh also queues that data's workflow.
   ...Object.fromEntries(
     COMPETITION_LIST.map((c) => [
       compHref(c),
-      { tags: cacheTags(c), workflow: c.format === "groups" },
+      { tags: [...cacheTags(c), "manager"], workflow: c.format === "groups" },
     ]),
   ),
 };

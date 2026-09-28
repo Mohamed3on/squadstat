@@ -3,11 +3,13 @@
 import { clsx } from "clsx";
 import Link from "next/link";
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { ManagerSection, ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
 import { BASE_URL } from "@/lib/constants";
 import { formatMillions, ordinal } from "@/lib/format";
+import { useManagersMap } from "@/lib/hooks/use-manager-query";
 import { crestUrl, leagueLogoUrl } from "@/lib/transfermarkt/image";
 import {
   ZONE_LABEL,
@@ -641,10 +643,12 @@ function Callouts({
   rows,
   measure,
   place,
+  official,
 }: {
   rows: StandingRow[];
   measure: Measure;
   place: string;
+  official: boolean; // a nation's manager is rated on competitive games alone
 }) {
   const played = rows.filter((r) => measure.of(r) !== null);
   const gap = (r: StandingRow) => measure.of(r)!;
@@ -652,53 +656,74 @@ function Callouts({
   const bottom = Math.min(...played.map(gap));
   const levelOn = (g: number) =>
     played.filter((r) => gap(r) === g).sort((a, b) => b.club.mv - a.club.mv);
-  if (!(top > 0 && bottom < 0)) return null;
+  const cards =
+    top > 0 && bottom < 0
+      ? [
+          { value: top, word: "Punching above its value", cls: "over", sides: levelOn(top) },
+          {
+            value: bottom,
+            word: "Falling short of its value",
+            cls: "under",
+            sides: levelOn(bottom),
+          },
+        ]
+      : [];
+  // Each side's manager loads after the page, as on Value vs Table: a scrape per side —
+  // and for a nation, its record with the friendlies taken out — is too slow to hold
+  // the page for.
+  const { managersMap, loadingSet } = useManagersMap(
+    cards.flatMap((c) => c.sides.map((r) => r.club.id)),
+    official,
+  );
+  if (!cards.length) return null;
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {[
-        { value: top, word: "Punching above its value", cls: "over" },
-        { value: bottom, word: "Falling short of its value", cls: "under" },
-      ].map(({ value, word, cls }) => {
-        const sides = levelOn(value);
-        return (
-          <Panel key={word}>
-            <div className="flex items-baseline justify-between gap-3">
-              <Label>{word}</Label>
-              <span className={clsx("delta", cls)}>
-                {value > 0 ? "▲" : "▼"} {Math.abs(value)}
-                {measure === BY_POINTS ? " pts" : ""}
-                {sides.length > 1 ? " each" : ""}
-              </span>
-            </div>
-            <table className="mt-3 w-full text-sm">
-              <thead>
-                <tr className="whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-[var(--tny-muted)]">
-                  {/* The side takes the slack, so both ranks sit together on the right. */}
-                  <th className="w-full pb-1 text-left font-normal">
-                    <span className="sr-only">Team</span>
-                  </th>
-                  <th className="pb-1 text-right font-normal">{place}</th>
-                  <th className="pb-1 pl-4 text-right font-normal">Value rank</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--tny-line)]">
-                {sides.map((r) => (
+      {cards.map(({ value, word, cls, sides }) => (
+        <Panel key={word}>
+          <div className="flex items-baseline justify-between gap-3">
+            <Label>{word}</Label>
+            <span className={clsx("delta", cls)}>
+              {value > 0 ? "▲" : "▼"} {Math.abs(value)}
+              {measure === BY_POINTS ? " pts" : ""}
+              {sides.length > 1 ? " each" : ""}
+            </span>
+          </div>
+          <table className="mt-3 w-full text-sm">
+            <thead>
+              <tr className="whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-[var(--tny-muted)]">
+                {/* The side takes the slack, so both ranks sit together on the right. */}
+                <th className="w-full pb-1 text-left font-normal">
+                  <span className="sr-only">Team</span>
+                </th>
+                <th className="pb-1 text-right font-normal">{place}</th>
+                <th className="pb-1 pl-4 text-right font-normal">Value rank</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--tny-line)]">
+              {sides.map((r) => {
+                const manager = managersMap[r.club.id];
+                return (
                   <tr key={r.club.id}>
                     <td className="py-2">
                       <div className="flex items-center gap-2 font-semibold">
                         <ClubName club={r.club} />
                       </div>
+                      {(manager || loadingSet.has(r.club.id)) && (
+                        <div className="mt-1 text-xs">
+                          {manager ? <ManagerSection manager={manager} /> : <ManagerSkeleton />}
+                        </div>
+                      )}
                     </td>
                     <td className="py-2 text-right font-value">{ordinal(r.pos)}</td>
                     <td className="py-2 pl-4 text-right font-value">{ordinal(r.valueRank)}</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </Panel>
-        );
-      })}
+                );
+              })}
+            </tbody>
+          </table>
+        </Panel>
+      ))}
     </div>
   );
 }
@@ -780,7 +805,12 @@ export function UefaBody({ comp, view }: { comp: Competition; view: UefaView }) 
       {view.leaders && comp.format === "groups" && (
         <GroupWinners leaders={view.leaders} prize={comp.bands[0].label} settled={view.complete} />
       )}
-      <Callouts rows={view.rows} measure={measure} place={copy.place} />
+      <Callouts
+        rows={view.rows}
+        measure={measure}
+        place={copy.place}
+        official={copy.noun === "nation"}
+      />
 
       <div className="section-title">
         {copy.section} · matchday {view.matchday} of {view.matchdays}
