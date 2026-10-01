@@ -130,8 +130,20 @@ const cachedScrape = <T>(
 const getManagerHistory = (clubId: string) =>
   cachedScrape(
     async () => {
-      const html = await fetchPage(`${BASE_URL}/placeholder/mitarbeiterhistorie/verein/${clubId}`);
-      const managers = parseManagerTable(cheerio.load(html));
+      const url = `${BASE_URL}/placeholder/mitarbeiterhistorie/verein/${clubId}`;
+      const $ = cheerio.load(await fetchPage(url));
+      // The unfiltered history also lists Team Managers (personalie_id 5), an admin post, not
+      // the coach, whose latest hire can top the list (Portugal's Bruno Alves masked Jorge
+      // Jesus). Drop them, fetching that list only for teams whose role filter offers it.
+      const teamManagers = $('select[name="personalie_id"] option[value="5"]').length
+        ? parseManagerTable(cheerio.load(await fetchPage(`${url}/personalie_id/5`)))
+        : [];
+      const managers = parseManagerTable($).filter(
+        (m) =>
+          !teamManagers.some(
+            (t) => t.profileUrl === m.profileUrl && t.appointedDate === m.appointedDate,
+          ),
+      );
       // Throw rather than return [] so a bad scrape isn't cached for 6h.
       if (managers.length === 0) throw new Error(`No manager data found for club ${clubId}`);
       return managers;
