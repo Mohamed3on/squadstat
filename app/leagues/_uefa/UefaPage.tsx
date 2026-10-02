@@ -1,7 +1,6 @@
-import { getNationalTeamHref, getTeamDetailHref } from "@/lib/format";
-import { getNationalTeamValues } from "@/lib/squad-values";
+import { getTeamDetailHref } from "@/lib/format";
+import { getNationalTeams } from "@/lib/national-teams";
 import { getClubIdsWithPages } from "@/lib/team-detail";
-import { flagUrl } from "@/lib/transfermarkt/image";
 import { getCompClubs, getCompSeason, getNationsSeason } from "@/lib/uefa/fetch";
 import { buildModel } from "@/lib/uefa/model";
 import { buildNationsModel } from "@/lib/uefa/nations-league";
@@ -41,10 +40,7 @@ async function clubPage(comp: LeaguePhaseComp) {
 /** Nations take their value per player from the committed national-team data — the
  *  figure /national-teams shows — link to their own page, and wear their flag. */
 async function nationPage(comp: GroupsComp) {
-  const [{ teams }, season] = await Promise.all([
-    getNationalTeamValues(),
-    getNationsSeason(comp.code),
-  ]);
+  const [{ teams }, season] = await Promise.all([getNationalTeams(), getNationsSeason(comp.code)]);
   const inPlay = new Set(season.table.map((r) => r.id));
   const nations = teams.filter((t) => inPlay.has(t.id));
   return {
@@ -59,7 +55,7 @@ async function nationPage(comp: GroupsComp) {
       season,
       comp.bands,
     ),
-    links: Object.fromEntries(nations.map((t) => [t.id, getNationalTeamHref(t.name)])),
-    badges: Object.fromEntries(nations.map((t) => [t.id, flagUrl(String(t.landId))])),
+    links: Object.fromEntries(nations.map((t) => [t.id, t.href])),
+    badges: Object.fromEntries(nations.map((t) => [t.id, t.flagUrl])),
   };
 }

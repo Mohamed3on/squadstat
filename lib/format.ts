@@ -1,3 +1,7 @@
+import type { NationalTeamValue } from "@/app/types";
+import { BASE_URL } from "@/lib/constants";
+import { flagUrl } from "@/lib/transfermarkt/image";
+
 export const PROFIL_RE = /\/profil\//;
 
 export function formatMarketValue(value: number): string {
@@ -127,6 +131,23 @@ export function nationalTeamSlug(name: string): string {
 
 export function getNationalTeamHref(name: string): string {
   return `/national-teams/${nationalTeamSlug(name)}`;
+}
+
+/** A team's page on Transfermarkt. TM numbers clubs and national teams from one
+ *  range, so the one URL serves both. */
+export function getTransfermarktTeamUrl(teamId: string): string {
+  return `${BASE_URL}/x/startseite/verein/${teamId}`;
+}
+
+/** Where a national team lives — its page here, its flag, its Transfermarkt page —
+ *  from its record. lib/national-teams builds every nation's this way; a client
+ *  component holding a record calls it directly. */
+export function nationalTeamUrls(team: Pick<NationalTeamValue, "id" | "name" | "landId">) {
+  return {
+    href: getNationalTeamHref(team.name),
+    flagUrl: flagUrl(String(team.landId)),
+    tmUrl: getTransfermarktTeamUrl(team.id),
+  };
 }
 
 export function extractClubIdFromLogoUrl(url?: string): string | null {

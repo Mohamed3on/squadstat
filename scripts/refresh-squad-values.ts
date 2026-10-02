@@ -3,9 +3,11 @@ import { join } from "path";
 import * as cheerio from "cheerio";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
+import { getTransfermarktTeamUrl } from "@/lib/format";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { canonicalLeagueName } from "@/lib/leagues";
 import { parseNationHeader } from "@/lib/transfermarkt";
+import { landIdFromFlagUrl } from "@/lib/transfermarkt/image";
 import type {
   NationalTeamValue,
   NationalTeamValueResult,
@@ -42,8 +44,6 @@ const extendedSquadUrl = (id: string) => `${BASE_URL}/x/erweiterterkader/verein/
 
 const CLUB_ID = /\/verein\/(\d+)/;
 const COMPETITION = /\/wettbewerb\/([A-Za-z0-9]+)$/;
-/** TM addresses a flag by its country id: /flagge/tiny/50.png is France. */
-const LAND_ID = /\/flagge\/\w+\/(\d+)\.png/;
 const PAGE = /[?&]page=(\d+)/;
 
 /** #, crest, club, competition, squad size, ø age, value, ø per player, top 18, share. */
@@ -121,7 +121,7 @@ function parseNations(html: string): NationalTeamValue[] {
     teams.push({
       id,
       name: link.attr("title") || link.text().trim(),
-      landId: Number((nation.find("img").attr("src") || "").match(LAND_ID)?.[1]) || 0,
+      landId: landIdFromFlagUrl(nation.find("img").attr("src")),
       confederation: CONFEDERATION[confederation] ?? confederation,
       squadSize: Number(text(NATION_COL.squadSize)) || 0,
       averageAge: Number(text(NATION_COL.averageAge)) || 0,
@@ -222,7 +222,7 @@ async function main() {
   // The table leaves the odd nation's confederation blank (Laos), though the
   // nation's own page names it: one page each, for those few alone.
   for (const t of teams.filter((t) => !t.confederation)) {
-    const page = await fetchPage(`${BASE_URL}/x/startseite/verein/${t.id}`);
+    const page = await fetchPage(getTransfermarktTeamUrl(t.id));
     t.confederation = parseNationHeader(page).confederation;
   }
 

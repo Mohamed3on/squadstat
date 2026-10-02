@@ -1,7 +1,7 @@
 import { createPageMetadata } from "@/lib/metadata";
 import { buildModel } from "@/lib/wc/model";
 import { getWcTeams } from "@/lib/wc/teams";
-import { nationLinks } from "@/lib/wc/linkable-nations";
+import { nationLinks } from "@/lib/national-teams";
 import { WcBracket } from "./WcBracket";
 
 export const metadata = createPageMetadata({

@@ -7,8 +7,7 @@ import { ManagerSection, ManagerSkeleton } from "@/app/components/ManagerPPGBadg
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTableSort, type SortColumn } from "@/components/SortableTable";
-import { BASE_URL } from "@/lib/constants";
-import { formatMillions, ordinal } from "@/lib/format";
+import { formatMillions, getTransfermarktTeamUrl, ordinal } from "@/lib/format";
 import { useManagersMap } from "@/lib/hooks/use-manager-query";
 import { crestUrl, leagueLogoUrl } from "@/lib/transfermarkt/image";
 import {
@@ -124,7 +123,7 @@ function ClubLink({
     </Link>
   ) : (
     <a
-      href={`${BASE_URL}/x/startseite/verein/${id}`}
+      href={getTransfermarktTeamUrl(id)}
       target="_blank"
       rel="noopener noreferrer"
       title="On Transfermarkt"

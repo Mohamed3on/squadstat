@@ -4,7 +4,7 @@ import { getWcFixtures, getWcKnockoutSchedule } from "@/lib/wc/fixtures";
 import { getWcResults } from "@/lib/wc/results";
 import { buildLiveModel } from "@/lib/wc/live";
 import { buildMatchups, type MatchupTeam } from "@/lib/wc/matchups";
-import { nationLinks } from "@/lib/wc/linkable-nations";
+import { nationLinks } from "@/lib/national-teams";
 import { WcSchedule } from "./WcSchedule";
 
 // The tournament is over and results are final — daily cache like the rest of the site.

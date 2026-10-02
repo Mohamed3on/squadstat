@@ -2,15 +2,14 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
-import { getNationalTeamValues } from "@/lib/squad-values";
-import { flagUrl } from "@/lib/transfermarkt/image";
+import { getNationalTeams } from "@/lib/national-teams";
 
 export async function GET() {
   try {
-    const [players, clubsRaw, { teams: nations }] = await Promise.all([
+    const [players, clubsRaw, { teams: nations, byId }] = await Promise.all([
       getMinutesValueData(),
       readFile(join(process.cwd(), "data", "clubs.json"), "utf-8").catch(() => "{}"),
-      getNationalTeamValues(),
+      getNationalTeams(),
     ]);
     const playerIndex = players.map((p) => ({
       id: p.playerId,
@@ -25,15 +24,15 @@ export async function GET() {
     const clubs: Record<string, { name: string; logoUrl: string }> = JSON.parse(clubsRaw);
     // clubs.json picks up the national teams players' matches were against; every
     // nation comes from the national-team table instead, so each appears once.
-    const nationIds = new Set(nations.map((t) => t.id));
     const teamIndex = [
       ...Object.entries(clubs)
-        .filter(([id]) => !nationIds.has(id))
+        .filter(([id]) => !byId.has(id))
         .map(([id, c]) => ({ id, name: c.name, logoUrl: c.logoUrl })),
       ...nations.map((t) => ({
         id: t.id,
         name: t.name,
-        logoUrl: flagUrl(String(t.landId)),
+        logoUrl: t.flagUrl,
+        href: t.href,
         national: true,
       })),
     ];

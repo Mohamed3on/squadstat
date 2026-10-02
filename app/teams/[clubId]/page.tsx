@@ -13,10 +13,11 @@ import {
   formatValuePerPlayer,
   getPlayerDetailHref,
   getPlayerIdFromProfileUrl,
+  getTransfermarktTeamUrl,
   ordinal,
 } from "@/lib/format";
 import { getTeamDetailData } from "@/lib/team-detail";
-import { getNationalTeamLinks } from "@/lib/national-teams";
+import { getNationalTeams } from "@/lib/national-teams";
 import { slimForClient } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
 import { getWorstHitResult } from "@/lib/injury-utils";
@@ -107,7 +108,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { clubId } = await params;
   // A national team redirects to its own page (below), so skip the club scrapes.
-  const data = (await getNationalTeamLinks())[clubId] ? null : await getTeamDetailData(clubId);
+  const data = (await getNationalTeams()).byId.has(clubId) ? null : await getTeamDetailData(clubId);
 
   if (!data) {
     return createPageMetadata({
@@ -143,7 +144,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
   const { clubId } = await params;
   // Transfermarkt numbers clubs and national teams from one range, so links built
   // from a match or a search can land a nation here; it has a page of its own.
-  const nation = (await getNationalTeamLinks())[clubId];
+  const nation = (await getNationalTeams()).byId.get(clubId);
   if (nation) permanentRedirect(nation.href);
   const [data, injuredData, squadValuePlace] = await Promise.all([
     getTeamDetailData(clubId),
@@ -156,7 +157,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
 
   if (!data) {
     if (/^\d+$/.test(clubId)) {
-      const url = `https://www.transfermarkt.com/x/startseite/verein/${clubId}`;
+      const url = getTransfermarktTeamUrl(clubId);
       return (
         <div className="mx-auto flex min-h-64 max-w-md flex-col items-center justify-center gap-4 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border-subtle bg-elevated">

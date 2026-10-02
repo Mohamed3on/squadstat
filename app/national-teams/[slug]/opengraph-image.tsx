@@ -1,7 +1,6 @@
 import { formatSignedPercent, formatValuePerPlayer } from "@/lib/format";
 import { getNationalTeamDetail } from "@/lib/national-teams";
 import { createEntityOgImage, OG_CONTENT_TYPE, OG_IMAGE_SIZE } from "@/lib/og-image";
-import { flagUrl } from "@/lib/transfermarkt/image";
 
 export const alt = "SquadStat national team report";
 export const size = OG_IMAGE_SIZE;
@@ -29,7 +28,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     title: team.name,
     subtitle: `${confederation ? `${confederation} · ` : ""}Squad, value and the players outside it`,
     accent: "#ffd700",
-    primaryImage: flagUrl(String(team.landId)),
+    primaryImage: team.flagUrl,
     imageAlt: team.name,
     metrics: [
       {

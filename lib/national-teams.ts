@@ -4,25 +4,58 @@ import type { MinutesValuePlayer, NationalTeamValue } from "@/app/types";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
-import { getNationalTeamHref, getPlayerDetailHref, nationalTeamSlug } from "@/lib/format";
+import { getPlayerDetailHref, nationalTeamSlug, nationalTeamUrls } from "@/lib/format";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { getNationalTeamValues } from "@/lib/squad-values";
 import { npga } from "@/lib/stats-toggles";
 import { parseNationHeader, parsePlayerTable, type NationTitle } from "@/lib/transfermarkt";
+import { landIdFromFlagUrl } from "@/lib/transfermarkt/image";
 
 /** Tag on every national-team page scrape, so the refresh button clears them. */
 export const NATIONAL_TEAM_TAG = "national-team";
 
-/** TM team id → the nation's name and page, for the callers that hold only an
- *  id: match opponents, a player's national team, stray /teams links. */
-export const getNationalTeamLinks = cache(
-  async (): Promise<Record<string, { name: string; href: string }>> => {
-    const { teams } = await getNationalTeamValues();
-    return Object.fromEntries(
-      teams.map((t) => [t.id, { name: t.name, href: getNationalTeamHref(t.name) }]),
-    );
-  },
-);
+/** A national team with where it lives: see nationalTeamUrls. */
+export type NationalTeam = NationalTeamValue & ReturnType<typeof nationalTeamUrls>;
+
+/**
+ * Every national team, found by whichever key a caller holds: Transfermarkt's team
+ * id (a match opponent, a /teams link — "is this a nation?" is "is it found by
+ * id"), its country id (a source with spellings of its own), or its page's slug.
+ */
+export const getNationalTeams = cache(async () => {
+  const teams: NationalTeam[] = (await getNationalTeamValues()).teams.map((t) => ({
+    ...t,
+    ...nationalTeamUrls(t),
+  }));
+  return {
+    teams,
+    byId: new Map(teams.map((t) => [t.id, t])),
+    byLandId: new Map(teams.map((t) => [t.landId, t])),
+    bySlug: new Map(teams.map((t) => [nationalTeamSlug(t.name), t])),
+  };
+});
+
+/** TM team id → the nation, as a plain record, for the callers that hold only an
+ *  id: match opponents, a player's national team. */
+export const getNationalTeamLinks = async (): Promise<Record<string, NationalTeam>> =>
+  Object.fromEntries((await getNationalTeams()).byId);
+
+/**
+ * Map of national team name -> its page, as each source spells the name. Matched
+ * by Transfermarkt's country id, so a spelling of its own ("DR Congo") still
+ * finds its nation.
+ */
+export async function nationLinks(
+  teams: { name: string; landId: number }[],
+): Promise<Record<string, string>> {
+  const { byLandId } = await getNationalTeams();
+  const out: Record<string, string> = {};
+  for (const t of teams) {
+    const nation = byLandId.get(t.landId);
+    if (nation) out[t.name] = nation.href;
+  }
+  return out;
+}
 
 /** A national team's places by value per player: its call-up's among every
  *  nation and within its confederation, and its extended squad's among the
@@ -197,9 +230,6 @@ const placeIn = (squad: Pick<SquadEntry, "calledUp" | "marketValue">[]) => {
   return (value: number) => values.filter((v) => v > value).length + 1;
 };
 
-const landIdOf = (p: MinutesValuePlayer) =>
-  Number(p.nationalityFlagUrl?.match(/\/(\d+)\.png/)?.[1]) || 0;
-
 /**
  * A nation's players as its page shows them: the call-up, then its outsiders —
  * the rest of the extended squad, and the tracked players with its nationality,
@@ -237,7 +267,7 @@ export function nationPlayers(
   const inSquad = new Set(squad.map((s) => s.playerId));
   const fromPool = pool.flatMap((p): NationPlayer[] => {
     if (inSquad.has(p.playerId)) return [];
-    const first = landIdOf(p) === team.landId;
+    const first = landIdFromFlagUrl(p.nationalityFlagUrl) === team.landId;
     if (!first && p.secondNationalityId !== team.landId) return [];
     const cappedHere = p.nationalTeamId ? p.nationalTeamId === team.id : first;
     if (p.intlCareerCaps > 0 && !cappedHere) return [];
@@ -280,7 +310,7 @@ export function nationPlayers(
 }
 
 export interface NationalTeamDetail {
-  team: NationalTeamValue;
+  team: NationalTeam;
   ranks: ValueRanks;
   /** How many national teams the world rank is out of. */
   nations: number;
@@ -300,8 +330,11 @@ export interface NationalTeamDetail {
 /** Everything a nation's page shows, or null for a slug no national team has. */
 export const getNationalTeamDetail = cache(
   async (slug: string): Promise<NationalTeamDetail | null> => {
-    const [{ teams }, pool] = await Promise.all([getNationalTeamValues(), getMinutesValueData()]);
-    const team = teams.find((t) => nationalTeamSlug(t.name) === slug);
+    const [{ teams, bySlug }, pool] = await Promise.all([
+      getNationalTeams(),
+      getMinutesValueData(),
+    ]);
+    const team = bySlug.get(slug);
     if (!team) return null;
 
     const page = await getExtendedSquad(team.id).catch((err) => {

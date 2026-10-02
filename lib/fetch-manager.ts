@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 import type { ManagerInfo, ManagerTrivia } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
-import { getNationalTeamLinks } from "./national-teams";
+import { getNationalTeams } from "./national-teams";
 
 interface ManagerHistoryEntry {
   name: string;
@@ -208,7 +208,7 @@ export async function getManagerInfo(clubId: string): Promise<ManagerInfo | null
   // knockout/penalty results. The history table already gives exact total matches + PPG,
   // so this is one extra fetch per manager (the FS page). Restated rows are fresh objects;
   // the parsed entries stay untouched.
-  const officialOnly = !!(await getNationalTeamLinks())[clubId];
+  const officialOnly = (await getNationalTeams()).byId.has(clubId);
   const records: ManagerHistoryEntry[] = officialOnly
     ? await Promise.all(
         since1992.map(async (m) => {

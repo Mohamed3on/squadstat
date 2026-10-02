@@ -3,7 +3,7 @@ import { buildLiveModel } from "@/lib/wc/live";
 import { getWcResults } from "@/lib/wc/results";
 import { getWcTeams } from "@/lib/wc/teams";
 import { getWcManagers } from "@/lib/wc/managers";
-import { nationLinks } from "@/lib/wc/linkable-nations";
+import { nationLinks } from "@/lib/national-teams";
 import { buildWcScorers } from "@/lib/wc/scorers";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { WcLive } from "./WcLive";

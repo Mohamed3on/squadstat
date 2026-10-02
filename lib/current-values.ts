@@ -25,7 +25,7 @@ import { getMinutesValueData } from "./fetch-minutes-value";
  *    which caught 48% of this window's permanent signings. The rest fall back to
  *    the frozen value, so a times-value ranking mixes the two bases across rows.
  *
- * Memoised per process: committed data, read once, same as `linkable-nations`.
+ * Memoised per process: committed data, read once.
  */
 let byPlayerId: Map<string, number> | null = null;
 

@@ -14,7 +14,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { formatMarketValue, getNationalTeamHref } from "@/lib/format";
+import { formatMarketValue } from "@/lib/format";
 import { normalizeForSearch } from "@/lib/normalize";
 import { SITE_PAGES, type SitePage } from "@/lib/site-pages";
 
@@ -33,8 +33,9 @@ interface SearchTeam {
   id: string;
   name: string;
   logoUrl: string;
-  /** A national team, whose page is addressed by name rather than id. */
   national?: boolean;
+  /** A national team's page, which is addressed by name rather than id. */
+  href?: string;
 }
 
 interface SearchIndex {
@@ -235,8 +236,8 @@ export function PlayerSearch() {
                     const href =
                       r.type === "page"
                         ? r.data.href
-                        : r.type === "team" && r.data.national
-                          ? getNationalTeamHref(r.data.name)
+                        : r.type === "team" && r.data.href
+                          ? r.data.href
                           : `${r.type === "player" ? "/players" : "/teams"}/${r.data.id}`;
                     return (
                       <CommandItem

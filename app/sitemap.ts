@@ -1,10 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
-import { extractClubIdFromLogoUrl, getNationalTeamHref } from "@/lib/format";
+import { extractClubIdFromLogoUrl } from "@/lib/format";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
+import { getNationalTeams } from "@/lib/national-teams";
 import { absoluteUrl } from "@/lib/site-config";
-import { getNationalTeamValues } from "@/lib/squad-values";
-import { flagUrl } from "@/lib/transfermarkt/image";
 import { COMPETITION_LIST, compHref } from "@/lib/uefa/types";
 
 const CORE_ROUTES = [
@@ -31,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const [players, { teams: nations }] = await Promise.all([
     getMinutesValueData(),
-    getNationalTeamValues(),
+    getNationalTeams(),
   ]);
   const latestDataTimestamp = players.reduce(
     (latest, player) => Math.max(latest, player.fetchedAt ?? 0),
@@ -82,11 +81,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const nationEntries: MetadataRoute.Sitemap = nations.map((t) => ({
-    url: absoluteUrl(getNationalTeamHref(t.name)),
+    url: absoluteUrl(t.href),
     lastModified: dataLastModified,
     changeFrequency: "daily",
     priority: 0.75,
-    images: [flagUrl(String(t.landId))],
+    images: [t.flagUrl],
   }));
 
   return [...coreEntries, ...leagueEntries, ...teamEntries, ...nationEntries, ...playerEntries];

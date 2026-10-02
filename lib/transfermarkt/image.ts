@@ -40,6 +40,13 @@ export function flagUrl(landId: string): string {
   return `${IMAGE_CDN}/flagge/head/${landId}.png`;
 }
 
+/** The other way: the land id a flag addresses, at any size — `…/flagge/tiny/50.png`
+ *  is France's 50 — or 0 for none. Unanchored, so it also finds a flag in a page's
+ *  HTML, where `size` picks out the one wanted. */
+export function landIdFromFlagUrl(src = "", size = "\\w+"): number {
+  return Number(src.match(new RegExp(`/flagge/${size}/(\\d+)\\.png`))?.[1]) || 0;
+}
+
 /** League / competition logo URL for a competition code. */
 export function leagueLogoUrl(code: string): string {
   return `${IMAGE_CDN}/logo/header/${code.toLowerCase()}.png`;

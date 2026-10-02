@@ -10,12 +10,10 @@ import { HeroMetric } from "@/components/HeroMetric";
 import { JsonLd } from "@/components/JsonLd";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BASE_URL } from "@/lib/constants";
 import { formatMarketValue, formatSignedPercent, formatValuePerPlayer } from "@/lib/format";
 import { createPageMetadata } from "@/lib/metadata";
 import { getNationalTeamDetail } from "@/lib/national-teams";
 import { absoluteUrl } from "@/lib/site-config";
-import { flagUrl } from "@/lib/transfermarkt/image";
 import { NationPlayers } from "./NationPlayers";
 import { NationsLeagueBadge } from "./NationsLeagueBadge";
 import { CALL_UP_STATUS, CALL_UP_STATUSES } from "./status";
@@ -81,10 +79,9 @@ export default async function NationalTeamPage({ params }: Params) {
   if (!data) notFound();
 
   const { team, ranks, confederation, titles, callUp, outsiders, extended, callUpGap } = data;
-  const flag = flagUrl(String(team.landId));
+  const { flagUrl: flag, tmUrl } = team;
   const gap = callUpGap === null ? null : Math.round(callUpGap * 100);
   const pageUrl = absoluteUrl(`/national-teams/${slug}`);
-  const tmUrl = `${BASE_URL}/x/startseite/verein/${team.id}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [

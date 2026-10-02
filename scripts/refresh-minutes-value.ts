@@ -17,7 +17,7 @@ import {
 } from "@/lib/player-aggregation";
 import { chooseSeason } from "@/lib/season-selection";
 import { extractClubIdFromLogoUrl } from "@/lib/format";
-import { crestUrl, flagUrl } from "@/lib/transfermarkt/image";
+import { crestUrl, flagUrl, landIdFromFlagUrl } from "@/lib/transfermarkt/image";
 import { fetchClubTypes, fetchSecondNationalities } from "@/lib/alpha-clubs";
 import { fetchPage, setMaxConcurrent } from "@/lib/fetch";
 import { BASE_URL } from "@/lib/constants";
@@ -421,10 +421,10 @@ async function scrapeClub(clubId: string): Promise<{ name: string; logoUrl: stri
       .replace(/ - .*/, "")
       .trim();
     if (!name) return null;
-    // National teams render a flag header (flagge/begegnungslider/{landId}); their
+    // National teams render a flag header (the "begegnungslider" size); their
     // wappen/head crest is an empty image, so use the country flag instead.
-    const landId = html.match(/flagge\/begegnungslider\/(\d+)\.png/)?.[1];
-    return { name, logoUrl: landId ? flagUrl(landId) : crestUrl(clubId) };
+    const landId = landIdFromFlagUrl(html, "begegnungslider");
+    return { name, logoUrl: landId ? flagUrl(String(landId)) : crestUrl(clubId) };
   } catch {
     return null;
   }

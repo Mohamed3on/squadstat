@@ -17,9 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { BASE_URL } from "@/lib/constants";
-import { formatMarketValue, formatValuePerPlayer, getNationalTeamHref } from "@/lib/format";
+import { formatMarketValue, formatValuePerPlayer, nationalTeamUrls } from "@/lib/format";
 import { normalizeForSearch } from "@/lib/normalize";
-import { flagUrl } from "@/lib/transfermarkt/image";
 import type { NationalTeamValue } from "@/app/types";
 import { NationManager } from "./NationManager";
 
@@ -60,13 +59,11 @@ const ALL = "all";
 /** Flag and name, linked to the nation's page, then out to its extended squad on
  *  Transfermarkt. */
 function NationCell({ team }: { team: NationalTeamValue }) {
+  const { href, flagUrl } = nationalTeamUrls(team);
   return (
     <div className="flex items-center gap-2">
-      <NationalityFlag url={flagUrl(String(team.landId))} />
-      <Link
-        href={getNationalTeamHref(team.name)}
-        className="truncate text-sm font-bold hover:underline"
-      >
+      <NationalityFlag url={flagUrl} />
+      <Link href={href} className="truncate text-sm font-bold hover:underline">
         {team.name}
       </Link>
       <a

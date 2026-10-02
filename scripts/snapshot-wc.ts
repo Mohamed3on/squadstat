@@ -17,7 +17,7 @@ import { parseMarketValue } from "@/lib/parse-market-value";
 import { getManagerInfo } from "@/lib/fetch-manager";
 import { BASE_TEAMS, normName, type Round, type Team } from "@/lib/wc/model";
 import { buildLiveModel } from "@/lib/wc/live";
-import { wcTeamTmId } from "@/lib/wc/tm-team-links";
+import { getNationalTeams } from "@/lib/national-teams";
 import type { GroupFixture, Kick } from "@/lib/wc/fixtures";
 import type { GroupStanding, GroupData, KoMatch, WcResults } from "@/lib/wc/results";
 import type { ManagerInfo } from "@/app/types";
@@ -272,10 +272,13 @@ async function snapshotManagers(
   const tracker = buildLiveModel(teams, results).tracker;
   const names = tracker.filter((r) => r.projStage !== r.expStage).map((r) => r.team.name);
   console.log(`[wc-snapshot] fetching ${names.length} nation managers...`);
+  // By country id: the roster spells some nations its own way ("DR Congo").
+  const { byLandId } = await getNationalTeams();
+  const tmIds = new Map(teams.map((t) => [t.name, byLandId.get(t.landId)?.id]));
   const settled = await Promise.allSettled(
     names.map(async (name) => {
-      const id = wcTeamTmId(name);
-      return id ? ([name, await getManagerInfo(String(id))] as const) : null;
+      const id = tmIds.get(name);
+      return id ? ([name, await getManagerInfo(id)] as const) : null;
     }),
   );
   const managers: Record<string, ManagerInfo> = {};
