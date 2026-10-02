@@ -1,3 +1,4 @@
+import { existsSync } from "fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { join } from "path";
 import {
@@ -20,11 +21,7 @@ import { crestUrl, flagUrl } from "@/lib/transfermarkt/image";
 import { fetchClubTypes, fetchSecondNationalities } from "@/lib/alpha-clubs";
 import { fetchPage, setMaxConcurrent } from "@/lib/fetch";
 import { BASE_URL } from "@/lib/constants";
-import {
-  analyzeMinutesRegressions,
-  MINUTES_DROP_TOLERANCE,
-  sampleRegressionDrops,
-} from "@/lib/minutes-regression";
+import { publishVerdict } from "@/lib/minutes-regression";
 import type { MinutesValuePlayer } from "@/app/types";
 
 const FORCE_REFRESH = process.argv.includes("--force") || process.env.FORCE_REFRESH === "1";
@@ -491,88 +488,13 @@ async function readSeasonMarker(): Promise<number | null> {
 
 // --- 6. Validate ---
 
-async function validate(players: MinutesValuePlayer[], seasonChanged: boolean): Promise<void> {
-  const fetched = players.filter((p) => p.fetchedAt);
-  const zeroStats = fetched.filter((p) => p.goals === 0 && p.assists === 0 && p.minutes === 0);
-  const zeroMV = players.filter((p) => p.marketValue <= 0);
-  console.log(
-    `[refresh] Validation: ${zeroStats.length}/${fetched.length} zero-stats, ${zeroMV.length}/${players.length} zero-MV`,
-  );
-  // Aggregation-bug backstop: even right after an early season flip (~35%
-  // coverage) zero-stats can't legitimately exceed ~65%. Near-total zeros mean
-  // aggregation broke (e.g. corrupted clubTypes) despite healthy rawGames —
-  // the season-coverage guard upstream can't see that.
-  if (fetched.length > 50 && zeroStats.length / fetched.length > 0.8) {
-    throw new Error(
-      `${zeroStats.length}/${fetched.length} players aggregated to zero stats despite healthy payloads — aggregation bug.`,
-    );
-  }
-  if (zeroMV.length > players.length * 0.1) {
-    throw new Error(
-      `${zeroMV.length}/${players.length} players have no market value — scraping issue.`,
-    );
-  }
-
-  // A deliberate season flip resets every stat; comparing against the old
-  // season's file would only produce false alarms.
-  if (seasonChanged) {
-    console.log("[refresh] Season flipped — skipping old-vs-new regression checks this run.");
-    return;
-  }
-
-  try {
-    const existing: MinutesValuePlayer[] = JSON.parse(await readFile(OUT_PATH, "utf-8"));
-    const oldGA = existing.reduce((s, p) => s + p.goals + p.assists, 0);
-    const newGA = players.reduce((s, p) => s + p.goals + p.assists, 0);
-    const oldCount = existing.length;
-    const newCount = players.filter((p) => p.marketValue > 0).length;
-    console.log(
-      `[refresh] G+A: ${oldGA} → ${newGA} (${newGA >= oldGA ? "+" : ""}${newGA - oldGA}), players: ${oldCount} → ${newCount} (${newCount >= oldCount ? "+" : ""}${newCount - oldCount})`,
-    );
-    if (oldGA > 100 && newGA < oldGA * 0.85) {
-      throw new Error(
-        `Stats regressed: G+A ${oldGA} → ${newGA} (${Math.round((newGA / oldGA) * 100)}%).`,
-      );
-    }
-    if (oldCount > 100 && newCount < oldCount * 0.85) {
-      throw new Error(
-        `Player count regressed: ${oldCount} → ${newCount} (${Math.round((newCount / oldCount) * 100)}%).`,
-      );
-    }
-    // Per-player regression: tolerate small minute drops, whole-club corrections
-    // (TM voids/postpones a match → every club player loses ~90'), and a small
-    // number of scattered drops (individual stat tweaks). Fail only on a wide
-    // wave that suggests the scrape itself broke.
-    const report = analyzeMinutesRegressions(existing, players);
-    if (report.ignoredClubs.length > 0) {
-      console.warn(
-        `[refresh] Ignoring whole-club corrections (likely match void/postpone): ${report.ignoredClubs.join(", ")} — ${report.ignoredCount} players`,
-      );
-    }
-    if (report.fail) {
-      const msg = `${report.scattered.length} player(s) regressed >${MINUTES_DROP_TOLERANCE}' (tolerance ${report.maxScattered}, e.g. ${sampleRegressionDrops(existing, report.scattered)}) — scrape regressed silently.`;
-      // Escape hatch for intentional aggregation changes (e.g. tightening the
-      // first-team filter). Keep narrow: only honor when explicitly opted in.
-      if (process.env.SKIP_MINUTES_REGRESSION === "1") {
-        console.warn(`[refresh] SKIP_MINUTES_REGRESSION=1 — tolerating: ${msg}`);
-      } else {
-        throw new Error(msg);
-      }
-    }
-    if (report.scattered.length > 0) {
-      console.warn(
-        `[refresh] ${report.scattered.length} scattered minute drops within tolerance ${report.maxScattered}: ${sampleRegressionDrops(existing, report.scattered)}`,
-      );
-    }
-  } catch (e) {
-    if (
-      e instanceof Error &&
-      (e.message.startsWith("Stats regressed") ||
-        e.message.startsWith("Player count") ||
-        e.message.includes("regressed >"))
-    )
-      throw e;
-  }
+/** Last run's committed rows, the baseline publishVerdict compares against; null
+ *  only when nothing has been committed yet. A file that exists but won't read or
+ *  parse throws: skipping the comparison would quietly switch the old-vs-new
+ *  guards off. */
+async function readCommitted(): Promise<MinutesValuePlayer[] | null> {
+  if (!existsSync(OUT_PATH)) return null;
+  return JSON.parse(await readFile(OUT_PATH, "utf-8"));
 }
 
 // --- Club types ---
@@ -688,8 +610,6 @@ async function main() {
   await resolveUnknownClubs(players, clubs);
   enrichRecentForm(players, clubs);
 
-  await validate(players, seasonChanged);
-
   // Scorer-pool players earn their slot via goals, so only top-flight ones count:
   // a winter signing's 2nd-division (or reserve-team) tally shouldn't read as a
   // top-5 scoring record. MV-pool players are notable on value alone, so all their
@@ -703,13 +623,27 @@ async function main() {
       p.goals = entry.data.topFlightGoals;
     }
   }
+  // A player with no stats at all (every fetch failed, nothing cached) is left out
+  // rather than published as a row of zeros.
   const withMV = players.filter(
-    (p) => p.marketValue > 0 && (mvIds.has(p.playerId) || p.goals >= 1),
+    (p) => p.marketValue > 0 && p.fetchedAt && (mvIds.has(p.playerId) || p.goals >= 1),
   );
   const noMv = players.filter((p) => p.marketValue <= 0).length;
+  const noStats = players.filter((p) => p.marketValue > 0 && !p.fetchedAt).length;
   console.log(
-    `[refresh] Filtered ${players.length - withMV.length} (${noMv} no market value, rest scorer-pool with no top-flight goal)`,
+    `[refresh] Filtered ${players.length - withMV.length} (${noMv} no market value, ${noStats} no stats, rest scorer-pool with no top-flight goal)`,
   );
+
+  const verdict = publishVerdict({
+    committed: await readCommitted(),
+    rows: withMV,
+    pool: players,
+    seasonChanged,
+    skipMinutesRegression: process.env.SKIP_MINUTES_REGRESSION === "1",
+  });
+  for (const note of verdict.notes) console.log(`[refresh] ${note}`);
+  for (const warning of verdict.warnings) console.warn(`[refresh] ${warning}`);
+  if (verdict.failures.length > 0) throw new Error(verdict.failures.join(" "));
 
   await mkdir(DATA_DIR, { recursive: true });
   await writeFile(CLUBS_PATH, JSON.stringify(clubs));

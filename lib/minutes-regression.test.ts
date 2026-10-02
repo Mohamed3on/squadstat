@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { analyzeMinutesRegressions } from "./minutes-regression";
+import { analyzeMinutesRegressions, publishVerdict } from "./minutes-regression";
 import type { MinutesValuePlayer } from "@/app/types";
 
 const makePlayer = (
@@ -131,5 +131,61 @@ describe("analyzeMinutesRegressions", () => {
     expect(r.ignoredCount).toBe(5);
     expect(r.scattered).toHaveLength(0);
     expect(r.fail).toBe(false);
+  });
+});
+
+describe("publishVerdict", () => {
+  // n fetched players, a goal and 900' each, spread over 20 clubs.
+  const squad = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      ...makePlayer(String(i), `P${i}`, `Club${i % 20}`, 900),
+      goals: 1,
+      assists: 0,
+      fetchedAt: 1,
+    }));
+  const base = { seasonChanged: false, skipMinutesRegression: false };
+
+  it("judges the rows it writes, not the pool they were filtered from", () => {
+    const pool = squad(200);
+    const verdict = publishVerdict({
+      ...base,
+      committed: squad(200),
+      rows: pool.slice(0, 150),
+      pool,
+    });
+    expect(verdict.failures).toEqual([
+      "Stats regressed: G+A 200 → 150 (75%).",
+      "Player count regressed: 200 → 150 (75%).",
+    ]);
+  });
+
+  it("skips old-vs-new checks with nothing committed or after a season flip, but not the value check", () => {
+    const pool = squad(200).map((p, i) => (i < 30 ? { ...p, marketValue: 0 } : p));
+    const rows = pool.slice(30);
+    const unvalued = "30/200 players have no market value — scraping issue.";
+    const first = publishVerdict({ ...base, committed: null, rows, pool });
+    expect(first.failures).toEqual([unvalued]);
+    expect(first.notes).toContain("No committed data yet — skipping old-vs-new regression checks.");
+    const flipped = publishVerdict({
+      ...base,
+      seasonChanged: true,
+      committed: squad(400),
+      rows,
+      pool,
+    });
+    expect(flipped.failures).toEqual([unvalued]);
+  });
+
+  it("lets SKIP_MINUTES_REGRESSION through the minutes wave and nothing else", () => {
+    const committed = squad(200);
+    const wave = squad(200).map((p, i) => (i < 50 ? { ...p, minutes: 800 } : p));
+    const verdict = (rows: MinutesValuePlayer[], skipMinutesRegression: boolean) =>
+      publishVerdict({ ...base, committed, rows, pool: rows, skipMinutesRegression });
+    expect(verdict(wave, false).failures).toHaveLength(1);
+    expect(verdict(wave, true).failures).toEqual([]);
+    expect(verdict(wave, true).warnings[0]).toMatch(/^SKIP_MINUTES_REGRESSION=1 — tolerating: 50/);
+    expect(verdict(wave.slice(0, 150), true).failures).toContain(
+      "Player count regressed: 200 → 150 (75%).",
+    );
   });
 });
