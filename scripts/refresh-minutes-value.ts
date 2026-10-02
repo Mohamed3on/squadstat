@@ -1,6 +1,7 @@
 import { existsSync } from "fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { join } from "path";
+import { writeIfChanged } from "./write-if-changed";
 import {
   fetchMinutesValueRaw,
   fetchO30MostValuableRaw,
@@ -647,9 +648,11 @@ async function main() {
 
   await mkdir(DATA_DIR, { recursive: true });
   await writeFile(CLUBS_PATH, JSON.stringify(clubs));
-  await writeFile(OUT_PATH, JSON.stringify(withMV));
+  const changed = await writeIfChanged(OUT_PATH, JSON.stringify(withMV));
   await writeFile(SEASON_PATH, `${season}\n`);
-  await writeFile(join(DATA_DIR, "updated-at.txt"), new Date().toISOString());
+  // The stamp says when the players last changed (and keys the data-version caches), so
+  // a run that changed none leaves it be.
+  if (changed) await writeFile(join(DATA_DIR, "updated-at.txt"), new Date().toISOString());
   console.log(
     `[refresh] Done: ${withMV.length} players (season ${season}) → ${OUT_PATH}, ${Object.keys(clubs).length} clubs cached`,
   );

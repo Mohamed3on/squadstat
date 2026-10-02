@@ -1,5 +1,6 @@
-import { readFile, writeFile } from "fs/promises";
+import { writeFile } from "fs/promises";
 import { join } from "path";
+import { writeIfChanged } from "./write-if-changed";
 import * as cheerio from "cheerio";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
@@ -192,9 +193,7 @@ async function save(
   rows: { name: string; averageValue: number }[],
   data: SquadValueResult | NationalTeamValueResult,
 ) {
-  const out = join(DATA_DIR, `${file}.json`);
-  const next = JSON.stringify(data);
-  if (next === (await readFile(out, "utf-8").catch(() => ""))) {
+  if (!(await writeIfChanged(join(DATA_DIR, `${file}.json`), JSON.stringify(data)))) {
     // The scrape runs on the plain 3-hourly tick, but squad values only move on
     // a market-value update or a completed transfer. Writing nothing when
     // nothing changed keeps the timestamp honest and saves a deploy.
@@ -202,7 +201,6 @@ async function save(
     return;
   }
 
-  await writeFile(out, next);
   await writeFile(join(DATA_DIR, `${file}-updated-at.txt`), new Date().toISOString());
   console.log(
     `[${LABEL}] ${rows.length} ${what} — ${rows[0].name} leads on value, ` +

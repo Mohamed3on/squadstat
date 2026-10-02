@@ -1,6 +1,7 @@
 import { parsePlayerTable } from "@/lib/transfermarkt";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
+import { writeIfChanged } from "./write-if-changed";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage, setMaxConcurrent } from "@/lib/fetch";
@@ -148,7 +149,7 @@ async function fetchAllPeriods(
   return map;
 }
 
-async function processDirection(direction: Direction): Promise<void> {
+async function processDirection(direction: Direction): Promise<boolean> {
   const cfg = DIRECTION_CONFIG[direction];
   const allDates = getPeriodDates();
   console.log(
@@ -183,23 +184,27 @@ async function processDirection(direction: Direction): Promise<void> {
       `[${cfg.label}] All ${allDates.length} period fetches failed — refusing to overwrite ${cfg.outFile} with empty data`,
     );
   }
-  await writeResult({ repeatMovers: repeats, periods: processedPeriods }, cfg);
+  return writeResult({ repeatMovers: repeats, periods: processedPeriods }, cfg);
 }
 
 async function writeResult(result: MarketValueMoversResult, cfg: DirectionConfig) {
   const outDir = join(process.cwd(), "data");
   const outPath = join(outDir, cfg.outFile);
   await mkdir(outDir, { recursive: true });
-  await writeFile(outPath, JSON.stringify(result));
-  console.log(`[${cfg.label}] Wrote ${outPath}`);
+  const changed = await writeIfChanged(outPath, JSON.stringify(result));
+  console.log(`[${cfg.label}] ${changed ? `Wrote ${outPath}` : "Unchanged"}`);
+  return changed;
 }
 
 async function main() {
   // Movers pages rate-limit hard; keep the shared TM limiter low for this run.
   setMaxConcurrent(3);
-  await Promise.all([processDirection("losers"), processDirection("winners")]);
-  const tsPath = join(process.cwd(), "data", "biggest-movers-updated-at.txt");
-  await writeFile(tsPath, new Date().toISOString());
+  const changed = await Promise.all([processDirection("losers"), processDirection("winners")]);
+  // The stamp says when the movers last changed, so a run that found none leaves it be.
+  if (changed.some(Boolean)) {
+    const tsPath = join(process.cwd(), "data", "biggest-movers-updated-at.txt");
+    await writeFile(tsPath, new Date().toISOString());
+  }
   console.log("[biggest-movers] Done");
 }
 

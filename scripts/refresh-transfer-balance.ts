@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import { join } from "path";
+import { writeIfChanged } from "./write-if-changed";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage, setMaxConcurrent } from "@/lib/fetch";
 import { leadersOf } from "@/lib/transfer-balance-measures";
@@ -177,8 +178,12 @@ async function main() {
   const result: TransferBalanceResult = { windows };
 
   await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(join(DATA_DIR, "transfer-balance.json"), JSON.stringify(result));
-  await writeFile(join(DATA_DIR, "transfer-balance-updated-at.txt"), new Date().toISOString());
+  // The stamp says when the balance last changed, so a run that found nothing new leaves it be.
+  if (await writeIfChanged(join(DATA_DIR, "transfer-balance.json"), JSON.stringify(result))) {
+    await writeFile(join(DATA_DIR, "transfer-balance-updated-at.txt"), new Date().toISOString());
+  } else {
+    console.log(`[${LABEL}] Unchanged`);
+  }
 
   for (const w of windows) {
     const winner = leadersOf(w.clubs).winners[0];
