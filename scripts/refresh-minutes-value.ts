@@ -187,27 +187,44 @@ async function loadScorerPool(seasonId: number): Promise<MinutesValuePlayer[]> {
 
 type FetchState = { staleCache: Cache; cache: Cache };
 
+/** A data file's text, or null when it doesn't exist yet; one that's there but won't
+ *  read throws. The committed state files (club map, club types, season marker) throw
+ *  on bad contents too: quietly starting over from empty would drop what they carry
+ *  from run to run — a club map rebuilt from scratch, or a season choice that forgot
+ *  its last answer. */
+async function readIfExists(path: string): Promise<string | null> {
+  return existsSync(path) ? readFile(path, "utf-8") : null;
+}
+
 /** Load the previous runs' player cache once. Valid entries serve as fetch
  *  fallback across all fetch phases. */
 async function loadCacheState(): Promise<FetchState> {
   const now = Date.now();
   const staleCache: Cache = {};
-  try {
-    const raw: Cache = JSON.parse(await readFile(CACHE_PATH, "utf-8"));
-    // Discard entries older than STALE_MAX_MS, and treat zero-stats+empty-league entries
-    // as corrupted (previous failure mode where a failed CEAPI silently cached zeros).
-    for (const [id, entry] of Object.entries(raw)) {
-      const s = entry.data;
-      const looksCorrupted = !s.league && !s.appearances && !s.minutes && !s.goals && !s.assists;
-      if (entry.fetchedAt && now - entry.fetchedAt < STALE_MAX_MS && !looksCorrupted) {
-        staleCache[id] = entry;
+  const text = await readIfExists(CACHE_PATH);
+  if (text === null) {
+    console.log("[refresh] No player cache — fetching every player");
+  } else {
+    try {
+      const raw: Cache = JSON.parse(text);
+      // Discard entries older than STALE_MAX_MS, and treat zero-stats+empty-league entries
+      // as corrupted (previous failure mode where a failed CEAPI silently cached zeros).
+      for (const [id, entry] of Object.entries(raw)) {
+        const s = entry.data;
+        const looksCorrupted = !s.league && !s.appearances && !s.minutes && !s.goals && !s.assists;
+        if (entry.fetchedAt && now - entry.fetchedAt < STALE_MAX_MS && !looksCorrupted) {
+          staleCache[id] = entry;
+        }
       }
+      console.log(
+        `[refresh] Loaded ${Object.keys(staleCache).length} valid cache entries (${Object.keys(raw).length - Object.keys(staleCache).length} expired)`,
+      );
+    } catch (e) {
+      // Unlike the committed files, this one is never worth failing the run over: it
+      // travels through GitHub's actions cache and is saved again even after a failed
+      // run, so throwing would fail every run after it. Refetching heals it.
+      console.warn(`[refresh] Player cache unreadable — refetching every player: ${e}`);
     }
-    console.log(
-      `[refresh] Loaded ${Object.keys(staleCache).length} valid cache entries (${Object.keys(raw).length - Object.keys(staleCache).length} expired)`,
-    );
-  } catch {
-    // No cache available
   }
   console.log(
     `[refresh] TM_RELAY_URL: ${process.env.TM_RELAY_URL ? "set — fetching via relay" : "NOT SET — fetching direct"}`,
@@ -398,11 +415,8 @@ function mergeStats(players: MinutesValuePlayer[], cache: Cache): void {
 // --- 4. Club map: build from player data + scrape unknowns ---
 
 async function loadClubMap(): Promise<ClubMap> {
-  try {
-    return JSON.parse(await readFile(CLUBS_PATH, "utf-8")) as ClubMap;
-  } catch {
-    return {};
-  }
+  const raw = await readIfExists(CLUBS_PATH);
+  return raw === null ? {} : (JSON.parse(raw) as ClubMap);
 }
 
 function seedClubMapFromPlayers(players: MinutesValuePlayer[], clubs: ClubMap): void {
@@ -479,12 +493,13 @@ function enrichRecentForm(players: MinutesValuePlayer[], clubs: ClubMap): void {
 // --- 5. Season selection ---
 
 async function readSeasonMarker(): Promise<number | null> {
-  try {
-    const n = Number((await readFile(SEASON_PATH, "utf-8")).trim());
-    return Number.isFinite(n) && n > 2000 ? n : null;
-  } catch {
-    return null;
+  const raw = await readIfExists(SEASON_PATH);
+  if (raw === null) return null;
+  const n = Number(raw.trim());
+  if (!Number.isFinite(n) || n <= 2000) {
+    throw new Error(`data/season.txt does not hold a season id: ${JSON.stringify(raw)}`);
   }
+  return n;
 }
 
 // --- 6. Validate ---
@@ -501,11 +516,8 @@ async function readCommitted(): Promise<MinutesValuePlayer[] | null> {
 // --- Club types ---
 
 async function loadClubTypes(): Promise<ClubTypes> {
-  try {
-    return JSON.parse(await readFile(CLUB_TYPES_PATH, "utf-8")) as ClubTypes;
-  } catch {
-    return {};
-  }
+  const raw = await readIfExists(CLUB_TYPES_PATH);
+  return raw === null ? {} : (JSON.parse(raw) as ClubTypes);
 }
 
 /** Resolve any clubIds in the cache that aren't yet in `clubTypes` and merge
