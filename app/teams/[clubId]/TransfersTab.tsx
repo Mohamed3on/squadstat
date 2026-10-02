@@ -6,7 +6,13 @@ import { EmptyNote } from "@/components/EmptyNote";
 import { SectionPanel } from "@/components/SectionPanel";
 import { GapTrack } from "@/app/fee-vs-value/FeeValueBar";
 import { ClubMoveRow } from "@/app/fee-vs-value/TransferRow";
-import { barGeometry, transferKey, type ClubSide, type ClubWindow } from "@/lib/fee-vs-value";
+import {
+  barGeometry,
+  pricedFees,
+  transferKey,
+  type ClubSide,
+  type ClubWindow,
+} from "@/lib/fee-vs-value";
 import {
   CLUB_CASH_HREF,
   CLUB_PATH,
@@ -16,6 +22,7 @@ import {
   premiumTone,
   seasonLabel,
   sideLabel,
+  sideStatement,
   type Side,
 } from "@/lib/fee-vs-value-rankings";
 import {
@@ -164,29 +171,31 @@ function SidePanel({
   /** Shared euro axis across both panels, so buying and selling compare. */
   axisMax: number;
 }) {
+  const { figure, caption } = sideStatement(side);
   return (
     <div className="rounded-xl border border-border-subtle bg-elevated">
       <div className="flex items-start gap-3 p-3">
         <div className="min-w-0 flex-1">
           <p className="font-value text-xs text-text-primary">{sideLabel(side, direction)}</p>
-          <p className="mt-0.5 font-value text-xs text-text-secondary">
-            {formatMarketValue(side.marketValue)} of players for {formatMarketValue(side.fees)}
-          </p>
-          {side.marketValue > 0 && (
+          <p className="mt-0.5 font-value text-xs text-text-secondary">{caption}</p>
+          {/* The caption's two figures, drawn. */}
+          {figure && (
             <GapTrack
-              {...barGeometry({ worth: side.marketValue, fee: side.fees }, axisMax)}
+              {...barGeometry({ worth: side.pricedValue, fee: pricedFees(side) }, axisMax)}
               className="mt-2"
             />
           )}
         </div>
-        <div className="shrink-0 text-right">
-          <p className={cn("font-value text-sm", TONE_TEXT[premiumTone(side.premium, direction)])}>
-            {formatPremium(side.premium)}
-          </p>
-          {side.marketValue > 0 && (
+        {figure && (
+          <div className="shrink-0 text-right">
+            <p
+              className={cn("font-value text-sm", TONE_TEXT[premiumTone(side.premium, direction)])}
+            >
+              {figure}
+            </p>
             <p className="font-value text-xs text-text-secondary">{formatRatio(side.ratio)}</p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <ul className="divide-y divide-border-subtle border-t border-border-subtle px-3">
         {side.transfers.map((t) => (
@@ -203,8 +212,14 @@ function SidePanel({
  *  near-identical panels. */
 function ClubWindow({ club, count, season }: { club: ClubWindow; count: number; season: string }) {
   const sides = (["in", "out"] as const).filter((s) => club[s].players > 0);
-  // One euro axis across both panels, so buying and selling compare.
-  const axisMax = Math.max(club.in.marketValue, club.in.fees, club.out.marketValue, club.out.fees);
+  // One euro axis across both panels, so buying and selling compare — over the
+  // priced figures the bars draw, so a side's loans can't stretch it.
+  const axisMax = Math.max(
+    club.in.pricedValue,
+    pricedFees(club.in),
+    club.out.pricedValue,
+    pricedFees(club.out),
+  );
 
   return (
     <>

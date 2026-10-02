@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { ClubLogo } from "@/components/ClubLogo";
 import { ClubMoveRow } from "@/app/fee-vs-value/TransferRow";
-import { pricedFees, transferKey, type ClubWindow } from "@/lib/fee-vs-value";
+import { transferKey, type ClubWindow } from "@/lib/fee-vs-value";
 import {
   CLUB_MODES,
   TONE_TEXT,
@@ -26,15 +26,15 @@ import {
   gainTone,
   premiumTone,
   rankClubs,
+  sideStatement,
   surplus,
   windowSentence,
   type EndKey,
   type ModeSpec,
 } from "@/lib/fee-vs-value-rankings";
-import { formatMarketValue, formatPremium, getTeamDetailHref } from "@/lib/format";
+import { formatPremium, getTeamDetailHref } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const money = formatMarketValue;
 const signed = formatPremium;
 
 /**
@@ -135,16 +135,15 @@ function endOf(sort: LedgerSort): EndKey {
  *  beside this one already carries. */
 function SideCell({ c, side }: { c: ClubWindow; side: "in" | "out" }) {
   const s = c[side];
-  if (s.pricedValue === 0) {
-    return <span className="text-text-muted">{s.players === 0 ? "—" : "no priced deals"}</span>;
-  }
+  const { figure, caption } = sideStatement(s);
+  if (!figure) return <span className="text-text-muted">{caption}</span>;
   return (
     <>
       <span className={cn("block font-value", TONE_TEXT[premiumTone(s.premium, side)])}>
-        {signed(s.premium)}
+        {figure}
       </span>
       <span className="block font-value text-[10px] text-text-muted md:whitespace-nowrap">
-        {money(s.pricedValue)} of players for {money(pricedFees(s))}
+        {caption}
       </span>
     </>
   );

@@ -101,6 +101,32 @@ export function sideLabel(s: ClubSide, side: Side): string {
   return `${s.players} ${side}${extras.length ? ` · ${extras.join(" · ")}` : ""}`;
 }
 
+/**
+ * What a side amounts to in money: its premium, and under it the two figures it
+ * is the gap between. Every club row that prints a side reads it from here — the
+ * ledger's Bought and Sold cells, the overview's buying and selling cards, and
+ * the two panels on a club's own page.
+ *
+ * Both figures count the priced moves only, as the premium does. Each renderer
+ * used to write this line for itself, and two of the three went on summing
+ * every move, loans included, under a premium that leaves them out — so the sum
+ * stopped adding up: Roma's 2026/27 "Bought best" card read −€59.5M over
+ * "€201.0M of players for €124.5M".
+ *
+ * A side with nothing priced on it — every move a loan, or one TM published no
+ * fee for — has no premium to state, so `figure` is null and the caption says
+ * why. A club's own page printed €0 and 0.00× for one.
+ */
+export function sideStatement(s: ClubSide): { figure: string | null; caption: string } {
+  if (s.pricedValue === 0) {
+    return { figure: null, caption: s.players === 0 ? "—" : "no priced deals" };
+  }
+  return {
+    figure: signed(s.premium),
+    caption: `${money(s.pricedValue)} of players for ${money(pricedFees(s))}`,
+  };
+}
+
 /** One end of a mode's single ranking — its top, then its bottom. Only what
  *  actually differs between the two lives here; the measure itself is shared,
  *  which is what makes them genuine opposites rather than two similar tables. */
@@ -122,24 +148,12 @@ export type EndSpec = {
 export type ModeSpec = {
   /** What this mode is called in the URL. */
   slug: string;
-  toggle: string;
-  title: string;
   blurb: string;
   sort: (c: ClubWindow) => number;
   /** The big figure on each row. */
   figure: (c: ClubWindow) => string;
+  /** The two figures it came from, printed under it. */
   caption: (c: ClubWindow) => string;
-  /** Small figure under it. Defaults to the fee-to-value ratio of that side. */
-  badge?: (c: ClubWindow) => string | null;
-  /** Draw the value-against-fees bar under the caption. Off where the mode ranks
-   *  on something else — a bar plotting figures the row isn't ranked on reads as
-   *  a contradiction, or worse, as a control. */
-  bar?: boolean;
-  /** Which moves an expanded row lists. Defaults to the end's own `side`, which
-   *  is right when the headline only counts one side. Where it nets the two —
-   *  squad value — the expansion has to show both, or half the number it is
-   *  explaining is missing from the list underneath it. */
-  expand?: "in" | "out" | "both";
   ends: [EndSpec, EndSpec];
 };
 
@@ -173,14 +187,11 @@ export function windowSentence(c: ClubWindow): string {
 export const CLUB_MODES = {
   buying: {
     slug: "buying",
-    bar: true,
-    toggle: "Buying",
-    title: "Who bought well",
     blurb:
       "Fees paid against what the players were worth. A club that paid under value shopped well. Loans are left out — TM prices few of them, and a loan fee is not what a player cost.",
     sort: (c) => c.in.premium,
     figure: (c) => signed(c.in.premium),
-    caption: (c) => `${money(c.in.pricedValue)} of players for ${money(pricedFees(c.in))}`,
+    caption: (c) => sideStatement(c.in).caption,
     ends: [
       { title: "Paid too much", tone: "over", side: "in" },
       { title: "Bought best", tone: "under", side: "in" },
@@ -188,14 +199,11 @@ export const CLUB_MODES = {
   },
   selling: {
     slug: "selling",
-    bar: true,
-    toggle: "Selling",
-    title: "Who sold well",
     blurb:
       "The same sum from the other end: fees banked against what the players leaving were worth. Loans are left out — a player out on loan was not sold.",
     sort: (c) => c.out.premium,
     figure: (c) => signed(c.out.premium),
-    caption: (c) => `${money(c.out.pricedValue)} of players for ${money(pricedFees(c.out))}`,
+    caption: (c) => sideStatement(c.out).caption,
     ends: [
       // Banking more than a player was worth is the good outcome here, so the
       // colours run opposite to the buying tables.
@@ -205,19 +213,14 @@ export const CLUB_MODES = {
   },
   "squad-value": {
     slug: "squad-value",
-    toggle: "Squad value",
-    title: "Who gained and who lost",
     blurb:
-      "Value in minus value out, whatever it cost — loans counted, because a player on loan is in the dressing room either way. The badge is the money that swing took, in fees paid minus fees banked.",
+      "Value in minus value out, whatever it cost — loans counted, because a player on loan is in the dressing room either way.",
     // Ranked on net, not on gross: a club that brings in €292m and lets €268m
     // go has not gained €292m of anything. Gross sits in the caption, and the
     // two ends are genuine opposites — no club can top both.
     sort: (c) => c.netValue,
     figure: (c) => signed(c.netValue),
     caption: (c) => `${money(c.in.marketValue)} in · ${money(c.out.marketValue)} out`,
-    badge: (c) => `${signed(c.netSpend)} net`,
-    // The figure nets both sides, so the expansion has to list both.
-    expand: "both",
     ends: [
       {
         title: "Strengthened most",
@@ -235,15 +238,11 @@ export const CLUB_MODES = {
   },
   overall: {
     slug: "overall",
-    toggle: "Overall",
-    title: "Who came out ahead",
     blurb:
       "Value added minus net spend — everything a club did in the window, netted. Buying under value, selling over it and the squad's change in worth all count, so a club can have a good window while getting weaker if it was paid enough on the way.",
     sort: surplus,
     figure: (c) => signed(surplus(c)),
     caption: windowSentence,
-    badge: (c) => (doubled(c) ? "stronger and richer" : null),
-    expand: "both",
     ends: [
       {
         title: "Had the best window",

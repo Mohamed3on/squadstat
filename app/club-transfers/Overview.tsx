@@ -12,15 +12,13 @@ import {
   rankClubs,
   seasonLabel,
   surplus,
-  windowSentence,
   type ModeSpec,
   type Tone,
 } from "@/lib/fee-vs-value-rankings";
-import { formatMarketValue, getTeamDetailHref } from "@/lib/format";
+import { getTeamDetailHref } from "@/lib/format";
 import { crestUrl } from "@/lib/transfermarkt/image";
 import { cn } from "@/lib/utils";
 
-const money = formatMarketValue;
 const { buying, selling, "squad-value": squadValue, overall } = CLUB_MODES;
 
 /**
@@ -65,14 +63,6 @@ const WORST: [ModeSpec, 0 | 1][] = [
   [STRONGER, 1],
 ];
 
-/** The sentence under a card's figure — what the club actually did. */
-function sentence(mode: ModeSpec, c: ClubWindow): string {
-  if (mode === buying) return `${money(c.in.marketValue)} of players for ${money(c.in.fees)}`;
-  if (mode === selling) return `${money(c.out.marketValue)} of players for ${money(c.out.fees)}`;
-  if (mode === squadValue) return `${money(c.in.marketValue)} in · ${money(c.out.marketValue)} out`;
-  return windowSentence(c);
-}
-
 export interface Leader {
   label: string;
   clubId: string;
@@ -96,7 +86,7 @@ function leaderOf(rows: ClubWindow[], [mode, endIndex]: [ModeSpec, 0 | 1]): Lead
     logoUrl: c.club.logoUrl,
     figure: mode.figure(c),
     tone: mode.ends[endIndex].tone,
-    sub: sentence(mode, c),
+    sub: mode.caption(c),
     opens: [mode === STRONGER ? overall : mode, endIndex],
   };
 }
