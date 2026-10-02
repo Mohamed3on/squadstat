@@ -4,24 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Crown, Trophy, TriangleAlert } from "lucide-react";
 import type { ManagerInfo } from "@/app/types";
 import { managerQueryOptions } from "@/lib/hooks/use-manager-query";
+import { ppgStanding } from "@/lib/manager-standing";
 import { ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
 import { InfoTip } from "@/app/components/InfoTip";
 
 /** A team's manager and how his points per game rank since 1992, fetched after
  *  the page renders: the scrape is slow. A national team's counts competitive
  *  games only, as everywhere else on the site — friendlies would flatter it. */
-export function ManagerClient({
-  clubId,
-  national = false,
-}: {
-  clubId: string;
-  national?: boolean;
-}) {
-  const { data: manager, isLoading } = useQuery<ManagerInfo | null>(
-    managerQueryOptions(clubId, national),
-  );
-  const games = national ? "competitive games" : "games";
-  const atTeam = national ? "for this nation" : "at this club";
+export function ManagerClient({ clubId }: { clubId: string }) {
+  const { data: manager, isLoading } = useQuery<ManagerInfo | null>(managerQueryOptions(clubId));
 
   if (isLoading)
     return (
@@ -31,14 +22,10 @@ export function ManagerClient({
     );
   if (!manager) return null;
 
-  const hasRanking =
-    manager.ppg !== null &&
-    manager.ppgRank !== undefined &&
-    manager.totalComparableManagers !== undefined;
-  const isOnly = hasRanking && manager.totalComparableManagers === 1;
-  const isBest = hasRanking && manager.ppgRank === 1 && !isOnly;
-  const isWorst =
-    hasRanking && manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
+  const games = manager.officialOnly ? "competitive games" : "games";
+  const atTeam = manager.officialOnly ? "for this nation" : "at this club";
+  const standing = ppgStanding(manager);
+  const { isOnly, isBest, isWorst } = standing ?? {};
 
   // A single standout distinction, surfaced as a badge in the hero's pill language.
   const distinction = isOnly
@@ -63,7 +50,7 @@ export function ManagerClient({
   const DistinctionIcon = distinction?.Icon;
 
   // "#1 of 1" is noise — only rank against an actual field of peers.
-  const showRank = hasRanking && !isOnly;
+  const showRank = standing && !isOnly;
 
   return (
     <div className="mt-3 space-y-1.5 text-sm text-text-secondary animate-fade-in">

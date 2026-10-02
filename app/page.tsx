@@ -36,6 +36,7 @@ import {
 } from "@/lib/format";
 import { findRepeatLosers, findRepeatWinners } from "@/lib/biggest-movers";
 import { getManagerInfo } from "@/lib/fetch-manager";
+import { ppgStanding } from "@/lib/manager-standing";
 import { HeroCardSkeleton, StandoutsGridSkeleton } from "@/app/components/HomeSkeletons";
 import { FeedPanel } from "@/components/FeedPanel";
 import type {
@@ -109,25 +110,10 @@ function aggregatedDetail(team: AggregatedTeam): string {
   return `${team.league} · ${team.entries.length} categories · ${topCategories}`;
 }
 
-function hasManagerRanking(manager: ManagerInfo): manager is ManagerInfo & {
-  ppg: number;
-  ppgRank: number;
-  totalComparableManagers: number;
-} {
-  return (
-    manager.ppg !== null &&
-    manager.ppgRank !== undefined &&
-    manager.totalComparableManagers !== undefined
-  );
-}
-
 function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
   const gamesText = `${manager.matches} ${manager.matches === 1 ? "game" : "games"}`;
-  const hasRanking = hasManagerRanking(manager);
-  const isOnly = hasRanking && manager.totalComparableManagers === 1;
-  const isBest = hasRanking && manager.ppgRank === 1 && !isOnly;
-  const isWorst =
-    hasRanking && manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
+  const standing = ppgStanding(manager);
+  const { isOnly, isBest, isWorst } = standing ?? {};
 
   const ppgClassName = isBest
     ? "border-accent-hot/35 bg-accent-hot/12 text-accent-hot"
@@ -142,7 +128,7 @@ function ManagerSnapshotBadges({ manager }: { manager: ManagerInfo }) {
       ? "New manager"
       : manager.ppg === null
         ? gamesText
-        : hasRanking
+        : standing
           ? `${manager.ppg.toFixed(2)} PPG (${manager.ppgRank}/${manager.totalComparableManagers}) · ${gamesText}`
           : `${manager.ppg.toFixed(2)} PPG · ${gamesText}`;
 

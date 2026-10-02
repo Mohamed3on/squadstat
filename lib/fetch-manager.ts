@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import type { ManagerInfo, ManagerTrivia } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
+import { getNationalTeamLinks } from "./national-teams";
 
 interface ManagerHistoryEntry {
   name: string;
@@ -179,10 +180,7 @@ const getFriendlyRecord = (trainerId: string, vereinId: string, appointed: strin
   );
 };
 
-export async function getManagerInfo(
-  clubId: string,
-  officialOnly = false,
-): Promise<ManagerInfo | null> {
+export async function getManagerInfo(clubId: string): Promise<ManagerInfo | null> {
   const allManagers = await getManagerHistory(clubId);
 
   const now = new Date();
@@ -199,20 +197,19 @@ export async function getManagerInfo(
   const endDate = firstManager.endDate ? parseDate(firstManager.endDate) : null;
   const isCurrentManager = !endDate || endDate > now;
 
-  const minMatches = firstManager.matches;
   const since1992 = allManagers.filter((m) => {
     const appointed = parseDate(m.appointedDate);
-    return (
-      appointed && appointed.getFullYear() >= 1992 && m.matches >= minMatches && m.ppg !== null
-    );
+    return appointed && appointed.getFullYear() >= 1992 && m.ppg !== null;
   });
 
-  // Restate every comparable manager's PPG on competitive games only — Transfermarkt
-  // blends friendlies into its PPG. Points are additive, so official = total − friendlies,
-  // reusing TM's own points to avoid re-deriving knockout/penalty results. The history
-  // table already gives exact total matches + PPG, so this is one extra fetch per manager
-  // (the FS page). Restated rows are fresh objects; the parsed entries stay untouched.
-  const comparable: ManagerHistoryEntry[] = officialOnly
+  // A national team's record counts competitive games only — friendlies, which Transfermarkt
+  // blends into its PPG, would flatter it — so restate every manager's. Points are additive,
+  // so official = total − friendlies, reusing TM's own points to avoid re-deriving
+  // knockout/penalty results. The history table already gives exact total matches + PPG,
+  // so this is one extra fetch per manager (the FS page). Restated rows are fresh objects;
+  // the parsed entries stay untouched.
+  const officialOnly = !!(await getNationalTeamLinks())[clubId];
+  const records: ManagerHistoryEntry[] = officialOnly
     ? await Promise.all(
         since1992.map(async (m) => {
           if (m.ppg === null || !m.trainerId) return m;
@@ -231,7 +228,11 @@ export async function getManagerInfo(
 
   const isIncumbent = (m: ManagerHistoryEntry) =>
     m.name === firstManager.name && m.appointedDate === firstManager.appointedDate;
-  const incumbent = comparable.find(isIncumbent) ?? firstManager;
+  const incumbent = records.find(isIncumbent) ?? firstManager;
+  // His peers have as many games as his record counts — competitive ones, for a nation — so
+  // the bar is the `matches` returned, as the copy says. That's why restating comes first,
+  // for everyone since 1992 (an ended stint's friendlies cache for 30d).
+  const comparable = records.filter((m) => m.matches >= incumbent.matches);
   const sorted = [...comparable].sort((a, b) => (b.ppg ?? 0) - (a.ppg ?? 0));
   const rank = sorted.indexOf(incumbent) + 1;
 
@@ -246,7 +247,7 @@ export async function getManagerInfo(
     ppg: incumbent.ppg,
     isCurrentManager,
     ppgRank: rank > 0 ? rank : undefined,
-    totalComparableManagers: since1992.length > 0 ? since1992.length : undefined,
+    totalComparableManagers: comparable.length > 0 ? comparable.length : undefined,
     bestManager,
     worstManager,
     officialOnly,

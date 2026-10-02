@@ -177,7 +177,7 @@ export default async function NationalTeamPage({ params }: Params) {
               </ul>
             )}
 
-            <ManagerClient clubId={team.id} national />
+            <ManagerClient clubId={team.id} />
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Button

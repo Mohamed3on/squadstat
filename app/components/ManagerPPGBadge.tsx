@@ -3,6 +3,7 @@
 import type { ManagerInfo } from "@/app/types";
 import { HoverTip } from "@/components/HoverTip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ppgStanding } from "@/lib/manager-standing";
 
 interface ManagerPPGBadgeProps {
   manager: ManagerInfo;
@@ -47,21 +48,6 @@ export function ManagerSection({ manager, tip }: ManagerPPGBadgeProps & { tip?: 
       <ManagerPPGBadge manager={manager} tip={tip} />
     </div>
   );
-}
-
-/** Where the PPG ranks among managers since 1992 with as many games, or null when it isn't ranked. */
-function ppgStanding(manager: ManagerInfo) {
-  if (
-    manager.ppg === null ||
-    manager.ppgRank === undefined ||
-    manager.totalComparableManagers === undefined
-  )
-    return null;
-
-  const isOnly = manager.totalComparableManagers === 1;
-  const isBest = manager.ppgRank === 1 && !isOnly;
-  const isWorst = manager.ppgRank === manager.totalComparableManagers && !isBest && !isOnly;
-  return { isOnly, isBest, isWorst };
 }
 
 export function ManagerPPGBadge({ manager, tip = true }: ManagerPPGBadgeProps & { tip?: boolean }) {

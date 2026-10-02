@@ -51,7 +51,7 @@ export function NationManager({
   // button, so that one takes the focus back.
   const [focused, setFocused] = useState(false);
   const cached = useQueryClient().getQueryData<ManagerInfo | null>(
-    managerQueryOptions(teamId, true).queryKey,
+    managerQueryOptions(teamId).queryKey,
   );
 
   if (!armed && !focused) {
@@ -77,7 +77,7 @@ function ManagerTip({
     if (refocus) button.current?.focus();
   }, [refocus]);
   const { data: manager, isError } = useQuery({
-    ...managerQueryOptions(teamId, true),
+    ...managerQueryOptions(teamId),
     enabled: wanted,
   });
 

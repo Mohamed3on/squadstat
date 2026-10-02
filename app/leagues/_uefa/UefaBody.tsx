@@ -643,12 +643,10 @@ function Callouts({
   rows,
   measure,
   place,
-  official,
 }: {
   rows: StandingRow[];
   measure: Measure;
   place: string;
-  official: boolean; // a nation's manager is rated on competitive games alone
 }) {
   const played = rows.filter((r) => measure.of(r) !== null);
   const gap = (r: StandingRow) => measure.of(r)!;
@@ -673,7 +671,6 @@ function Callouts({
   // the page for.
   const { managersMap, loadingSet } = useManagersMap(
     cards.flatMap((c) => c.sides.map((r) => r.club.id)),
-    official,
   );
   if (!cards.length) return null;
 
@@ -805,12 +802,7 @@ export function UefaBody({ comp, view }: { comp: Competition; view: UefaView }) 
       {view.leaders && comp.format === "groups" && (
         <GroupWinners leaders={view.leaders} prize={comp.bands[0].label} settled={view.complete} />
       )}
-      <Callouts
-        rows={view.rows}
-        measure={measure}
-        place={copy.place}
-        official={copy.noun === "nation"}
-      />
+      <Callouts rows={view.rows} measure={measure} place={copy.place} />
 
       <div className="section-title">
         {copy.section} · matchday {view.matchday} of {view.matchdays}

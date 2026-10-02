@@ -2,13 +2,10 @@ import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { ManagerInfo } from "@/app/types";
 
-/** `officialOnly` strips friendlies from the PPG: a different answer, so its own key. */
-export const managerQueryOptions = (clubId: string, officialOnly = false) => ({
-  queryKey: officialOnly
-    ? (["manager", clubId, "official"] as const)
-    : (["manager", clubId] as const),
+export const managerQueryOptions = (clubId: string) => ({
+  queryKey: ["manager", clubId] as const,
   queryFn: () =>
-    fetch(`/api/manager/${clubId}${officialOnly ? "?official=1" : ""}`)
+    fetch(`/api/manager/${clubId}`)
       .then((r: Response) => r.json())
       .then((d: { manager?: ManagerInfo | null }) => d.manager ?? null),
   staleTime: 86400_000,
@@ -17,9 +14,9 @@ export const managerQueryOptions = (clubId: string, officialOnly = false) => ({
 });
 
 /** Fetches managers for many clubs at once, returning a lookup map and a loading set. */
-export function useManagersMap(clubIds: string[], officialOnly = false) {
+export function useManagersMap(clubIds: string[]) {
   const queries = useQueries({
-    queries: clubIds.map((clubId) => managerQueryOptions(clubId, officialOnly)),
+    queries: clubIds.map((clubId) => managerQueryOptions(clubId)),
   });
 
   return useMemo(() => {

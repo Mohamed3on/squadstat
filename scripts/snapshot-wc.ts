@@ -275,7 +275,7 @@ async function snapshotManagers(
   const settled = await Promise.allSettled(
     names.map(async (name) => {
       const id = wcTeamTmId(name);
-      return id ? ([name, await getManagerInfo(String(id), true)] as const) : null;
+      return id ? ([name, await getManagerInfo(String(id))] as const) : null;
     }),
   );
   const managers: Record<string, ManagerInfo> = {};
