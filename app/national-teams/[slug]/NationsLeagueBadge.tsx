@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ordinal } from "@/lib/format";
+import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 import { getNationsSeason } from "@/lib/uefa/fetch";
 import { COMPETITIONS, compHref } from "@/lib/uefa/types";
 
@@ -27,9 +28,15 @@ export async function NationsLeagueBadge({ teamId }: { teamId: string }) {
       .findIndex((r) => r.id === teamId) + 1;
 
   return (
-    <Link href={compHref(comp)}>
-      <Badge variant="secondary" className="transition-opacity hover:opacity-80">
-        {comp.name} · {row.pl > 0 ? `${ordinal(place)} in ` : ""}Group {row.group}
+    <Link href={compHref(comp)} title={comp.name}>
+      <Badge variant="secondary" className="gap-1.5 transition-opacity hover:opacity-80">
+        {/* The logo says Nations League, so the label needs only which one. */}
+        <img
+          src={leagueLogoUrl(comp.code)}
+          alt=""
+          className="h-3.5 w-3.5 rounded-sm bg-white/90 object-contain p-px"
+        />
+        {comp.tab} · {row.pl > 0 ? `${ordinal(place)} in ` : ""}Group {row.group}
       </Badge>
     </Link>
   );

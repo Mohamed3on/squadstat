@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, type CSSProperties } from "react";
 import { ManagerClient } from "@/app/components/ManagerClient";
 import { DetailDeck } from "@/components/DetailDeck";
 import { DetailHero, DetailPageShell } from "@/components/DetailHero";
@@ -18,6 +18,7 @@ import { absoluteUrl } from "@/lib/site-config";
 import { flagUrl } from "@/lib/transfermarkt/image";
 import { NationPlayers } from "./NationPlayers";
 import { NationsLeagueBadge } from "./NationsLeagueBadge";
+import { CALL_UP_STATUS, CALL_UP_STATUSES } from "./status";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -48,6 +49,30 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       "national team ranking",
     ],
   });
+}
+
+/** Two values a head on one scale, the call-up's in gold: which is worth more, at a
+ *  glance, with each figure printed so the bars are never the only telling. */
+function ValueBars({ bars }: { bars: { label: string; value: number; fill: string }[] }) {
+  const max = Math.max(...bars.map((b) => b.value));
+  return (
+    <div className="mt-2.5 space-y-1.5">
+      {bars.map((b) => (
+        <div key={b.label} className="flex items-center gap-2 text-[10px]">
+          <span className="w-12 shrink-0 text-text-muted">{b.label}</span>
+          <div className="h-1.5 flex-1 rounded-r bg-elevated">
+            <div
+              className={`animate-bar-fill h-full rounded-r ${b.fill}`}
+              style={{ "--bar-width": `${(b.value / max) * 100}%` } as CSSProperties}
+            />
+          </div>
+          <span className="w-14 shrink-0 text-right font-value text-text-secondary">
+            {formatValuePerPlayer(b.value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default async function NationalTeamPage({ params }: Params) {
@@ -132,14 +157,24 @@ export default async function NationalTeamPage({ params }: Params) {
               {team.name}
             </h1>
 
+            {/* Each title as its trophy, with how many: the names ride in the tooltip. */}
             {titles.length > 0 && (
-              <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary">
+              <ul
+                className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1"
+                aria-label="Titles"
+              >
                 {titles.map((t) => (
-                  <span key={t.name}>
-                    <span className="font-value text-text-primary">{t.count}×</span> {t.name}
-                  </span>
+                  <li
+                    key={t.name}
+                    title={`${t.count}× ${t.name}`}
+                    className="inline-flex items-center gap-1"
+                  >
+                    {t.imageUrl && <img src={t.imageUrl} alt="" className="h-6 w-auto" />}
+                    <span className="font-value text-xs text-text-secondary">×{t.count}</span>
+                    <span className="sr-only">{t.name}</span>
+                  </li>
                 ))}
-              </p>
+              </ul>
             )}
 
             <ManagerClient clubId={team.id} national />
@@ -160,56 +195,52 @@ export default async function NationalTeamPage({ params }: Params) {
         </div>
 
         {/* Both squads ranked on value per player, the call-up's as the National Teams
-            table ranks it, each over the figure it ranks; then which of the two is worth
-            more a head, which says whether the call-up picked the pick of the pool. */}
+            table ranks it; then the two values side by side, which says at a glance
+            whether the call-up picked the pick of the group. */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
           <HeroMetric
-            label="Value rank"
+            label="Call-up rank"
             value={`#${ranks.world}`}
-            subline={
-              <>
-                <span className="font-value text-accent-gold">
-                  {formatValuePerPlayer(team.averageValue)}
-                </span>{" "}
-                per player{ranks.confederation && ` · #${ranks.confederation} in ${confederation}`}
-              </>
-            }
+            subline={`of ${data.nations}${ranks.confederation ? ` · #${ranks.confederation} in ${confederation}` : ""}`}
             accentClass="text-text-primary"
           />
           {extended &&
             (ranks.extended ? (
               <HeroMetric
-                label="Extended squad rank"
+                label="Extended rank"
                 value={`#${ranks.extended.place}`}
-                subline={
-                  <>
-                    <span className="font-value">{formatValuePerPlayer(extended.perPlayer)}</span>{" "}
-                    per player · of the {ranks.extended.of} most valuable
-                  </>
-                }
+                subline={`of the top ${ranks.extended.of}`}
                 accentClass="text-text-primary"
               />
             ) : (
               <HeroMetric
                 label="Extended squad"
                 value={formatValuePerPlayer(extended.perPlayer)}
-                subline={`per player, across ${extended.players}`}
+                subline={`a head, across ${extended.players}`}
                 accentClass="text-text-primary"
               />
             ))}
-          {gap !== null && (
-            <HeroMetric
-              label="Call-up gap"
-              value={formatSignedPercent(callUpGap!)}
-              subline={`${gap > 0 ? "above" : gap < 0 ? "below" : "level with"} the extended squad, per player`}
-              accentClass={
-                gap > 0
-                  ? "text-accent-hot"
-                  : gap < 0
-                    ? "text-accent-cold-soft"
-                    : "text-text-primary"
-              }
-            />
+          {gap !== null && extended && (
+            <div className="col-span-2 sm:col-span-1">
+              <HeroMetric
+                label="Call-up gap"
+                value={formatSignedPercent(callUpGap!)}
+                accentClass={
+                  gap > 0
+                    ? "text-accent-hot"
+                    : gap < 0
+                      ? "text-accent-cold-soft"
+                      : "text-text-primary"
+                }
+              >
+                <ValueBars
+                  bars={[
+                    { label: "Call-up", value: team.averageValue, fill: "bg-accent-gold" },
+                    { label: "Extended", value: extended.perPlayer, fill: "bg-text-muted" },
+                  ]}
+                />
+              </HeroMetric>
+            </div>
           )}
         </div>
       </DetailHero>
@@ -217,26 +248,39 @@ export default async function NationalTeamPage({ params }: Params) {
       {callUp ? (
         <DetailDeck
           sections={[
-            { value: "squad", label: "Squad" },
-            ...(outsiders.length > 0 ? [{ value: "outsiders", label: "Outside the squad" }] : []),
+            { value: "squad", label: "Squad", count: callUp.length },
+            ...(outsiders.length > 0
+              ? [{ value: "outsiders", label: "Outside the squad", count: outsiders.length }]
+              : []),
           ]}
         >
-          <div className="space-y-4">
-            <p className="max-w-3xl text-sm text-text-secondary">
-              The players {team.name} has called up now. Caps and international goals are for{" "}
-              {team.name}; npG+A and minutes are this season, for the players we track.
-            </p>
-            <NationPlayers players={callUp} nation={team.name} />
-          </div>
+          <NationPlayers players={callUp} nation={team.name} nationFlagUrl={flag} />
           {outsiders.length > 0 && (
             <div className="space-y-4">
-              <p className="max-w-3xl text-sm text-text-secondary">
-                Everyone else {team.name} could pick: the rest of its extended squad, and the
-                players we track with {team.name} nationality, first or second, who aren&apos;t
-                capped by another nation. Beside each value: where it would rank in the call-up, and
-                when the player was last picked, if ever.
-              </p>
-              <NationPlayers players={outsiders} nation={team.name} />
+              {/* The legend: how lately each outsider was picked, and how many are each. */}
+              <ul className="flex flex-wrap items-center gap-2">
+                {CALL_UP_STATUSES.map((s) => {
+                  const n = outsiders.filter((p) => p.status === s).length;
+                  const { label, Icon, chip } = CALL_UP_STATUS[s];
+                  return (
+                    n > 0 && (
+                      <li
+                        key={s}
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${chip}`}
+                      >
+                        <Icon className="h-3.5 w-3.5" aria-hidden />
+                        {label}
+                        <span className="font-value">{n}</span>
+                      </li>
+                    )
+                  );
+                })}
+                <li className="text-xs text-text-muted sm:hidden">
+                  <span className="font-value text-text-secondary">8th</span>: where he&apos;d rank
+                  in the call-up
+                </li>
+              </ul>
+              <NationPlayers players={outsiders} nation={team.name} nationFlagUrl={flag} />
             </div>
           )}
         </DetailDeck>

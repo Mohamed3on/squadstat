@@ -29,7 +29,7 @@ export function SortToggle<K extends string>({
           <ToggleGroupItem
             key={key}
             value={key}
-            className="px-2.5 py-2 sm:py-1 text-[10px] sm:text-xs font-medium uppercase tracking-wide rounded-none border-0 flex items-center gap-1 text-text-muted data-[state=on]:bg-elevated data-[state=on]:text-text-primary"
+            className="px-2.5 py-2 sm:py-1 text-[10px] sm:text-xs font-medium uppercase tracking-wide rounded-none border-0 flex items-center gap-1 text-text-muted transition-[color,background-color,transform] duration-150 ease-out active:scale-[0.97] data-[state=on]:bg-elevated data-[state=on]:text-text-primary"
           >
             {label}
             {value === key && <span className="text-[10px]">{asc ? "▲" : "▼"}</span>}

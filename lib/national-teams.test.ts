@@ -54,7 +54,8 @@ describe("parseExtendedSquad — France", () => {
 
   it("reads the header's confederation and titles", () => {
     expect(page.confederation).toBe("UEFA");
-    expect(page.titles).toContainEqual({ name: "World Cup winner", count: 2 });
+    expect(page.titles[0]).toMatchObject({ name: "World Cup winner", count: 2 });
+    expect(page.titles[0].imageUrl).toMatch(/\/erfolge\/header\/101\.png/);
   });
 });
 
@@ -144,15 +145,15 @@ describe("nationPlayers", () => {
     expect(outsiders(pool)).toEqual(["uncapped", "recent", "dropped"]);
   });
 
-  it("places each outsider's value within the call-up and dates his last call-up", () => {
+  it("places each outsider within the call-up, and says how lately he was picked", () => {
     const pool = [
       player("dropped", 50, { intlCareerCaps: 5, lastIntlGame: "2024-03-22" }),
       player("uncapped", 50),
     ];
     const [recent, dropped, uncapped] = nationPlayers(france, squad, pool).outsiders;
-    expect(recent).toMatchObject({ callUpPlace: 2, lastCalledUp: "2026-03-26" });
-    expect(dropped).toMatchObject({ callUpPlace: 2, lastCalledUp: "2024-03-22" });
-    expect(uncapped).toMatchObject({ callUpPlace: 2, lastCalledUp: null });
+    expect(recent).toMatchObject({ status: "recent", callUpPlace: 2, lastCalledUp: "2026-03-26" });
+    expect(dropped).toMatchObject({ status: "lapsed", callUpPlace: 2, lastCalledUp: "2024-03-22" });
+    expect(uncapped).toMatchObject({ status: "uncapped", callUpPlace: 2, lastCalledUp: null });
   });
 
   it("adds uncapped dual nationals, marked with their first nationality", () => {

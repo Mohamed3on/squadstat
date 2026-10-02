@@ -1,14 +1,18 @@
 import type { ReactNode } from "react";
+/** A hero readout: label, figure, sub-line — and, below it, any small visual the
+ *  figure needs to be read at a glance. */
 export function HeroMetric({
   label,
   value,
   subline,
   accentClass,
+  children,
 }: {
   label: string;
   value: string;
-  subline: ReactNode;
+  subline?: ReactNode;
   accentClass: string;
+  children?: ReactNode;
 }) {
   return (
     <div className="min-w-0">
@@ -18,7 +22,8 @@ export function HeroMetric({
       >
         {value}
       </p>
-      <p className="mt-1.5 text-xs text-text-secondary">{subline}</p>
+      {subline && <p className="mt-1.5 text-xs text-text-secondary">{subline}</p>}
+      {children}
     </div>
   );
 }

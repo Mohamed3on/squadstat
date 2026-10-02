@@ -129,38 +129,44 @@ export function ManagerClient({
         </p>
       )}
 
+      {/* The record holders, less whichever of them is the manager himself: his
+          distinction pill already says so. */}
       {manager.bestManager && manager.worstManager && !isOnly && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-          <span>
-            <span className="text-text-muted">Best:</span>{" "}
-            <a
-              href={manager.bestManager.profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent-hot hover:underline font-medium"
-            >
-              {manager.bestManager.name}
-            </a>
-            <span className="font-value text-text-secondary ml-1">
-              {manager.bestManager.ppg.toFixed(2)} PPG
+          {!isBest && (
+            <span>
+              <span className="text-text-muted">Best:</span>{" "}
+              <a
+                href={manager.bestManager.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent-hot hover:underline font-medium"
+              >
+                {manager.bestManager.name}
+              </a>
+              <span className="font-value text-text-secondary ml-1">
+                {manager.bestManager.ppg.toFixed(2)} PPG
+              </span>
+              <span className="text-text-muted ml-1">({manager.bestManager.years})</span>
             </span>
-            <span className="text-text-muted ml-1">({manager.bestManager.years})</span>
-          </span>
-          <span>
-            <span className="text-text-muted">Worst:</span>{" "}
-            <a
-              href={manager.worstManager.profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent-cold-soft hover:underline font-medium"
-            >
-              {manager.worstManager.name}
-            </a>
-            <span className="font-value text-text-secondary ml-1">
-              {manager.worstManager.ppg.toFixed(2)} PPG
+          )}
+          {!isWorst && (
+            <span>
+              <span className="text-text-muted">Worst:</span>{" "}
+              <a
+                href={manager.worstManager.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent-cold-soft hover:underline font-medium"
+              >
+                {manager.worstManager.name}
+              </a>
+              <span className="font-value text-text-secondary ml-1">
+                {manager.worstManager.ppg.toFixed(2)} PPG
+              </span>
+              <span className="text-text-muted ml-1">({manager.worstManager.years})</span>
             </span>
-            <span className="text-text-muted ml-1">({manager.worstManager.years})</span>
-          </span>
+          )}
         </div>
       )}
     </div>

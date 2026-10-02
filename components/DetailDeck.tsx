@@ -4,7 +4,8 @@ import { Children, useCallback, useEffect, useState, type ReactNode } from "reac
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DetailDeckProps {
-  sections: { value: string; label: string }[];
+  /** `count` rides beside the label: how many rows the section holds. */
+  sections: { value: string; label: string; count?: number }[];
   children: ReactNode;
 }
 
@@ -42,6 +43,11 @@ export function DetailDeck({ sections, children }: DetailDeckProps) {
               {sections.map((section) => (
                 <TabsTrigger key={section.value} value={section.value}>
                   {section.label}
+                  {section.count !== undefined && (
+                    <span className="ml-1.5 font-value text-xs text-text-muted">
+                      {section.count}
+                    </span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>

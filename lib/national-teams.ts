@@ -138,7 +138,8 @@ export function parseExtendedSquad(html: string) {
 }
 
 /** One page per nation, a day at a time. An empty squad is TM failing, not a
- *  nation without players, so it throws rather than caching a blank. */
+ *  nation without players, so it throws rather than caching a blank. The key
+ *  carries the parse's shape: entries outlive deploys, so a change bumps it. */
 const getExtendedSquad = (teamId: string) =>
   unstable_cache(
     async () => {
@@ -148,9 +149,11 @@ const getExtendedSquad = (teamId: string) =>
       if (page.players.length === 0) throw new Error(`No extended squad for ${teamId}`);
       return page;
     },
-    ["national-team-squad", teamId],
+    ["national-team-squad", "v2", teamId],
     { revalidate: 86_400, tags: [NATIONAL_TEAM_TAG] },
   )();
+
+export type CallUpStatus = "recent" | "lapsed" | "uncapped";
 
 /** A player on a nation's page: in its call-up, or one of its outsiders. */
 export interface NationPlayer {
@@ -174,12 +177,13 @@ export interface NationPlayer {
   npga: number | null;
   minutes: number | null;
   calledUp: boolean;
-  /** Picked in the last 18 months: the call-up, or the rest of the extended squad. */
-  inExtendedSquad: boolean;
   captain: boolean;
   injury: Injury | null;
   /** Outsiders: where his value would place him in the call-up. */
   callUpPlace?: number;
+  /** Outsiders: how close he is to a call-up — picked in the last 18 months, capped
+   *  longer ago, or never. */
+  status?: CallUpStatus;
   /** Outsiders: his last squad for this nation, YYYY-MM-DD — null when unknown or
    *  never. */
   lastCalledUp?: string | null;
@@ -220,10 +224,13 @@ export function nationPlayers(
       ...e,
       href: tracked ? getPlayerDetailHref(e.playerId) : `${BASE_URL}${profileUrl}`,
       tracked: !!tracked,
-      inExtendedSquad: true,
       npga: tracked ? npga(tracked) : null,
       minutes: tracked ? tracked.minutes : null,
-      ...(!e.calledUp && { callUpPlace: place(e.marketValue), lastCalledUp: lastMatch || null }),
+      ...(!e.calledUp && {
+        status: "recent" as const,
+        callUpPlace: place(e.marketValue),
+        lastCalledUp: lastMatch || null,
+      }),
     };
   });
 
@@ -252,9 +259,9 @@ export function nationPlayers(
         npga: npga(p),
         minutes: p.minutes,
         calledUp: false,
-        inExtendedSquad: false,
         captain: false,
         injury: null,
+        status: p.intlCareerCaps > 0 ? "lapsed" : "uncapped",
         callUpPlace: place(p.marketValue),
         lastCalledUp: (p.intlCareerCaps > 0 && p.lastIntlGame) || null,
         ...(!first && {

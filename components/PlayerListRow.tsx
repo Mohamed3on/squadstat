@@ -28,7 +28,7 @@ export function PlayerListRow({
     <Link
       href={href}
       {...(external && { target: "_blank", rel: "noopener noreferrer" })}
-      className="flex items-center gap-2 rounded-xl border border-border-subtle bg-elevated p-2.5 transition-colors hover:border-border-medium hover:bg-card-hover sm:gap-3"
+      className="flex items-center gap-2 rounded-xl border border-border-subtle bg-elevated p-2.5 transition-[color,background-color,border-color,transform] duration-150 ease-out hover:border-border-medium hover:bg-card-hover active:scale-[0.99] sm:gap-3"
     >
       {/* At 320px the fixed furniture left the name and market value only 66px of the
           254px row. The rank chip is the one piece the list's own order already tells
