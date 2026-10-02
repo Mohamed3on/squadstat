@@ -64,15 +64,15 @@ for a single club, player or competition.
   - Players: All Players, Over/Under, Biggest Movers.
   - Transfers: Fee vs Value, By Club.
   - One page per league, plus the Champions League, the Europa League and Nations Leagues A and B.
-  - Detail pages for every player, team and league.
+  - Detail pages for every player, team, national team and league.
   - Quick Views, and How It Works (the methodology).
 - **Single source:** Transfermarkt, scraped. Every page credits it. There is no other data
   provider.
 - **Methodology to preserve:**
   - Rankings use value per player (squad market value ÷ squad size), never the squad total.
   - League strength is the summed market value of the pool's players in that league, on purpose.
-- **Terminology:** value per player · points gap (actual − expected points) · form windows (last
-  5/10/15/20 matches) · npG+A / G+A (excl. pens) · overpriced / bargain · missed % · biggest
+- **Terminology:** value per player · points gap (actual − expected points) · call-up ·
+  extended squad · call-up gap · outsiders · form windows (last 5/10/15/20 matches) · npG+A / G+A (excl. pens) · overpriced / bargain · missed % · biggest
   risers / fallers · Quick Views. UI copy says "football"; "soccer" appears only in SEO keywords.
 - **No accounts, no user data, no monetization.** Hosted on Vercel Hobby (non-commercial use,
   100 GB/month bandwidth). A Cloudflare Worker relays Transfermarkt fetches in CI.

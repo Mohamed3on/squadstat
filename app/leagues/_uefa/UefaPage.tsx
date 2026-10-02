@@ -1,4 +1,4 @@
-import { getTeamDetailHref } from "@/lib/format";
+import { getNationalTeamHref, getTeamDetailHref } from "@/lib/format";
 import { getNationalTeamValues } from "@/lib/squad-values";
 import { getClubIdsWithPages } from "@/lib/team-detail";
 import { flagUrl } from "@/lib/transfermarkt/image";
@@ -6,7 +6,6 @@ import { getCompClubs, getCompSeason, getNationsSeason } from "@/lib/uefa/fetch"
 import { buildModel } from "@/lib/uefa/model";
 import { buildNationsModel } from "@/lib/uefa/nations-league";
 import type { Competition, GroupsComp, LeaguePhaseComp } from "@/lib/uefa/types";
-import { playerLinks } from "@/lib/wc/linkable-nations";
 import { TeamsProvider, UefaBody } from "./UefaBody";
 
 /** The whole page body for every UEFA competition — only the metadata in each
@@ -40,13 +39,11 @@ async function clubPage(comp: LeaguePhaseComp) {
 }
 
 /** Nations take their value per player from the committed national-team data — the
- *  figure /national-teams shows — link to their players, and wear their flag. */
+ *  figure /national-teams shows — link to their own page, and wear their flag. */
 async function nationPage(comp: GroupsComp) {
-  const values = getNationalTeamValues();
-  const [{ teams }, season, players] = await Promise.all([
-    values,
+  const [{ teams }, season] = await Promise.all([
+    getNationalTeamValues(),
     getNationsSeason(comp.code),
-    values.then(({ teams }) => playerLinks(teams)),
   ]);
   const inPlay = new Set(season.table.map((r) => r.id));
   const nations = teams.filter((t) => inPlay.has(t.id));
@@ -62,9 +59,7 @@ async function nationPage(comp: GroupsComp) {
       season,
       comp.bands,
     ),
-    links: Object.fromEntries(
-      nations.filter((t) => players[t.name]).map((t) => [t.id, players[t.name]]),
-    ),
+    links: Object.fromEntries(nations.map((t) => [t.id, getNationalTeamHref(t.name)])),
     badges: Object.fromEntries(nations.map((t) => [t.id, flagUrl(String(t.landId))])),
   };
 }

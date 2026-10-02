@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { NATIONAL_TEAM_TAG } from "@/lib/national-teams";
 import { COMPETITION_LIST, cacheTags } from "@/lib/uefa/types";
 
 // wc-* tags are gone: the World Cup pages read frozen data/wc/*.json snapshots.
@@ -9,6 +10,7 @@ const ALL_TAGS = [
   "team-form",
   "injured",
   "top-transfers",
+  NATIONAL_TEAM_TAG,
   ...COMPETITION_LIST.flatMap(cacheTags),
 ];
 

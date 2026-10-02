@@ -42,6 +42,9 @@ export interface RowAccessor {
   /** The club named in column `i`. Every field is "" on a cell TM left blank —
    *  a released player has no club on the way in. */
   club(i: number): ClubIdentity;
+  /** Whether TM shaded column `i` green — how a national team's extended squad
+   *  singles out the players in its current call-up. */
+  highlighted(i: number): boolean;
   /** Escape hatch: an attribute off the first `selector` match in column `i`, for
    *  bespoke cells the typed accessors don't cover. Prefer text/image/link/imageTitle. */
   attr(i: number, selector: string, name: string): string;
@@ -111,6 +114,7 @@ export function parsePlayerTable<T>(
         return { href: a.attr("href") || "", title: a.attr("title") || "" };
       },
       club: (i) => parseClubCell($(cells[i])),
+      highlighted: (i) => /\bbg_gruen/.test($(cells[i]).attr("class") || ""),
       attr: (i, selector, name) => $(cells[i]).find(selector).first().attr(name) || "",
     };
     const mapped = map(player, row);

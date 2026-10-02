@@ -5,6 +5,7 @@ import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { canonicalLeagueName } from "@/lib/leagues";
+import { parseNationHeader } from "@/lib/transfermarkt";
 import type {
   NationalTeamValue,
   NationalTeamValueResult,
@@ -218,6 +219,12 @@ async function main() {
   // figures for — gone ones like the Soviet Union, and a few like the Bahamas
   // it has never valued — which a value ranking can't place.
   const teams = nations.filter((t) => t.totalValue > 0);
+  // The table leaves the odd nation's confederation blank (Laos), though the
+  // nation's own page names it: one page each, for those few alone.
+  for (const t of teams.filter((t) => !t.confederation)) {
+    const page = await fetchPage(`${BASE_URL}/x/startseite/verein/${t.id}`);
+    t.confederation = parseNationHeader(page).confederation;
+  }
 
   const top = [...teams].sort((a, b) => b.averageValue - a.averageValue).slice(0, EXTENDED_TOP);
   const extended = await Promise.all(

@@ -1,12 +1,27 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Crown, Trophy, TriangleAlert } from "lucide-react";
-import { useManagerQuery } from "@/lib/hooks/use-manager-query";
+import type { ManagerInfo } from "@/app/types";
+import { managerQueryOptions } from "@/lib/hooks/use-manager-query";
 import { ManagerSkeleton } from "@/app/components/ManagerPPGBadge";
 import { InfoTip } from "@/app/components/InfoTip";
 
-export function ManagerClient({ clubId }: { clubId: string }) {
-  const { data: manager, isLoading } = useManagerQuery(clubId);
+/** A team's manager and how his points per game rank since 1992, fetched after
+ *  the page renders: the scrape is slow. A national team's counts competitive
+ *  games only, as everywhere else on the site — friendlies would flatter it. */
+export function ManagerClient({
+  clubId,
+  national = false,
+}: {
+  clubId: string;
+  national?: boolean;
+}) {
+  const { data: manager, isLoading } = useQuery<ManagerInfo | null>(
+    managerQueryOptions(clubId, national),
+  );
+  const games = national ? "competitive games" : "games";
+  const atTeam = national ? "for this nation" : "at this club";
 
   if (isLoading)
     return (
@@ -89,7 +104,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
           {manager.ppg !== null && <span className="text-text-muted">·</span>}
           <span>
             <span className="font-value">{manager.matches}</span>{" "}
-            {manager.matches === 1 ? "game" : "games"}
+            {manager.matches === 1 ? games.slice(0, -1) : games}
           </span>
           {showRank && (
             <>
@@ -100,7 +115,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
                   <span className="font-value">{manager.totalComparableManagers}</span> by PPG
                 </span>
                 <InfoTip>
-                  Among managers with {manager.matches}+ games at this club since 1992.
+                  Among managers with {manager.matches}+ {games} {atTeam} since 1992.
                 </InfoTip>
               </span>
             </>
@@ -110,7 +125,7 @@ export function ManagerClient({ clubId }: { clubId: string }) {
 
       {isOnly && (
         <p className="text-[11px] text-text-muted">
-          No other manager since 1992 has reached {manager.matches} games at this club.
+          No other manager since 1992 has reached {manager.matches} {games} {atTeam}.
         </p>
       )}
 

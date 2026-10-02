@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { BASE_URL } from "@/lib/constants";
-import { formatMarketValue, formatValuePerPlayer } from "@/lib/format";
+import { formatMarketValue, formatValuePerPlayer, getNationalTeamHref } from "@/lib/format";
 import { normalizeForSearch } from "@/lib/normalize";
 import { flagUrl } from "@/lib/transfermarkt/image";
 import type { NationalTeamValue } from "@/app/types";
@@ -57,21 +57,18 @@ const COLUMNS: SortColumn<NationalTeamValue, SortKey>[] = [
 
 const ALL = "all";
 
-/**
- * Flag and name, linked to the nation's players when the site tracks any, then
- * out to its extended squad on Transfermarkt.
- */
-function NationCell({ team, href }: { team: NationalTeamValue; href?: string }) {
+/** Flag and name, linked to the nation's page, then out to its extended squad on
+ *  Transfermarkt. */
+function NationCell({ team }: { team: NationalTeamValue }) {
   return (
     <div className="flex items-center gap-2">
       <NationalityFlag url={flagUrl(String(team.landId))} />
-      {href ? (
-        <Link href={href} className="truncate text-sm font-bold hover:underline">
-          {team.name}
-        </Link>
-      ) : (
-        <span className="truncate text-sm font-bold">{team.name}</span>
-      )}
+      <Link
+        href={getNationalTeamHref(team.name)}
+        className="truncate text-sm font-bold hover:underline"
+      >
+        {team.name}
+      </Link>
       <a
         href={`${BASE_URL}/x/erweiterterkader/verein/${team.id}`}
         target="_blank"
@@ -89,20 +86,19 @@ function NationCell({ team, href }: { team: NationalTeamValue; href?: string }) 
 interface NationProps {
   team: NationalTeamValue;
   rank: number;
-  href?: string;
 }
 
 // Memoised, so a keystroke only mounts or drops the nations it lets in or out:
 // the rest keep every prop, rank included, since a search never renumbers.
 // Each arms its manager tooltip on the first pointer or focus: see NationManager.
-const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
+const NationCard = memo(function NationCard({ team, rank }: NationProps) {
   const [armed, arm] = useReducer(() => true, false);
   return (
     <Card onPointerEnter={arm} onFocus={arm}>
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1.5">
-            <NationCell team={team} href={href} />
+            <NationCell team={team} />
             {team.confederation && <Badge variant="secondary">{team.confederation}</Badge>}
           </div>
           <span className="font-value shrink-0 text-sm text-text-muted">#{rank}</span>
@@ -144,13 +140,13 @@ const NationCard = memo(function NationCard({ team, rank, href }: NationProps) {
   );
 });
 
-const NationRow = memo(function NationRow({ team, rank, href }: NationProps) {
+const NationRow = memo(function NationRow({ team, rank }: NationProps) {
   const [armed, arm] = useReducer(() => true, false);
   return (
     <TableRow onPointerEnter={arm} onFocus={arm}>
       <TableCell className="font-value text-text-muted">{rank}</TableCell>
       <TableCell>
-        <NationCell team={team} href={href} />
+        <NationCell team={team} />
       </TableCell>
       <TableCell>
         {team.confederation && <Badge variant="secondary">{team.confederation}</Badge>}
@@ -186,14 +182,7 @@ const NationRow = memo(function NationRow({ team, rank, href }: NationProps) {
  * hides rows — so a searched nation still shows where it stands. Below `md`
  * the rows become cards and the header's sort buttons become a picker.
  */
-export function NationalTeamsTable({
-  teams,
-  playerLinks,
-}: {
-  teams: NationalTeamValue[];
-  /** Nation name → its players on /players, for the nations the site tracks. */
-  playerLinks: Record<string, string>;
-}) {
+export function NationalTeamsTable({ teams }: { teams: NationalTeamValue[] }) {
   const [query, setQuery] = useState("");
   const [confederation, setConfederation] = useState(ALL);
 
@@ -261,7 +250,7 @@ export function NationalTeamsTable({
         />
 
         {shown.map(({ team, rank }) => (
-          <NationCard key={team.id} team={team} rank={rank} href={playerLinks[team.name]} />
+          <NationCard key={team.id} team={team} rank={rank} />
         ))}
       </div>
 
@@ -270,7 +259,7 @@ export function NationalTeamsTable({
           <SortableHeader columns={COLUMNS} sort={sort} onToggle={toggle} />
           <TableBody>
             {shown.map(({ team, rank }) => (
-              <NationRow key={team.id} team={team} rank={rank} href={playerLinks[team.name]} />
+              <NationRow key={team.id} team={team} rank={rank} />
             ))}
           </TableBody>
         </Table>

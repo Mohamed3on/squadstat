@@ -1,20 +1,20 @@
 import type { TeamLite } from "@/lib/wc/model";
-import { PlayersLink } from "./PlayersLink";
+import { NationLink } from "./NationLink";
 
-// Shared team-name cell for the value tables: flag, name, and a players link
-// when that nation has players on /players.
+// Shared team-name cell for the value tables: flag, name, and a link to the
+// nation's page.
 export function TeamCell({
   team,
-  playerLinks,
+  nationLinks,
 }: {
   team: TeamLite;
-  playerLinks: Record<string, string>;
+  nationLinks: Record<string, string>;
 }) {
   return (
     <td className="mv-team">
       <span className="flag">{team.flag}</span>
       {team.name}
-      {playerLinks[team.name] && <PlayersLink href={playerLinks[team.name]} team={team.name} />}
+      {nationLinks[team.name] && <NationLink href={nationLinks[team.name]} team={team.name} />}
     </td>
   );
 }

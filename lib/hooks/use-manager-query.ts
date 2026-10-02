@@ -1,17 +1,6 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { ManagerInfo } from "@/app/types";
-
-export function useManagerQuery(clubId: string) {
-  return useQuery<ManagerInfo | null>({
-    queryKey: ["manager", clubId],
-    queryFn: () =>
-      fetch(`/api/manager/${clubId}`)
-        .then((r) => r.json())
-        .then((d) => d.manager ?? null),
-    staleTime: 86400_000,
-  });
-}
 
 /** `officialOnly` strips friendlies from the PPG: a different answer, so its own key. */
 export const managerQueryOptions = (clubId: string, officialOnly = false) => ({

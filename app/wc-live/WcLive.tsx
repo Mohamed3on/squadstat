@@ -10,7 +10,7 @@ import type { Card, TeamLite } from "@/lib/wc/model";
 import type { LiveModel, TrackerRow } from "@/lib/wc/live";
 import type { WcScorer } from "@/lib/wc/scorers";
 import { TeamCell } from "../wc/TeamCell";
-import { PlayersLink } from "../wc/PlayersLink";
+import { NationLink } from "../wc/NationLink";
 import { WcScorers } from "./WcScorers";
 import { ManagerSection } from "../components/ManagerPPGBadge";
 import "@/app/components/tournament.css";
@@ -45,12 +45,12 @@ const vsExpDelta = (r: TrackerRow) => r.projStage - r.expStage;
 
 export function WcLive({
   live,
-  playerLinks,
+  nationLinks,
   managers,
   scorers,
 }: {
   live: LiveModel;
-  playerLinks: Record<string, string>;
+  nationLinks: Record<string, string>;
   managers: Record<string, ManagerInfo>;
   scorers: WcScorer[];
 }) {
@@ -211,8 +211,8 @@ export function WcLive({
         <div className="trow-top">
           <span className="flag">{r.team.flag}</span>
           <span className="tn">{r.team.name}</span>
-          {playerLinks[r.team.name] && (
-            <PlayersLink href={playerLinks[r.team.name]} team={r.team.name} />
+          {nationLinks[r.team.name] && (
+            <NationLink href={nationLinks[r.team.name]} team={r.team.name} />
           )}
           <span className="ts">
             <span className={clsx("tround", decided ? "real" : "proj")}>{r.projLabel}</span>
@@ -303,7 +303,7 @@ export function WcLive({
           onPin={pinTeam}
           hover={hover}
           knockoutTeams={knockoutTeams}
-          playerLinks={playerLinks}
+          nationLinks={nationLinks}
         />
         <LiveTable
           rows={tracker.slice(24)}
@@ -312,7 +312,7 @@ export function WcLive({
           onPin={pinTeam}
           hover={hover}
           knockoutTeams={knockoutTeams}
-          playerLinks={playerLinks}
+          nationLinks={nationLinks}
         />
       </div>
 
@@ -389,8 +389,8 @@ export function WcLive({
                     <td className="tc">
                       <span className="flag">{r.team.flag}</span>
                       <span>{r.team.name}</span>
-                      {playerLinks[r.team.name] && (
-                        <PlayersLink href={playerLinks[r.team.name]} team={r.team.name} />
+                      {nationLinks[r.team.name] && (
+                        <NationLink href={nationLinks[r.team.name]} team={r.team.name} />
                       )}
                     </td>
                     <td className="n pts">{r.pts}</td>
@@ -464,8 +464,8 @@ export function WcLive({
                     <td className="tc">
                       <span className="flag">{r.team.flag}</span>
                       <span>{r.team.name}</span>
-                      {playerLinks[r.team.name] && (
-                        <PlayersLink href={playerLinks[r.team.name]} team={r.team.name} />
+                      {nationLinks[r.team.name] && (
+                        <NationLink href={nationLinks[r.team.name]} team={r.team.name} />
                       )}
                     </td>
                     <td className="grp">{r.group}</td>
@@ -500,7 +500,7 @@ function LiveTable({
   onPin,
   hover,
   knockoutTeams,
-  playerLinks,
+  nationLinks,
 }: {
   rows: TrackerRow[];
   active: string | null;
@@ -508,7 +508,7 @@ function LiveTable({
   onPin: (name: string) => void;
   hover: (name: string) => { onMouseEnter: () => void; onMouseLeave: () => void };
   knockoutTeams: Set<string>;
-  playerLinks: Record<string, string>;
+  nationLinks: Record<string, string>;
 }) {
   return (
     <table className="mv-table">
@@ -537,7 +537,7 @@ function LiveTable({
               {...hover(r.team.name)}
             >
               <td className="mv-rank">{r.rank}</td>
-              <TeamCell team={r.team} playerLinks={playerLinks} />
+              <TeamCell team={r.team} nationLinks={nationLinks} />
               <td className="mv-val r">{fmtS(r.team.mv)}</td>
               <td>{projPill(r)}</td>
               <td className="mv-exp">{r.expLabel}</td>

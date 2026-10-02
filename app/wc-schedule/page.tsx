@@ -3,7 +3,8 @@ import { getWcTeams } from "@/lib/wc/teams";
 import { getWcFixtures, getWcKnockoutSchedule } from "@/lib/wc/fixtures";
 import { getWcResults } from "@/lib/wc/results";
 import { buildLiveModel } from "@/lib/wc/live";
-import { buildMatchups } from "@/lib/wc/matchups";
+import { buildMatchups, type MatchupTeam } from "@/lib/wc/matchups";
+import { nationLinks } from "@/lib/wc/linkable-nations";
 import { WcSchedule } from "./WcSchedule";
 
 // The tournament is over and results are final — daily cache like the rest of the site.
@@ -24,7 +25,13 @@ export default async function WcSchedulePage() {
     getWcKnockoutSchedule(),
   ]);
   const live = buildLiveModel(teams, results);
-  const rows = buildMatchups(teams, fixtures, live, koDates);
+  const links = await nationLinks(teams);
+  const linked = (t: MatchupTeam) => ({ ...t, href: links[t.name] });
+  const rows = buildMatchups(teams, fixtures, live, koDates).map((r) => ({
+    ...r,
+    home: linked(r.home),
+    away: linked(r.away),
+  }));
   return (
     <div className="py-6 sm:py-10">
       <WcSchedule rows={rows} />

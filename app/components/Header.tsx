@@ -46,8 +46,20 @@ const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = 
   ),
 };
 
+/** Every nation's page: its squad scrape, its manager and its Nations League badge,
+ *  over values from the national-team data, so it queues that data's workflow too. */
+const NATION_PAGE = {
+  tags: [
+    "national-team",
+    "manager",
+    ...COMPETITION_LIST.filter((c) => c.format === "groups").flatMap(cacheTags),
+  ],
+  workflow: true,
+};
+
 async function refreshPage(pathname: string) {
-  const config = PAGE_CACHE_MAP[pathname];
+  const config =
+    PAGE_CACHE_MAP[pathname] ?? (pathname.startsWith("/national-teams/") ? NATION_PAGE : undefined);
   const fetches: Promise<Response>[] = [];
 
   if (!config || config.tags) {

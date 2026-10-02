@@ -1,38 +1,20 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { getNationalityHref } from "@/lib/format";
-
-// Build Transfermarkt landId -> current dataset nationality name from the players
-// source (/players reads the same file). The landId is stable and also embedded in
-// each player's flag URL, so matching by it sidesteps name-spelling differences.
-// Memoised as a promise — static committed data, read once per server process
-// even when several requests ask at once.
-let byLandId: Promise<Map<number, string>> | null = null;
-function nationByLandId(): Promise<Map<number, string>> {
-  byLandId ??= readFile(join(process.cwd(), "data", "minutes-value.json"), "utf-8").then((raw) => {
-    const players = JSON.parse(raw) as { nationality: string; nationalityFlagUrl: string }[];
-    const map = new Map<number, string>();
-    for (const p of players) {
-      const id = Number(p.nationalityFlagUrl.match(/\/(\d+)\.png/)?.[1]);
-      if (id && !map.has(id)) map.set(id, p.nationality);
-    }
-    return map;
-  });
-  return byLandId;
-}
+import { getNationalTeamHref } from "@/lib/format";
+import { getNationalTeamValues } from "@/lib/squad-values";
 
 /**
- * Map of national team name -> /players href, for nations with players there.
- * Matched by stable TM landId, so dataset spelling differences don't matter.
+ * Map of national team name -> its page, as each source spells the name. Matched
+ * by Transfermarkt's country id, so a spelling of its own ("DR Congo") still
+ * finds its nation.
  */
-export async function playerLinks(
+export async function nationLinks(
   teams: { name: string; landId: number }[],
 ): Promise<Record<string, string>> {
-  const byId = await nationByLandId();
+  const { teams: nations } = await getNationalTeamValues();
+  const byLandId = new Map(nations.map((t) => [t.landId, getNationalTeamHref(t.name)]));
   const out: Record<string, string> = {};
   for (const t of teams) {
-    const nat = byId.get(t.landId);
-    if (nat) out[t.name] = getNationalityHref(nat);
+    const href = byLandId.get(t.landId);
+    if (href) out[t.name] = href;
   }
   return out;
 }

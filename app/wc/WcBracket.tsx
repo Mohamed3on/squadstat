@@ -9,10 +9,10 @@ import "@/app/components/tournament.css";
 
 export function WcBracket({
   model,
-  playerLinks,
+  nationLinks,
 }: {
   model: WcModel;
-  playerLinks: Record<string, string>;
+  nationLinks: Record<string, string>;
 }) {
   const { bracket, cardH, cardW } = model;
   const knockoutTeams = new Set(bracket.cards.flatMap((c) => [c.home.name, c.away.name]));
@@ -169,7 +169,7 @@ export function WcBracket({
           onPin={pinTeam}
           hoverProps={hoverProps}
           knockoutTeams={knockoutTeams}
-          playerLinks={playerLinks}
+          nationLinks={nationLinks}
         />
         <PlacementTable
           rows={model.ranked.slice(24)}
@@ -177,7 +177,7 @@ export function WcBracket({
           onPin={pinTeam}
           hoverProps={hoverProps}
           knockoutTeams={knockoutTeams}
-          playerLinks={playerLinks}
+          nationLinks={nationLinks}
         />
       </div>
 
@@ -268,14 +268,14 @@ function PlacementTable({
   onPin,
   hoverProps,
   knockoutTeams,
-  playerLinks,
+  nationLinks,
 }: {
   rows: RankRow[];
   pinned: string | null;
   onPin: (name: string) => void;
   hoverProps: (name: string) => { onMouseEnter: () => void; onMouseLeave: () => void };
   knockoutTeams: Set<string>;
-  playerLinks: Record<string, string>;
+  nationLinks: Record<string, string>;
 }) {
   const clickable = (name: string) => knockoutTeams.has(name);
   return (
@@ -301,7 +301,7 @@ function PlacementTable({
               {...hoverProps(r.team.name)}
             >
               <td className="mv-rank">{r.rank}</td>
-              <TeamCell team={r.team} playerLinks={playerLinks} />
+              <TeamCell team={r.team} nationLinks={nationLinks} />
               <td className="mv-val r">{fmtS(r.team.mv)}</td>
               <td>
                 <span className={clsx("pill", r.finishCls)}>{r.finishLabel}</span>

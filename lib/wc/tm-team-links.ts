@@ -1,9 +1,5 @@
-import { BASE_URL } from "@/lib/constants";
-
 // Transfermarkt national-team "verein" ids, keyed by our roster name. National-team
 // pages keep the same id forever, so this is static reference data (like landId).
-// Any slug resolves — TM redirects /x/.../verein/{id} to the canonical page, the same
-// pattern /teams/[clubId] uses.
 const TM_TEAM_ID: Record<string, number> = {
   Mexico: 6303,
   Czechia: 3445,
@@ -57,9 +53,3 @@ const TM_TEAM_ID: Record<string, number> = {
 
 /** That nation's Transfermarkt "verein" id, or undefined if we don't have it. */
 export const wcTeamTmId = (name: string): number | undefined => TM_TEAM_ID[name];
-
-/** That nation's Transfermarkt team page, or undefined if we don't have its id. */
-export const wcTeamTmUrl = (name: string): string | undefined => {
-  const id = wcTeamTmId(name);
-  return id ? `${BASE_URL}/x/startseite/verein/${id}` : undefined;
-};

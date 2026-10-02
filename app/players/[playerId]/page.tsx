@@ -6,6 +6,7 @@ import { ArrowUpRight, Crown, Medal, TrendingDown, TrendingUp } from "lucide-rea
 import { DetailHero, DetailPageShell } from "@/components/DetailHero";
 import { createPageMetadata } from "@/lib/metadata";
 import { getLeistungsdatenUrl } from "@/lib/format";
+import { getNationalTeamLinks } from "@/lib/national-teams";
 import { getPlayerDetailData, type PlayerRankings } from "@/lib/player-detail";
 import { paramsToScope } from "@/lib/comparison-scope";
 import { enrichRecentMatches } from "@/lib/player-recent-matches";
@@ -189,7 +190,9 @@ function formatShortDate(value: string): string {
   }).format(date);
 }
 
-function RecentMatchCard({ match }: { match: RecentGameStats }) {
+type NationLinks = Record<string, { name: string; href: string }>;
+
+function RecentMatchCard({ match, nations }: { match: RecentGameStats; nations: NationLinks }) {
   const hasScore = match.teamGoals !== undefined && match.opponentGoals !== undefined;
   const resultLabel = hasScore
     ? match.teamGoals! > match.opponentGoals!
@@ -205,7 +208,10 @@ function RecentMatchCard({ match }: { match: RecentGameStats }) {
         ? "border-accent-cold-border bg-accent-cold-glow text-accent-cold-soft"
         : "border-border-subtle bg-card text-text-secondary";
   const venuePrefix = match.venue === "away" ? "at " : "vs ";
-  const opponentHref = match.opponentClubId ? `/teams/${match.opponentClubId}` : null;
+  // A national-team opponent (in a major tournament) has a page of its own.
+  const opponentHref = match.opponentClubId
+    ? (nations[match.opponentClubId]?.href ?? `/teams/${match.opponentClubId}`)
+    : null;
   const contextLabel = [
     match.competitionName || match.competitionId,
     match.gameDay ? `MD ${match.gameDay}` : null,
@@ -311,7 +317,7 @@ function RecentMatchCard({ match }: { match: RecentGameStats }) {
   );
 }
 
-function RecentMatches({ matches }: { matches: RecentGameStats[] }) {
+function RecentMatches({ matches, nations }: { matches: RecentGameStats[]; nations: NationLinks }) {
   const recentMatches = enrichRecentMatches(matches);
 
   if (recentMatches.length === 0) {
@@ -328,6 +334,7 @@ function RecentMatches({ matches }: { matches: RecentGameStats[] }) {
         <RecentMatchCard
           key={match.gameId || `${match.date}-${match.minutes}-${match.goals}-${match.assists}`}
           match={match}
+          nations={nations}
         />
       ))}
     </div>
@@ -378,7 +385,10 @@ export default async function PlayerDetailPage({
 }) {
   const { playerId } = await params;
   const scope = paramsToScope(await searchParams);
-  const data = await getPlayerDetailData(playerId);
+  const [data, nations] = await Promise.all([
+    getPlayerDetailData(playerId),
+    getNationalTeamLinks(),
+  ]);
 
   if (!data) {
     if (/^\d+$/.test(playerId)) {
@@ -428,6 +438,7 @@ export default async function PlayerDetailPage({
     clubCount,
     penaltyRank,
   } = data;
+  const nation = player.nationalTeamId ? nations[player.nationalTeamId] : undefined;
   const { signalSummary } = comparisons.all;
   const fallbackMatchCount = player.recentForm?.length ?? 0;
   const peersPlayingLess = minutesBenchmark.pricier.playingLessCount;
@@ -515,11 +526,18 @@ export default async function PlayerDetailPage({
                   New signing
                 </SignalBadge>
               )}
-              {player.isCurrentIntl && (
-                <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
-                  Current international
-                </SignalBadge>
-              )}
+              {player.isCurrentIntl &&
+                (nation ? (
+                  <Link href={nation.href}>
+                    <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary transition-colors hover:text-text-primary">
+                      {nation.name} international
+                    </SignalBadge>
+                  </Link>
+                ) : (
+                  <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
+                    Current international
+                  </SignalBadge>
+                ))}
               {trend && (
                 <SignalBadge
                   className={
@@ -920,7 +938,7 @@ export default async function PlayerDetailPage({
               </div>
             }
           >
-            <RecentMatches matches={player.recentForm ?? []} />
+            <RecentMatches matches={player.recentForm ?? []} nations={nations} />
           </SectionPanel>
         </div>
 

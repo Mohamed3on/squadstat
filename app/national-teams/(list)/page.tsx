@@ -1,8 +1,7 @@
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
 import { createPageMetadata } from "@/lib/metadata";
 import { getNationalTeamValues } from "@/lib/squad-values";
-import { playerLinks } from "@/lib/wc/linkable-nations";
-import { NationalTeamsTable } from "./NationalTeamsTable";
+import { NationalTeamsTable } from "../NationalTeamsTable";
 
 export const metadata = createPageMetadata({
   title: "Most Valuable National Teams",
@@ -23,7 +22,7 @@ export default async function NationalTeamsPage() {
 
   return (
     <>
-      <NationalTeamsTable teams={teams} playerLinks={await playerLinks(teams)} />
+      <NationalTeamsTable teams={teams} />
       <DataLastUpdated file="national-team-values-updated-at.txt" />
     </>
   );

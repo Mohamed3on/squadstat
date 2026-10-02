@@ -1,11 +1,11 @@
 "use client";
 
 import { type Ref, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
 import clsx from "clsx";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
 import { fmt } from "@/lib/wc/format";
-import { wcTeamTmUrl } from "@/lib/wc/tm-team-links";
 import type { MatchupRow, MatchupTeam, Stage } from "@/lib/wc/matchups";
 import { WcHighlights } from "./Highlights";
 
@@ -184,7 +184,6 @@ function TeamName({
   confirmed?: boolean;
   out?: boolean;
 }) {
-  const tmUrl = wcTeamTmUrl(t.name);
   return (
     <span
       className={clsx(
@@ -197,16 +196,14 @@ function TeamName({
       )}
     >
       <span className="text-xl leading-none">{t.flag}</span>
-      {tmUrl ? (
-        <a
-          href={tmUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={`${t.name} on Transfermarkt`}
+      {t.href ? (
+        <Link
+          href={t.href}
+          title={t.name}
           className={clsx("hover:text-text-primary hover:underline", out && "line-through")}
         >
           {t.short}
-        </a>
+        </Link>
       ) : (
         <span className={clsx(out && "line-through")}>{t.short}</span>
       )}

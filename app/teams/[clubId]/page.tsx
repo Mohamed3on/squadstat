@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowUpRight, Crown, Medal, TrendingDown, TrendingUp, TriangleAlert } from "lucide-react";
 import { Suspense } from "react";
 import { DetailHero, DetailPageShell } from "@/components/DetailHero";
@@ -16,6 +16,7 @@ import {
   ordinal,
 } from "@/lib/format";
 import { getTeamDetailData } from "@/lib/team-detail";
+import { getNationalTeamLinks } from "@/lib/national-teams";
 import { slimForClient } from "@/lib/fetch-minutes-value";
 import { getInjuredPlayers } from "@/lib/injured";
 import { getWorstHitResult } from "@/lib/injury-utils";
@@ -30,7 +31,7 @@ import { CompetitionBadge } from "./CompetitionBadge";
 import { ClubWindowBadges } from "./ClubWindowBadges";
 import { SquadTab } from "./SquadTab";
 import { TransfersTab } from "./TransfersTab";
-import { ManagerClient } from "./TeamDeferredData";
+import { ManagerClient } from "@/app/components/ManagerClient";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import type { InjuredPlayer } from "@/app/types";
 import { JsonLd } from "@/components/JsonLd";
@@ -105,7 +106,8 @@ export async function generateMetadata({
   params: Promise<{ clubId: string }>;
 }): Promise<Metadata> {
   const { clubId } = await params;
-  const data = await getTeamDetailData(clubId);
+  // A national team redirects to its own page (below), so skip the club scrapes.
+  const data = (await getNationalTeamLinks())[clubId] ? null : await getTeamDetailData(clubId);
 
   if (!data) {
     return createPageMetadata({
@@ -139,6 +141,10 @@ export async function generateMetadata({
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
   const { clubId } = await params;
+  // Transfermarkt numbers clubs and national teams from one range, so links built
+  // from a match or a search can land a nation here; it has a page of its own.
+  const nation = (await getNationalTeamLinks())[clubId];
+  if (nation) permanentRedirect(nation.href);
   const [data, injuredData, squadValuePlace] = await Promise.all([
     getTeamDetailData(clubId),
     getInjuredPlayers().catch(() => ({ players: [] as import("@/app/types").InjuredPlayer[] })),

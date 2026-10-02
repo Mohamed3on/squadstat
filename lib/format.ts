@@ -19,6 +19,18 @@ export function formatPremium(premium: number): string {
   return `${premium > 0 ? "+" : ""}${formatMarketValue(premium)}`;
 }
 
+/** A fraction as a signed whole percentage: `0.276` → `+28%`, `-0.12` → `-12%`. */
+export function formatSignedPercent(fraction: number): string {
+  const pct = Math.round(fraction * 100);
+  return `${pct > 0 ? "+" : ""}${pct}%`;
+}
+
+/** A YYYY-MM-DD date as month and year: "2026-07-18" → "Jul '26". */
+export function formatMonthYear(iso: string): string {
+  const [y, m] = iso.split("-");
+  return `${MONTHS[Number(m) - 1]} '${y.slice(2)}`;
+}
+
 /** Transfermarkt's transfer-balance tables are denominated in millions; every
  *  money formatter here takes raw euros. */
 export function formatMillions(millions: number): string {
@@ -34,6 +46,8 @@ export function formatSignedMillions(millions: number): string {
  *  at the first, which rounds €4.73M and €4.69M into the same string — a tie in
  *  the very column the squad-values table sorts on by default. */
 export function formatValuePerPlayer(euros: number): string {
+  // Below a million the two decimals run out — New Caledonia's €1K a head read "€0.00M".
+  if (euros < 1_000_000) return formatMarketValue(euros);
   return `€${(euros / 1_000_000).toFixed(2)}M`;
 }
 
@@ -98,6 +112,21 @@ export function getTeamDetailHref(clubId: string): string {
 
 export function getNationalityHref(nationality: string): string {
   return `/players?nat=${encodeURIComponent(nationality)}`;
+}
+
+/** A national team's URL segment, from Transfermarkt's English name:
+ *  "South Korea" → "south-korea", "Curaçao" → "curacao". */
+export function nationalTeamSlug(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function getNationalTeamHref(name: string): string {
+  return `/national-teams/${nationalTeamSlug(name)}`;
 }
 
 export function extractClubIdFromLogoUrl(url?: string): string | null {

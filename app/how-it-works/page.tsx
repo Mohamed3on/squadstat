@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createPageMetadata } from "@/lib/metadata";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Scale, Clock, TrendingUp, HeartPulse, ArrowUpDown } from "lucide-react";
+import { Activity, Scale, Clock, TrendingUp, HeartPulse, ArrowUpDown, Flag } from "lucide-react";
 
 export const metadata = createPageMetadata({
   title: "How It Works",
@@ -296,6 +296,42 @@ export default function HowItWorksPage() {
               throughout the season. A player appears as a &ldquo;biggest riser&rdquo; if their
               value has increased in multiple consecutive updates, and as a &ldquo;biggest
               faller&rdquo; if it has dropped repeatedly. Ranked by total absolute change.
+            </p>
+          </div>
+        </Section>
+
+        {/* National Teams */}
+        <Section icon={Flag} title="National Teams" href="/national-teams">
+          <div>
+            <h3 className="font-semibold text-text-primary mb-1">What it shows</h3>
+            <p>
+              Every national team Transfermarkt values, each with a page of its own: the{" "}
+              <Term>call-up</Term> (the players selected now), the <Term>extended squad</Term> (the
+              call-up plus everyone picked in the last 18 months), and everyone else the nation
+              could pick.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-text-primary mb-1">Ranks and the call-up gap</h3>
+            <p>
+              <Term>Value rank</Term> is a nation&apos;s place by value per player of its call-up:
+              squad value ÷ players called up, against every other nation and within its
+              confederation. The <Term>extended squad rank</Term> does the same over the extended
+              squad, among the 50 most valuable nations, the only ones whose extended squads are
+              valued. The <Term>call-up gap</Term> is call-up value per player ÷ extended squad
+              value per player − 1: above zero means the players called up are worth more a head
+              than the whole group.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-text-primary mb-1">Outside the squad</h3>
+            <p>
+              The rest of the extended squad, plus the players we track who hold the nation&apos;s
+              nationality, first or second, and aren&apos;t capped by another nation. Beside each
+              value is where it would rank among the call-up&apos;s values — the case for a call-up,
+              in market value — and when the player was last called up, if ever.
             </p>
           </div>
         </Section>

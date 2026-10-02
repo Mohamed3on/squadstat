@@ -76,8 +76,8 @@ squad. The National Teams table's squad size and value per player count the call
 _Avoid_: current squad, roster
 
 **Extended squad**:
-The call-up plus every player who has played for the national team in the last 18 months
-(Transfermarkt's definition). It is the answer to "who are this nation's players".
+The call-up plus everyone else picked for the national team in the last 18 months, whether
+they played or not (Transfermarkt's list). It is the answer to "who are this nation's players".
 _Avoid_: pool, eligible players
 
 **Nationality**:
@@ -89,6 +89,14 @@ _Avoid_: citizenship (for the first one), country
 A national team's place by value per player of its call-up, among all 211 and within its
 confederation.
 
+**Extended squad rank**:
+The same place by value per player of the extended squad, among the 50 most valuable nations,
+the only ones whose extended squads are valued.
+
+**Call-up gap**:
+Call-up value per player ÷ extended squad value per player − 1. Positive means the players
+called up are worth more a head than the whole group.
+
 **Second nationality**:
 The other citizenship Transfermarkt lists for a dual national, if any.
 
@@ -98,7 +106,6 @@ call-up without playing doesn't either.
 _Avoid_: international (as a yes/no)
 
 **Outsider**:
-A tracked player a national team could still pick but hasn't: the nation is their nationality
-or second nationality, they aren't in its extended squad, and they aren't capped by another
-nation.
+A player a national team could pick but hasn't called up: the rest of its extended squad, plus
+tracked players with its nationality, first or second, who aren't capped by another nation.
 _Avoid_: snub, uncapped (many outsiders are capped)

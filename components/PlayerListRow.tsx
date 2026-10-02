@@ -5,10 +5,11 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 /**
  * A player as one row of a ranked list: rank, headshot, name over a detail line,
  * and whatever figures that list is about on the right. The whole row links to
- * the player.
+ * the player — `external` for a Transfermarkt profile, which opens in a new tab.
  */
 export function PlayerListRow({
   href,
+  external = false,
   rank,
   name,
   imageUrl,
@@ -16,6 +17,7 @@ export function PlayerListRow({
   children,
 }: {
   href: string;
+  external?: boolean;
   rank: number;
   name: string;
   imageUrl?: string;
@@ -25,6 +27,7 @@ export function PlayerListRow({
   return (
     <Link
       href={href}
+      {...(external && { target: "_blank", rel: "noopener noreferrer" })}
       className="flex items-center gap-2 rounded-xl border border-border-subtle bg-elevated p-2.5 transition-colors hover:border-border-medium hover:bg-card-hover sm:gap-3"
     >
       {/* At 320px the fixed furniture left the name and market value only 66px of the

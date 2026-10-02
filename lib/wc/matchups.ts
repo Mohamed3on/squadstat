@@ -2,7 +2,14 @@ import { shortName, type Round, type SlotSource, type Team } from "./model";
 import type { GroupFixture, Kick } from "./fixtures";
 import type { LiveModel } from "./live";
 
-export type MatchupTeam = { name: string; short: string; flag: string; mv: number };
+export type MatchupTeam = {
+  name: string;
+  short: string;
+  flag: string;
+  mv: number;
+  /** The nation's page, once the schedule page has looked it up. */
+  href?: string;
+};
 export type Stage = "group" | Round | "3RD";
 export type MatchupRow = {
   id: string;

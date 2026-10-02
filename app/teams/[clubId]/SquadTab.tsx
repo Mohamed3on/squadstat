@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { NationalityFlag } from "@/components/NationalityFlag";
 import { PlayerListRow } from "@/components/PlayerListRow";
+import { SortToggle } from "@/components/SortToggle";
 import { getPlayerDetailHref } from "@/lib/format";
 import type { MinutesValuePlayer } from "@/app/types";
 import { npga } from "@/lib/stats-toggles";
@@ -146,34 +146,15 @@ export function SquadTab({
 
   return (
     <div className="space-y-4">
-      {/* Bleed must match .page-container's 12px mobile padding (px-3) — -mx-5 pushed
-          this 8px past each viewport edge on every squad and league page. */}
-      <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-        <ToggleGroup
-          type="single"
-          value={sortBy}
-          onValueChange={(v) => {
-            if (!v) {
-              setSortAsc(!sortAsc);
-              return;
-            }
-            setSortBy(v as SortKey);
-            setSortAsc(false);
-          }}
-          className="rounded-lg overflow-hidden border border-border-subtle w-max"
-        >
-          {SORT_OPTIONS.map(({ key, label }) => (
-            <ToggleGroupItem
-              key={key}
-              value={key}
-              className="px-2.5 py-2 sm:py-1 text-[10px] sm:text-xs font-medium uppercase tracking-wide rounded-none border-0 flex items-center gap-1 text-text-muted data-[state=on]:bg-elevated data-[state=on]:text-text-primary"
-            >
-              {label}
-              {sortBy === key && <span className="text-[10px]">{sortAsc ? "▲" : "▼"}</span>}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </div>
+      <SortToggle
+        options={SORT_OPTIONS}
+        value={sortBy}
+        asc={sortAsc}
+        onChange={(key, asc) => {
+          setSortBy(key);
+          setSortAsc(asc);
+        }}
+      />
 
       <div className="space-y-3">
         {sorted.map((player, i) => (

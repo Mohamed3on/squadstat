@@ -3,7 +3,7 @@ import { buildLiveModel } from "@/lib/wc/live";
 import { getWcResults } from "@/lib/wc/results";
 import { getWcTeams } from "@/lib/wc/teams";
 import { getWcManagers } from "@/lib/wc/managers";
-import { playerLinks } from "@/lib/wc/linkable-nations";
+import { nationLinks } from "@/lib/wc/linkable-nations";
 import { buildWcScorers } from "@/lib/wc/scorers";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { WcLive } from "./WcLive";
@@ -26,11 +26,11 @@ export default async function WcLivePage() {
     getMinutesValueData(),
   ]);
   const live = buildLiveModel(teams, results);
-  const [links, managers] = await Promise.all([playerLinks(teams), getWcManagers()]);
+  const [links, managers] = await Promise.all([nationLinks(teams), getWcManagers()]);
   const scorers = buildWcScorers(players);
   return (
     <div className="py-6 sm:py-10">
-      <WcLive live={live} playerLinks={links} managers={managers} scorers={scorers} />
+      <WcLive live={live} nationLinks={links} managers={managers} scorers={scorers} />
     </div>
   );
 }
