@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { ClubCell } from "@/components/ClubCell";
 import {
   SortableHeader,
@@ -12,17 +13,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { TONE_TEXT, gainTone } from "@/lib/fee-vs-value-rankings";
 import { formatMillions } from "@/lib/format";
+import { MEASURES, leadersOf } from "@/lib/transfer-balance-measures";
 import { cn } from "@/lib/utils";
-import type { TransferBalanceClub, TransferBalanceWindow } from "@/app/types";
+import type {
+  TransferBalanceClub,
+  TransferBalanceMetric,
+  TransferBalanceWindow,
+} from "@/app/types";
 
 type SortKey = "name" | "expenditure" | "arrivals" | "income" | "departures" | "balance";
+
+/** A column that is a measure of its own takes the measure's name, so the table
+ *  and the cards above it can't call one thing two names. */
+const titleOf = (metric: TransferBalanceMetric) => MEASURES.find((m) => m.metric === metric)!.title;
 
 /** Module-level, as `useTableSort` requires: an inline array re-sorts every render. */
 const COLUMNS: SortColumn<TransferBalanceClub, SortKey>[] = [
   { key: "name", label: "Club", value: (c) => c.name },
-  { key: "expenditure", label: "Gross spend", numeric: true, value: (c) => c.expenditure },
+  { key: "expenditure", label: titleOf("expenditure"), numeric: true, value: (c) => c.expenditure },
   { key: "arrivals", label: "Signings", numeric: true, value: (c) => c.arrivals },
-  { key: "income", label: "Sales", numeric: true, value: (c) => c.income },
+  { key: "income", label: titleOf("income"), numeric: true, value: (c) => c.income },
   { key: "departures", label: "Departures", numeric: true, value: (c) => c.departures },
   { key: "balance", label: "Net", numeric: true, value: (c) => c.balance },
 ];
@@ -41,7 +51,11 @@ const netTone = (value: number) => TONE_TEXT[gainTone(value)];
  */
 export function BalanceTable({ window }: { window: TransferBalanceWindow }) {
   const { sort, rows, toggle, pick, flip } = useTableSort(window.clubs, COLUMNS, "expenditure");
-  const isMulti = (id: string) => (window.wins[id] ?? []).length >= 2;
+  const starred = useMemo(
+    () => new Set(leadersOf(window.clubs).winners.map((w) => w.club.id)),
+    [window],
+  );
+  const isMulti = (id: string) => starred.has(id);
 
   return (
     <div className="space-y-3">
@@ -70,14 +84,14 @@ export function BalanceTable({ window }: { window: TransferBalanceWindow }) {
               </div>
               <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-border-subtle pt-2 text-xs">
                 <div>
-                  <dt className="text-text-muted">Gross spend</dt>
+                  <dt className="text-text-muted">{titleOf("expenditure")}</dt>
                   <dd className="font-value">
                     {formatMillions(club.expenditure)}{" "}
                     <span className="text-text-muted">({club.arrivals} in)</span>
                   </dd>
                 </div>
                 <div className="text-right">
-                  <dt className="text-text-muted">Sales</dt>
+                  <dt className="text-text-muted">{titleOf("income")}</dt>
                   <dd className="font-value">
                     {formatMillions(club.income)}{" "}
                     <span className="text-text-muted">({club.departures} out)</span>

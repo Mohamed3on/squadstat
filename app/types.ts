@@ -318,16 +318,13 @@ export interface TransferBalanceClub {
   balance: number;
 }
 
+/** One window as committed: its clubs and nothing derived from them. Who leads
+ *  which measure is worked out on read (lib/transfer-balance-measures.ts). */
 export interface TransferBalanceWindow {
   seasons: number;
   from: number;
   to: number;
   label: string;
-  leaders: Record<TransferBalanceMetric, { id: string; name: string; value: number }>;
-  /** Every club that holds at least one of the four #1 slots, and which ones. */
-  wins: Record<string, TransferBalanceMetric[]>;
-  /** Those holding two or more — the thing the page is actually looking for. */
-  winners: { id: string; name: string; metrics: TransferBalanceMetric[] }[];
   clubs: TransferBalanceClub[];
 }
 

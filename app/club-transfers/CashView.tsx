@@ -6,50 +6,42 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SectionPanel } from "@/components/SectionPanel";
 import { formatMillions, getTeamDetailHref } from "@/lib/format";
-import type { TransferBalanceMetric, TransferBalanceWindow } from "@/app/types";
+import {
+  RANKED_DEPTH,
+  leadersOf,
+  type BalanceLeader,
+  type BalanceWinner,
+} from "@/lib/transfer-balance-measures";
+import type { TransferBalanceWindow } from "@/app/types";
 import { BalanceTable } from "./BalanceTable";
 import { LeaderCard, type Leader } from "./Overview";
 
-const CASH_LABEL: Record<TransferBalanceMetric, string> = {
-  expenditure: "Gross spend",
-  income: "Sales",
-  netSpender: "Biggest net spender",
-  netProfit: "Biggest net profit",
-};
-const CASH_ORDER: TransferBalanceMetric[] = ["expenditure", "income", "netSpender", "netProfit"];
-
-function cashLeaders(cash: TransferBalanceWindow): Leader[] {
-  const club = (id: string) => cash.clubs.find((c) => c.id === id);
-  return CASH_ORDER.map((metric) => {
-    const l = cash.leaders[metric];
-    const c = club(l.id);
-    const sub =
+/** One measure's leader as a card. The figure is the measure's own, so net
+ *  spend reads as money spent under "spent minus banked" rather than as the
+ *  negative balance it is netted from. */
+function leaderCard({ measure, club, value }: BalanceLeader): Leader {
+  const { metric } = measure;
+  return {
+    label: measure.title,
+    clubId: club.id,
+    name: club.name,
+    figure: formatMillions(value),
+    tone: metric === "netSpender" ? "over" : metric === "netProfit" ? "under" : "neutral",
+    sub:
       metric === "expenditure"
-        ? c
-          ? `${c.arrivals} signings`
-          : ""
+        ? `${club.arrivals} signings`
         : metric === "income"
-          ? c
-            ? `${c.departures} departures`
-            : ""
+          ? `${club.departures} departures`
           : metric === "netSpender"
             ? "spent minus banked"
-            : "banked minus spent";
-    return {
-      label: CASH_LABEL[metric],
-      clubId: l.id,
-      name: c?.name ?? l.name,
-      figure: formatMillions(l.value),
-      tone: metric === "netSpender" ? "over" : metric === "netProfit" ? "under" : "neutral",
-      sub,
-    };
-  });
+            : "banked minus spent",
+  };
 }
 
 /** Who tops two of the four cash measures at once — the balance page's own
  *  hook, kept. */
-function MultiWinner({ cash }: { cash: TransferBalanceWindow }) {
-  if (cash.winners.length === 0) {
+function MultiWinner({ winners }: { winners: BalanceWinner[] }) {
+  if (winners.length === 0) {
     return (
       <p className="text-xs text-text-muted">
         No club tops two of the four over this window — widen it to find one.
@@ -59,14 +51,13 @@ function MultiWinner({ cash }: { cash: TransferBalanceWindow }) {
   return (
     <Card className="border-accent-gold bg-accent-gold/5">
       <CardContent className="p-3 sm:p-4">
-        {cash.winners.map((w) => (
-          <p key={w.id} className="text-sm">
-            <Link href={getTeamDetailHref(w.id)} className="font-bold hover:underline">
-              {w.name}
+        {winners.map((w) => (
+          <p key={w.club.id} className="text-sm">
+            <Link href={getTeamDetailHref(w.club.id)} className="font-bold hover:underline">
+              {w.club.name}
             </Link>{" "}
-            tops <span className="font-value">{w.metrics.length}</span> of{" "}
-            <span className="font-value">4</span> —{" "}
-            {w.metrics.map((m) => CASH_LABEL[m]).join(" + ")}
+            tops <span className="font-value">{w.measures.length}</span> of{" "}
+            <span className="font-value">4</span> — {w.measures.map((m) => m.title).join(" + ")}
           </p>
         ))}
       </CardContent>
@@ -132,7 +123,7 @@ export function CashView({
   cash: TransferBalanceWindow;
   onSeasons: (n: number) => void;
 }) {
-  const leaders = useMemo(() => cashLeaders(cash), [cash]);
+  const { leaders, winners } = useMemo(() => leadersOf(cash.clubs), [cash]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -152,11 +143,11 @@ export function CashView({
       <SectionPanel title="Biggest money">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {leaders.map((l) => (
-            <LeaderCard key={l.label} l={l} />
+            <LeaderCard key={l.measure.metric} l={leaderCard(l)} />
           ))}
         </div>
         <div className="mt-3">
-          <MultiWinner cash={cash} />
+          <MultiWinner winners={winners} />
         </div>
       </SectionPanel>
 
@@ -170,8 +161,8 @@ export function CashView({
       >
         <BalanceTable window={cash} />
         <p className="mt-3 text-xs text-text-muted">
-          Positions reach the top <span className="font-value">25</span> clubs on each measure. A
-          starred club tops two or more of the four at once.
+          Positions reach the top <span className="font-value">{RANKED_DEPTH}</span> clubs on each
+          measure. A starred club tops two or more of the four at once.
         </p>
       </SectionPanel>
     </div>

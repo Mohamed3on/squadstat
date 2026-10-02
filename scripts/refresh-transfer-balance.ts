@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage, setMaxConcurrent } from "@/lib/fetch";
+import { leadersOf } from "@/lib/transfer-balance-measures";
 import type {
   TransferBalanceClub,
   TransferBalanceMetric,
@@ -143,43 +144,25 @@ async function buildWindow(seasons: number, to: number): Promise<TransferBalance
   const label = windowLabel(from, to);
 
   const tables = await Promise.all(
-    SORTS.map(async ({ metric, ids }) => ({
-      metric,
-      clubs: parseClubs(await fetchPage(buildUrl(from, to, ids)), `${label} sorted by ${metric}`),
-    })),
+    SORTS.map(async ({ metric, ids }) =>
+      parseClubs(await fetchPage(buildUrl(from, to, ids)), `${label} sorted by ${metric}`),
+    ),
   );
 
   // Each sort returns a different top-25 slice of the same table; union them so the
-  // page has every club that leads on any measure.
+  // page has every club that leads on any measure. Only the clubs are committed:
+  // who leads what is derived from them on read, by the same measures that place
+  // a club on its own page.
   const byId = new Map<string, TransferBalanceClub>();
-  const leaders = {} as TransferBalanceWindow["leaders"];
-  for (const { metric, clubs } of tables) {
+  for (const clubs of tables) {
     for (const club of clubs) byId.set(club.id, club);
-    const top = clubs[0];
-    leaders[metric] = {
-      id: top.id,
-      name: top.name,
-      value:
-        metric === "expenditure" ? top.expenditure : metric === "income" ? top.income : top.balance,
-    };
   }
-
-  const wins: Record<string, TransferBalanceMetric[]> = {};
-  for (const metric of Object.keys(leaders) as TransferBalanceMetric[]) {
-    (wins[leaders[metric].id] ??= []).push(metric);
-  }
-  const winners = Object.entries(wins)
-    .filter(([, metrics]) => metrics.length >= 2)
-    .map(([id, metrics]) => ({ id, name: byId.get(id)!.name, metrics }));
 
   return {
     seasons,
     from,
     to,
     label,
-    leaders,
-    wins,
-    winners,
     clubs: [...byId.values()].sort((a, b) => b.expenditure - a.expenditure),
   };
 }
@@ -198,10 +181,12 @@ async function main() {
   await writeFile(join(DATA_DIR, "transfer-balance-updated-at.txt"), new Date().toISOString());
 
   for (const w of windows) {
-    const winner = w.winners[0];
+    const winner = leadersOf(w.clubs).winners[0];
     console.log(
       `[${LABEL}] ${w.label}: ${w.clubs.length} clubs — ` +
-        (winner ? `${winner.name} (${winner.metrics.join(" + ")})` : "no club tops two of four"),
+        (winner
+          ? `${winner.club.name} (${winner.measures.map((m) => m.metric).join(" + ")})`
+          : "no club tops two of four"),
     );
   }
   console.log(`[${LABEL}] Done`);

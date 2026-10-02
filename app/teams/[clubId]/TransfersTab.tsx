@@ -33,11 +33,8 @@ import {
   formatSignedMillions,
 } from "@/lib/format";
 import { getFeeVsValueData } from "@/lib/top-transfers";
-import {
-  BALANCE_METRIC,
-  getClubTransferBalance,
-  type ClubBalanceWindow,
-} from "@/lib/transfer-balance";
+import { getClubTransferBalance, type ClubBalanceWindow } from "@/lib/transfer-balance";
+import { RANKED_DEPTH } from "@/lib/transfer-balance-measures";
 import { cn } from "@/lib/utils";
 
 const WINDOW_TITLE = "Fee against value";
@@ -66,9 +63,9 @@ function BalanceRow({
             <span className="text-[10px] uppercase tracking-wide text-text-muted">
               {seasons === 1 ? "this season" : `${seasons} seasons`}
             </span>
-            {places.map(({ metric, place }) => (
+            {places.map(({ measure, place }) => (
               <Badge
-                key={metric}
+                key={measure.metric}
                 variant="outline"
                 className={cn(
                   "gap-1 font-normal",
@@ -77,7 +74,7 @@ function BalanceRow({
                   place === 1 && "border-accent-gold/40 bg-accent-gold/10 text-accent-gold",
                 )}
               >
-                <span className="font-value">#{place}</span> {BALANCE_METRIC[metric]}
+                <span className="font-value">#{place}</span> {measure.label}
               </Badge>
             ))}
           </div>
@@ -147,8 +144,8 @@ async function SpendingSection({ clubId }: { clubId: string }) {
       </ul>
       <p className="mt-2.5 text-xs text-text-muted">
         Every deal Transfermarkt lists, over windows ending with the current season. Positions are
-        worldwide and reach the top <span className="font-value">25</span> clubs on each measure, so
-        a club can be placed for spending and unplaced for sales.
+        worldwide and reach the top <span className="font-value">{RANKED_DEPTH}</span> clubs on each
+        measure, so a club can be placed for spending and unplaced for sales.
       </p>
     </SectionPanel>
   );
