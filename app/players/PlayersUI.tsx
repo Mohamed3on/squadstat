@@ -19,7 +19,7 @@ import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { cn } from "@/lib/utils";
 import { canonicalLeagueName, getLeagueUrl } from "@/lib/leagues";
-import { includeTournamentStats, npga } from "@/lib/stats-toggles";
+import { npga } from "@/lib/stats-toggles";
 import {
   matchesPositionFilter,
   positionFilterCategory,
@@ -502,7 +502,7 @@ function parseSigningFilter(v: string | null): SigningFilter {
 const CATEGORY_LABELS: Record<string, string> = { att: "ATT", mid: "MID", def: "DEF", gk: "GK" };
 
 export function PlayersUI({
-  initialData: rawPlayers,
+  initialData: players,
   injuryMap,
 }: {
   initialData: MinutesValuePlayer[];
@@ -561,9 +561,6 @@ export function PlayersUI({
     },
     [update],
   );
-
-  // Fold major-tournament national-team stats into season totals (always on).
-  const players = useMemo(() => rawPlayers.map(includeTournamentStats), [rawPlayers]);
 
   const nationalityOptions = useMemo(
     () => uniqueFilterOptions(players, (p) => p.nationality, "All nationalities"),

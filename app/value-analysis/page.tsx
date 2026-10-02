@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import {
   getMinutesValueData,
-  includeTournamentStats,
   toPlayerStats,
   applyStatsToggles,
   slimForClient,
@@ -35,11 +34,7 @@ export default async function ValueAnalysisPage() {
   const [mvPlayers, injuredData] = await Promise.all([getMinutesValueData(), getInjuredPlayers()]);
 
   const injuryMap = buildInjuryMap(injuredData.players);
-
-  // Fold major-tournament national-team stats once; flows to the client via
-  // initialData and into the precomputed candidate lists below.
-  const foldedPlayers = mvPlayers.map(includeTournamentStats);
-  const rawPlayerStats = foldedPlayers.map(toPlayerStats);
+  const rawPlayerStats = mvPlayers.map(toPlayerStats);
 
   // Precompute discovery candidates for both penalty-toggle states so the client
   // never runs the findValueCandidates domination pass. (Comparison counts still
@@ -65,7 +60,7 @@ export default async function ValueAnalysisPage() {
     <>
       <Suspense>
         <ValueAnalysisUI
-          initialData={slimForClient(foldedPlayers)}
+          initialData={slimForClient(mvPlayers)}
           injuryMap={injuryMap}
           discovery={discovery}
         />

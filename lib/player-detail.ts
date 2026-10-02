@@ -4,12 +4,7 @@ import type { MarketValueMover, MinutesValuePlayer, PlayerStats } from "@/app/ty
 import { findRepeatLosers, findRepeatWinners } from "@/lib/biggest-movers";
 import { getDataVersion } from "@/lib/data-version";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
-import {
-  applyStatsToggles,
-  includeTournamentStats,
-  npga,
-  toPlayerStats,
-} from "@/lib/stats-toggles";
+import { applyStatsToggles, npga, toPlayerStats } from "@/lib/stats-toggles";
 import {
   buildLeagueValues,
   filterMinutesBenchmark,
@@ -312,12 +307,11 @@ function stripRecentForm({ recentForm: _, ...rest }: MinutesValuePlayer): Minute
 }
 
 async function computePlayerDetailData(playerId: string): Promise<PlayerDetailData | null> {
-  const [rawPlayers, winners, losers] = await Promise.all([
+  const [players, winners, losers] = await Promise.all([
     getMinutesValueData(),
     findRepeatWinners(),
     findRepeatLosers(),
   ]);
-  const players = rawPlayers.map(includeTournamentStats);
 
   const player = findTargetPlayer(players, playerId);
   if (!player) return null;

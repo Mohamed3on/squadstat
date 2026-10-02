@@ -18,12 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAnalysis } from "@/lib/form-analysis";
 import { getTeamFormData, splitPerformers } from "@/lib/team-form";
-import {
-  applyStatsToggles,
-  getMinutesValueData,
-  includeTournamentStats,
-  toPlayerStats,
-} from "@/lib/fetch-minutes-value";
+import { applyStatsToggles, getMinutesValueData, toPlayerStats } from "@/lib/fetch-minutes-value";
 import { findValueCandidates } from "@/lib/value-analysis";
 import { getInjuredPlayers } from "@/lib/injured";
 import { missedPct, getFormMinutes, getFormNpga } from "@/lib/filter-players";
@@ -514,12 +509,7 @@ async function fetchHomeData(): Promise<{
   const teamFormData = teamFormResult.status === "fulfilled" ? teamFormResult.value : null;
   if (teamFormResult.status === "rejected")
     console.error("[Home] getTeamFormData failed:", teamFormResult.reason);
-  // Fold major-tournament national-team stats into season totals so every
-  // homepage leaderboard (top scorers, npGA, bargains) counts World Cup/Euros/…
-  // play, matching the /players and profile defaults.
-  const players = (playersResult.status === "fulfilled" ? playersResult.value : []).map(
-    includeTournamentStats,
-  );
+  const players = playersResult.status === "fulfilled" ? playersResult.value : [];
   if (playersResult.status === "rejected")
     console.error("[Home] getMinutesValueData failed:", playersResult.reason);
   const injuredPlayers = injuredResult.status === "fulfilled" ? injuredResult.value.players : [];

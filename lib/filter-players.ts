@@ -139,8 +139,8 @@ export function gamesAvailable(p: {
 }
 
 /** Games available including major-tournament games, for the "played X of Y"
- *  lines. totalMatches already folds in tournament games (see
- *  includeTournamentStats), so this folds intlAppearances into the available
+ *  lines. totalMatches already folds in tournament games (getMinutesValueData
+ *  folds every row it reads), so this folds intlAppearances into the available
  *  count too — a tournament game counts as available-and-played. % missed stays
  *  club-based (gamesAvailable derives from club totalGames, not totalMatches). */
 export function displayAvailable(p: {
