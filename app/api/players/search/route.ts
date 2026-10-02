@@ -3,13 +3,15 @@ import { join } from "path";
 import { NextResponse } from "next/server";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { getNationalTeams } from "@/lib/national-teams";
+import { getClubIdsWithPages } from "@/lib/team-detail";
 
 export async function GET() {
   try {
-    const [players, clubsRaw, { teams: nations, byId }] = await Promise.all([
+    const [players, clubsRaw, { teams: nations, byId }, withPages] = await Promise.all([
       getMinutesValueData(),
       readFile(join(process.cwd(), "data", "clubs.json"), "utf-8").catch(() => "{}"),
       getNationalTeams(),
+      getClubIdsWithPages({ tables: true }),
     ]);
     const playerIndex = players.map((p) => ({
       id: p.playerId,
@@ -22,11 +24,12 @@ export async function GET() {
       marketValue: p.marketValue,
     }));
     const clubs: Record<string, { name: string; logoUrl: string }> = JSON.parse(clubsRaw);
-    // clubs.json picks up the national teams players' matches were against; every
-    // nation comes from the national-team table instead, so each appears once.
+    // clubs.json names every club and nation a tracked player has met. Only clubs with
+    // a page of their own are offered, or ⌘K would land on one that just redirects to
+    // Transfermarkt; every nation comes from the national-team table, so each appears once.
     const teamIndex = [
       ...Object.entries(clubs)
-        .filter(([id]) => !byId.has(id))
+        .filter(([id]) => withPages.has(id) && !byId.has(id))
         .map(([id, c]) => ({ id, name: c.name, logoUrl: c.logoUrl })),
       ...nations.map((t) => ({
         id: t.id,

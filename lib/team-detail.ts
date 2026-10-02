@@ -170,12 +170,17 @@ async function computeTeamDetailData(clubId: string): Promise<TeamDetailData | n
 export const getTeamDetailData = cache(computeTeamDetailData);
 
 /** Clubs whose /teams page has something to show: any club a tracked player turns
- *  out for. A top-5 side with no tracked player also gets a page, off its table row,
- *  but leaving it out here only costs it a link — and spares callers a Transfermarkt
- *  fetch for the standings. */
-export async function getClubIdsWithPages(): Promise<Set<string>> {
-  const players = await getMinutesValueData();
-  return new Set(
-    players.map((p) => extractClubIdFromLogoUrl(p.clubLogoUrl)).filter((id) => id !== null),
-  );
+ *  out for. A top-5 side with no tracked player also gets a page, off its table row;
+ *  `tables` adds those too. A caller that only decides whether to link a club can
+ *  leave them out, which costs them a link and spares a Transfermarkt fetch for the
+ *  standings; one listing every club page can't. */
+export async function getClubIdsWithPages({ tables = false } = {}): Promise<Set<string>> {
+  const [players, teamForm] = await Promise.all([
+    getMinutesValueData(),
+    tables ? getTeamFormData().catch(() => null) : null,
+  ]);
+  return new Set([
+    ...players.map((p) => extractClubIdFromLogoUrl(p.clubLogoUrl)).filter((id) => id !== null),
+    ...(teamForm?.allTeams ?? []).map((t) => t.clubId),
+  ]);
 }
