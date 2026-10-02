@@ -17,7 +17,7 @@ import {
 import { chooseSeason } from "@/lib/season-selection";
 import { extractClubIdFromLogoUrl } from "@/lib/format";
 import { crestUrl, flagUrl } from "@/lib/transfermarkt/image";
-import { fetchClubTypes } from "@/lib/alpha-clubs";
+import { fetchClubTypes, fetchSecondNationalities } from "@/lib/alpha-clubs";
 import { fetchPage, setMaxConcurrent } from "@/lib/fetch";
 import { BASE_URL } from "@/lib/constants";
 import {
@@ -374,6 +374,16 @@ function mergeStats(players: MinutesValuePlayer[], cache: Cache): void {
     } else {
       delete p.isCurrentIntl;
     }
+    if (s.nationalTeamId) {
+      p.nationalTeamId = s.nationalTeamId;
+    } else {
+      delete p.nationalTeamId;
+    }
+    if (s.lastIntlGame) {
+      p.lastIntlGame = s.lastIntlGame;
+    } else {
+      delete p.lastIntlGame;
+    }
     if (s.isNewSigning) {
       p.isNewSigning = true;
     } else {
@@ -661,6 +671,16 @@ async function main() {
   }
 
   mergeStats(players, cache);
+
+  // A dual national's second nationality, which the profile header never shows:
+  // it's what puts an uncapped one among another nation's outsiders.
+  const second = await fetchSecondNationalities(
+    players.map((p) => p.playerId),
+    (msg) => console.warn(`[refresh] ${msg}`),
+  );
+  for (const p of players) {
+    if (second[p.playerId]) p.secondNationalityId = second[p.playerId];
+  }
 
   // Build club map and enrich recentForm with opponent names/logos
   const clubs = await loadClubMap();

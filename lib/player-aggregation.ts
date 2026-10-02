@@ -95,6 +95,10 @@ export interface PlayerStatsResult {
   league: string;
   intlCareerCaps: number;
   isCurrentIntl: boolean;
+  /** TM id of the senior national team behind `intlCareerCaps`, if there is one. */
+  nationalTeamId?: string;
+  /** That team's last game with him in it, YYYY-MM-DD. */
+  lastIntlGame?: string;
   isNewSigning: boolean;
   isOnLoan: boolean;
   playedPosition: string;

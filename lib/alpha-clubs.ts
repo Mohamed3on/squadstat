@@ -1,40 +1,66 @@
-/** Shared helper for resolving alpha-API `clubTypeId` lookups. Used by the
- *  refresh script to populate data/club-types.json. */
+/** Batch lookups against TM's alpha API, used by the refresh script: club types
+ *  for data/club-types.json, and players' second nationalities. */
 
-const ALPHA_CLUBS_API = "https://tmapi-alpha.transfermarkt.technology/clubs";
-const ALPHA_CLUBS_BATCH = 40;
+const ALPHA_API = "https://tmapi-alpha.transfermarkt.technology";
+const ALPHA_BATCH = 40;
 const HEADERS = { "User-Agent": "Mozilla/5.0", Accept: "application/json" };
 
-/** Batch-resolve clubTypeId for the given clubIds. Returns a map of
- *  clubId → clubTypeId for IDs the API responded for; missing/failed IDs are
- *  omitted. Logs HTTP/connection failures via the optional logger — club-type
- *  resolution is best-effort enrichment, so a flaky alpha host never aborts the
- *  refresh (the caller tolerates a partial map and re-tries misses next run). */
-export async function fetchClubTypes(
+/** One `ids[]=` batch after another, keeping whatever `read` finds per item.
+ *  Missing/failed IDs are omitted and HTTP/connection failures go to `logger`:
+ *  these lookups are best-effort enrichment, so a flaky alpha host never aborts
+ *  the refresh (the caller tolerates a partial map and re-tries misses next run). */
+async function batchLookup<T>(
+  path: string,
   ids: string[],
-  logger: (msg: string) => void = console.warn,
-): Promise<Record<string, number>> {
-  const out: Record<string, number> = {};
-  for (let i = 0; i < ids.length; i += ALPHA_CLUBS_BATCH) {
-    const batch = ids.slice(i, i + ALPHA_CLUBS_BATCH);
-    const url = `${ALPHA_CLUBS_API}?${batch.map((id) => `ids[]=${id}`).join("&")}`;
+  read: (item: Record<string, any>) => T | null | undefined,
+  logger: (msg: string) => void,
+): Promise<Record<string, T>> {
+  const out: Record<string, T> = {};
+  for (let i = 0; i < ids.length; i += ALPHA_BATCH) {
+    const batch = ids.slice(i, i + ALPHA_BATCH);
+    const url = `${ALPHA_API}${path}?${batch.map((id) => `ids[]=${id}`).join("&")}`;
+    const label = `alpha ${path} batch ${i / ALPHA_BATCH}`;
     try {
       const r = await fetch(url, { headers: HEADERS });
       if (!r.ok) {
-        logger(`alpha-clubs batch ${i / ALPHA_CLUBS_BATCH}: HTTP ${r.status}`);
+        logger(`${label}: HTTP ${r.status}`);
         continue;
       }
-      const j = (await r.json()) as {
-        data?: Array<{ id: string; baseDetails?: { clubTypeId?: number } }>;
-      };
-      for (const c of j.data ?? []) {
-        if (typeof c.baseDetails?.clubTypeId === "number") out[c.id] = c.baseDetails.clubTypeId;
+      const j = (await r.json()) as { data?: Record<string, any>[] };
+      for (const item of j.data ?? []) {
+        const value = read(item);
+        if (value != null) out[item.id] = value;
       }
     } catch (err) {
-      logger(
-        `alpha-clubs batch ${i / ALPHA_CLUBS_BATCH}: ${err instanceof Error ? err.message : err}`,
-      );
+      logger(`${label}: ${err instanceof Error ? err.message : err}`);
     }
   }
   return out;
+}
+
+/** clubId → clubTypeId, for the IDs the API responded for. */
+export function fetchClubTypes(
+  ids: string[],
+  logger: (msg: string) => void = console.warn,
+): Promise<Record<string, number>> {
+  return batchLookup(
+    "/clubs",
+    ids,
+    (c) => (typeof c.baseDetails?.clubTypeId === "number" ? c.baseDetails.clubTypeId : null),
+    logger,
+  );
+}
+
+/** playerId → TM country id of the player's second nationality, for dual
+ *  nationals only — the profile header shows just the first. */
+export function fetchSecondNationalities(
+  ids: string[],
+  logger: (msg: string) => void = console.warn,
+): Promise<Record<string, number>> {
+  return batchLookup(
+    "/players",
+    ids,
+    (p) => p.nationalityDetails?.nationalities?.secondNationalityId ?? null,
+    logger,
+  );
 }

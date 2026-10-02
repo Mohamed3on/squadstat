@@ -217,6 +217,12 @@ export interface MinutesValuePlayer {
   /** Absent until the data refresh records it. */
   currentClubStats?: CurrentClubStats;
   isCurrentIntl?: boolean;
+  /** TM id of the senior national team the player is capped for (or called up by). */
+  nationalTeamId?: string;
+  /** That team's last game with him in it, YYYY-MM-DD. */
+  lastIntlGame?: string;
+  /** TM country id of a dual national's second nationality. */
+  secondNationalityId?: number;
   imageUrl: string;
   profileUrl: string;
   playerId: string;

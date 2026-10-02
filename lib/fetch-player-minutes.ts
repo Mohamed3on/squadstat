@@ -27,6 +27,7 @@ interface NationalCareerEntry {
   clubId: string;
   gamesPlayed: number;
   careerState: string;
+  lastGame?: string; // YYYY-MM-DD
 }
 
 /**
@@ -36,20 +37,30 @@ interface NationalCareerEntry {
  */
 async function fetchSeniorCareer(
   playerId: string,
-): Promise<{ caps: number; isCurrent: boolean } | null> {
+): Promise<{ caps: number; isCurrent: boolean; teamId: string; lastGame?: string } | null> {
   try {
     const r = await fetch(`${TM_API_BASE}/player/${playerId}/national-career-history`, {
       headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
     });
     if (!r.ok) return null;
     const j = (await r.json()) as { data?: { history?: NationalCareerEntry[] } };
-    const senior = j?.data?.history?.find(
-      (h) => !!h.clubId && STATIC_CLUB_TYPES[h.clubId] === ALPHA_TYPE_SENIOR,
-    );
+    // A player who switched nations has a senior line for each — Brahim Díaz's
+    // one Spain cap comes before his Morocco ones — so the side he plays for now
+    // wins, then the one he played for most.
+    const senior = (j?.data?.history ?? [])
+      .filter((h) => !!h.clubId && STATIC_CLUB_TYPES[h.clubId] === ALPHA_TYPE_SENIOR)
+      .sort(
+        (a, b) =>
+          Number(b.careerState === "CURRENT_NATIONAL_PLAYER") -
+            Number(a.careerState === "CURRENT_NATIONAL_PLAYER") ||
+          (b.gamesPlayed ?? 0) - (a.gamesPlayed ?? 0),
+      )[0];
     if (!senior) return null;
     return {
       caps: senior.gamesPlayed ?? 0,
       isCurrent: senior.careerState === "CURRENT_NATIONAL_PLAYER",
+      teamId: senior.clubId,
+      lastGame: senior.lastGame,
     };
   } catch {
     return null;
@@ -131,6 +142,8 @@ export async function fetchPlayerMinutesRaw(
     league: currentLeagueName(header.leagueLogoUrl, stats.league),
     intlCareerCaps,
     isCurrentIntl,
+    nationalTeamId: seniorCareer?.teamId,
+    lastIntlGame: seniorCareer?.lastGame,
     isNewSigning: header.isNewSigning,
     isOnLoan: header.isOnLoan,
     contractExpiry: header.contractExpiry,
