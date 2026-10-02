@@ -22,66 +22,26 @@ import { Menu, HelpCircle, RefreshCw } from "lucide-react";
 import { PlayerSearch } from "./PlayerSearch";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
-import { COMPETITION_LIST, cacheTags, compHref, familyOf } from "@/lib/uefa/types";
+import { COMPETITION_LIST, compHref, familyOf } from "@/lib/uefa/types";
 
-const PAGE_CACHE_MAP: Record<string, { tags?: string[]; workflow?: boolean }> = {
-  "/form": { tags: ["form-analysis", "manager"] },
-  "/expected-position": { tags: ["team-form", "manager"] },
-  "/injured": { tags: ["injured"] },
-  "/players": { workflow: true },
-  "/value-analysis": { workflow: true },
-  "/biggest-movers": { workflow: true },
-  "/squad-values": { workflow: true },
-  "/national-teams": { tags: ["manager"], workflow: true },
-  "/fee-vs-value": { tags: ["top-transfers"] },
-  "/club-transfers": { tags: ["top-transfers"], workflow: true },
-  // A UEFA page names the managers of its over- and under-performers, so its refresh
-  // clears theirs too. A Nations League page takes its values from the national-team
-  // data, as /national-teams does, so its refresh also queues that data's workflow.
-  ...Object.fromEntries(
-    COMPETITION_LIST.map((c) => [
-      compHref(c),
-      { tags: [...cacheTags(c), "manager"], workflow: c.format === "groups" },
-    ]),
-  ),
-};
-
-/** Every nation's page: its squad scrape, its manager and its Nations League badge,
- *  over values from the national-team data, so it queues that data's workflow too. */
-const NATION_PAGE = {
-  tags: [
-    "national-team",
-    "manager",
-    ...COMPETITION_LIST.filter((c) => c.format === "groups").flatMap(cacheTags),
-  ],
-  workflow: true,
-};
-
-async function refreshPage(pathname: string) {
-  const config =
-    PAGE_CACHE_MAP[pathname] ?? (pathname.startsWith("/national-teams/") ? NATION_PAGE : undefined);
-  const fetches: Promise<Response>[] = [];
-
-  if (!config || config.tags) {
-    fetches.push(
-      fetch("/api/revalidate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tags: config?.tags, path: pathname }),
-      }),
-    );
-  }
-
-  if (!config || config.workflow) {
-    fetches.push(fetch("/api/refresh-data", { method: "POST" }));
-  }
-
-  const results = await Promise.all(fetches);
-  const failures = results.filter((res) => !res.ok);
-  if (failures.length > 0) {
-    for (const res of failures) console.error(`[refresh] ${res.url} returned ${res.status}`);
+async function post(url: string, init?: RequestInit) {
+  const res = await fetch(url, { method: "POST", ...init });
+  if (!res.ok) {
+    console.error(`[refresh] ${res.url} returned ${res.status}`);
     throw new Error("Refresh failed");
   }
+  return res;
+}
+
+/** The server holds the plan of what each page reads (app/api/revalidate), so this sends
+ *  only the path, and queues the data workflow when the server says the page needs it. */
+async function refreshPage(pathname: string) {
+  const res = await post("/api/revalidate", {
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path: pathname }),
+  });
+  const { workflow } = await res.json();
+  if (workflow) await post("/api/refresh-data");
 }
 
 type NavLink = { href: string; label: string };

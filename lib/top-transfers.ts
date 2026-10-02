@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAG } from "./cache-tags";
 import { getCurrentMarketValues } from "./current-values";
 import { analyzeTransfers, type FeeVsValueData } from "./fee-vs-value";
 import { TOP_TRANSFER_LIMIT } from "./constants";
@@ -29,7 +30,7 @@ const fetchCached = unstable_cache(
   ["top-transfers", String(TOP_TRANSFER_LIMIT)],
   {
     revalidate: 86400,
-    tags: ["top-transfers"],
+    tags: [CACHE_TAG.topTransfers],
   },
 );
 

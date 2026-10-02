@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { ManagerInfo, ManagerTrivia } from "@/app/types";
+import { CACHE_TAG } from "./cache-tags";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 import { getNationalTeams } from "./national-teams";
@@ -150,7 +151,7 @@ const getManagerHistory = (clubId: string) =>
       return managers;
     },
     [`manager-history-${clubId}`],
-    { revalidate: HISTORY_TTL, tags: ["manager"] },
+    { revalidate: HISTORY_TTL, tags: [CACHE_TAG.manager] },
   );
 
 /** A manager's friendly-only record for one national-team stint, from Transfermarkt's
@@ -176,7 +177,7 @@ const getFriendlyRecord = (trainerId: string, vereinId: string, appointed: strin
       return parseSummary(cheerio.load(await fetchPage(url)));
     },
     [`friendlies-${trainerId}-${vereinId}-${appointed}`],
-    { revalidate: ended ? ENDED_STINT_TTL : OPEN_STINT_TTL, tags: ["manager"] },
+    { revalidate: ended ? ENDED_STINT_TTL : OPEN_STINT_TTL, tags: [CACHE_TAG.manager] },
   );
 };
 

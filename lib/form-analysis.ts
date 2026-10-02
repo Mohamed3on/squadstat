@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { TeamStats, PeriodAnalysis, AnalysisResult, AggregatedTeam } from "@/app/types";
+import { CACHE_TAG } from "@/lib/cache-tags";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
 import { canonicalLeagueName, isSameLeague } from "@/lib/leagues";
@@ -342,7 +343,7 @@ export const getAnalysis = unstable_cache(
     return analyzeFormData(allTeamsPerPeriod);
   },
   ["form-analysis"],
-  { revalidate: 7200, tags: ["form-analysis"] },
+  { revalidate: 7200, tags: [CACHE_TAG.formAnalysis] },
 );
 
 /**

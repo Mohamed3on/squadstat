@@ -36,23 +36,23 @@ All API routes that fetch from Transfermarkt should use `unstable_cache` for dai
 
 ```typescript
 import { unstable_cache } from "next/cache";
+import { CACHE_TAG } from "@/lib/cache-tags";
 
 const getData = unstable_cache(
   async () => {
     // fetch logic
   },
   ["cache-key"],
-  { revalidate: 86400, tags: ["tag-name"] }, // 24 hour cache
+  { revalidate: 86400, tags: [CACHE_TAG.yourSource] }, // 24 hour cache
 );
 ```
 
-**Important:** When adding a new cached route, always add its tag to `/app/api/revalidate/route.ts`:
-
-```typescript
-revalidateTag("your-new-tag");
-```
-
-This ensures the header refresh button properly busts all caches.
+**Important:** Declare every tag in `lib/cache-tags.ts`, never as a string literal, and list it in
+the refresh plan in `app/api/revalidate/route.ts` under every page that reads the source, on the
+server or through an `/api` call; a new page that reads cached data gets an entry there too. The
+plan is exactly what the header refresh button clears on a page (`workflow: true` also queues the
+data workflow, for pages showing committed `data/*.json`). A page it doesn't list clears every tag
+and queues the workflow.
 
 **Caches over committed `data/*.json` files are different.** `unstable_cache` entries survive
 deployments, so they go stale the moment CI commits fresh data. Plain file reads (see

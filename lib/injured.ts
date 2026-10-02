@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { parsePlayerTable } from "@/lib/transfermarkt";
 import type { InjuredPlayer } from "@/app/types";
+import { CACHE_TAG } from "@/lib/cache-tags";
 import { BASE_URL } from "@/lib/constants";
 import { LEAGUES } from "@/lib/leagues";
 import { fetchPage } from "@/lib/fetch";
@@ -88,5 +89,5 @@ export async function fetchInjuredPlayersUncached(): Promise<{
 
 export const getInjuredPlayers = unstable_cache(fetchInjuredPlayersUncached, ["injured-players"], {
   revalidate: 7200,
-  tags: ["injured"],
+  tags: [CACHE_TAG.injured],
 });

@@ -2,6 +2,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import type { MarketValueMover, MinutesValuePlayer, PlayerStats } from "@/app/types";
 import { findRepeatLosers, findRepeatWinners } from "@/lib/biggest-movers";
+import { CACHE_TAG } from "@/lib/cache-tags";
 import { getDataVersion } from "@/lib/data-version";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { applyStatsToggles, npga, toPlayerStats } from "@/lib/stats-toggles";
@@ -469,7 +470,7 @@ export const getPlayerDetailData = cache(async (playerId: string) => {
   return unstable_cache(
     () => computePlayerDetailData(playerId),
     [`player-detail-v8-${playerId}`, dataVersion],
-    { revalidate: 43200, tags: ["form-analysis"] },
+    { revalidate: 43200, tags: [CACHE_TAG.playerDetail] },
   )();
 });
 

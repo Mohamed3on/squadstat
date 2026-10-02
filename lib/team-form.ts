@@ -2,6 +2,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { Matchday, MatchdayClub, MatchdayGame, TeamFormEntry } from "@/app/types";
+import { CACHE_TAG } from "./cache-tags";
 import { BASE_URL } from "./constants";
 import { LEAGUES } from "./leagues";
 import { fetchPage } from "./fetch";
@@ -279,7 +280,7 @@ const fetchLeaguePages = unstable_cache(
     return { allTeams, rounds };
   },
   ["team-form"],
-  { revalidate: 7200, tags: ["team-form"] },
+  { revalidate: 7200, tags: [CACHE_TAG.teamForm] },
 );
 
 // A page calling both below shares one lookup, so a cold miss can't fetch every league twice.
