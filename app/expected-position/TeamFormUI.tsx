@@ -5,7 +5,7 @@ import type { TeamFormEntry } from "@/app/types";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { LEAGUES, canonicalLeagueName, getLeagueLogoUrl } from "@/lib/leagues";
 import { useQueryParams } from "@/lib/hooks/use-query-params";
-import { splitPerformers } from "@/lib/team-form";
+import { splitPerformers } from "@/lib/performers";
 import { TeamGapBars, type GapTab } from "./TeamGapBars";
 
 export interface TeamFormResponse {

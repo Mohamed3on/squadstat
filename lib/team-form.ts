@@ -224,19 +224,6 @@ async function fetchLeagueData(
   }
 }
 
-export function splitPerformers(teams: TeamFormEntry[], limit?: number) {
-  const over = teams
-    .filter((t) => t.deltaPts > 0)
-    .sort((a, b) => b.deltaPts - a.deltaPts || b.marketValueNum - a.marketValueNum);
-  const under = teams
-    .filter((t) => t.deltaPts < 0)
-    .sort((a, b) => a.deltaPts - b.deltaPts || b.marketValueNum - a.marketValueNum);
-  return {
-    overperformers: limit ? over.slice(0, limit) : over,
-    underperformers: limit ? under.slice(0, limit) : under,
-  };
-}
-
 // Each league's competition page carries both its table and its matchday box, so
 // one cached fetch per league feeds getTeamFormData and getLeagueMatchday.
 const fetchLeaguePages = unstable_cache(

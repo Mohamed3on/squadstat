@@ -1,5 +1,6 @@
 import { getAnalysis } from "@/lib/form-analysis";
-import { getTeamFormData, splitPerformers } from "@/lib/team-form";
+import { getTeamFormData } from "@/lib/team-form";
+import { splitPerformers } from "@/lib/performers";
 import { FormAnalysisUI } from "@/app/components/FormAnalysisUI";
 import { createPageMetadata } from "@/lib/metadata";
 import { DiscoveryLinkGrid } from "@/app/components/DiscoveryLinkGrid";
