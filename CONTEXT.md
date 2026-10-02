@@ -62,3 +62,43 @@ endpoints — player search, manager PPG (deferred), cache revalidation, data re
 A route that merely re-wraps a `lib/` function a page already calls is **duplication, not
 surface**, and gets deleted. Domain computation (e.g. `findValueCandidates`) lives in `lib/`
 and runs server-side once; it is not re-run in the client or behind a route.
+
+## National teams
+
+**National team**:
+A country's senior men's team, as Transfermarkt lists and values it: 211 of them, each in one
+confederation.
+_Avoid_: country, national side
+
+**Call-up**:
+The players a national team has selected right now, which Transfermarkt shows as the nation's
+squad. The National Teams table's squad size and value per player count the call-up.
+_Avoid_: current squad, roster
+
+**Extended squad**:
+The call-up plus every player who has played for the national team in the last 18 months
+(Transfermarkt's definition). It is the answer to "who are this nation's players".
+_Avoid_: pool, eligible players
+
+**Nationality**:
+A player's first citizenship as Transfermarkt lists it. A capped dual national is listed under
+the nation they chose, so it usually matches who they play for; for an uncapped one it may not.
+_Avoid_: citizenship (for the first one), country
+
+**Value rank**:
+A national team's place by value per player of its call-up, among all 211 and within its
+confederation.
+
+**Second nationality**:
+The other citizenship Transfermarkt lists for a dual national, if any.
+
+**Capped**:
+Has played at least one senior match for a national team. Youth caps don't count, and a
+call-up without playing doesn't either.
+_Avoid_: international (as a yes/no)
+
+**Outsider**:
+A tracked player a national team could still pick but hasn't: the nation is their nationality
+or second nationality, they aren't in its extended squad, and they aren't capped by another
+nation.
+_Avoid_: snub, uncapped (many outsiders are capped)
