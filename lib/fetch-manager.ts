@@ -109,7 +109,6 @@ function toIsoDate(d: string): string | null {
 }
 
 const HISTORY_TTL = 21_600; // 6h — a manager change should surface the same day
-const ENDED_STINT_TTL = 2_592_000; // 30d — immutable history
 const OPEN_STINT_TTL = 21_600; // 6h — the incumbent is still playing games
 
 /** unstable_cache needs Next's incremental cache and crashes in plain bun
@@ -119,7 +118,7 @@ const OPEN_STINT_TTL = 21_600; // 6h — the incumbent is still playing games
 const cachedScrape = <T>(
   fn: () => Promise<T>,
   key: string[],
-  opts: { revalidate: number; tags: string[] },
+  opts: { revalidate: number | false; tags: string[] },
 ): Promise<T> => (process.env.SKIP_NEXT_CACHE === "1" ? fn() : unstable_cache(fn, key, opts)());
 
 /** Every cache here wraps a single scrape rather than the assembled ManagerInfo, because
@@ -160,8 +159,10 @@ const getManagerHistory = (clubId: string) =>
  *  friendlies across stints, wrecking the subtraction. datum_zu is the lower bound
  *  (appointed), datum_ab the upper (end); an open stint omits the upper bound.
  *
- *  A stint that has already ended can never gain another friendly, so it caches for 30d;
- *  only the incumbent's open stint stays on the 6h cycle. */
+ *  A stint that has already ended can never gain another friendly, so it caches for good,
+ *  untagged so no refresh button clears it; only the incumbent's open stint stays on the
+ *  6h cycle. The end date is in the key, so the stint's last open-ended fetch never stands
+ *  in for its finished record. To refetch every finished stint, change the key's prefix. */
 const getFriendlyRecord = (trainerId: string, vereinId: string, appointed: string, end: string) => {
   const endDate = end ? parseDate(end) : null;
   const ended = !!endDate && endDate < new Date();
@@ -176,8 +177,10 @@ const getFriendlyRecord = (trainerId: string, vereinId: string, appointed: strin
         (to ? `&datum_ab=${to}` : "");
       return parseSummary(cheerio.load(await fetchPage(url)));
     },
-    [`friendlies-${trainerId}-${vereinId}-${appointed}`],
-    { revalidate: ended ? ENDED_STINT_TTL : OPEN_STINT_TTL, tags: [CACHE_TAG.manager] },
+    [`friendlies-${trainerId}-${vereinId}-${appointed}-${end}`],
+    ended
+      ? { revalidate: false, tags: [] }
+      : { revalidate: OPEN_STINT_TTL, tags: [CACHE_TAG.manager] },
   );
 };
 
@@ -232,7 +235,7 @@ export async function getManagerInfo(clubId: string): Promise<ManagerInfo | null
   const incumbent = records.find(isIncumbent) ?? firstManager;
   // His peers have as many games as his record counts — competitive ones, for a nation — so
   // the bar is the `matches` returned, as the copy says. That's why restating comes first,
-  // for everyone since 1992 (an ended stint's friendlies cache for 30d).
+  // for everyone since 1992 (an ended stint's friendlies are cached for good).
   const comparable = records.filter((m) => m.matches >= incumbent.matches);
   const sorted = [...comparable].sort((a, b) => (b.ppg ?? 0) - (a.ppg ?? 0));
   const rank = sorted.indexOf(incumbent) + 1;
