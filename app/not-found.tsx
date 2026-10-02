@@ -1,17 +1,10 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SITE_PAGES } from "@/lib/site-pages";
 
-const PAGES = [
-  { title: "Recent Form", href: "/form" },
-  { title: "Value vs Table", href: "/expected-position" },
-  { title: "Player Explorer", href: "/players" },
-  { title: "Over/Under", href: "/value-analysis" },
-  { title: "Injury Impact", href: "/injured" },
-  { title: "Biggest Movers", href: "/biggest-movers" },
-  { title: "Club Transfers", href: "/club-transfers" },
-  { title: "Most Valuable Squads", href: "/squad-values" },
-];
+// The pages in the header's menus, by their full names.
+const PAGES = SITE_PAGES.filter((p) => p.nav);
 
 export default function NotFound() {
   return (
@@ -29,7 +22,7 @@ export default function NotFound() {
             href={d.href}
             className="group flex items-center justify-between rounded-lg border border-border-subtle bg-elevated px-3 py-2 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-border-medium hover:bg-card-hover hover:text-text-primary"
           >
-            <span>{d.title}</span>
+            <span>{d.name}</span>
             <ArrowRight className="h-3.5 w-3.5 text-text-muted transition-transform group-hover:translate-x-0.5" />
           </Link>
         ))}

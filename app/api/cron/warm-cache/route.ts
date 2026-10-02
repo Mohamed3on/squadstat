@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SITE_PAGES } from "@/lib/site-pages";
 
-const PAGES_TO_WARM = [
-  "/",
-  "/form",
-  "/expected-position",
-  "/injured",
-  "/players",
-  "/value-analysis",
-  "/biggest-movers",
-];
+const PAGES_TO_WARM = SITE_PAGES.filter((p) => p.warm).map((p) => p.href);
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");

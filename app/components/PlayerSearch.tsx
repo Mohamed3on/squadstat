@@ -54,10 +54,10 @@ function scoreName(normalized: string, q: string): number {
 }
 
 // Pages are static, so they're normalized once at module load and searchable
-// before the player index has arrived.
+// before the player index has arrived. A page's nav label finds it like a keyword.
 const NORMALIZED_PAGES = SITE_PAGES.map((p) => ({
   name: normalizeForSearch(p.name),
-  keywords: (p.keywords ?? []).map(normalizeForSearch),
+  keywords: [...(p.keywords ?? []), ...(p.navLabel ? [p.navLabel] : [])].map(normalizeForSearch),
 }));
 
 function scorePage(i: number, q: string): number {

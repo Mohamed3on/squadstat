@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { Menu, HelpCircle, RefreshCw } from "lucide-react";
 import { PlayerSearch } from "./PlayerSearch";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
+import { NAV_GROUPS } from "@/lib/site-pages";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 import { COMPETITION_LIST, compHref, familyOf } from "@/lib/uefa/types";
 
@@ -43,39 +44,6 @@ async function refreshPage(pathname: string) {
   const { workflow } = await res.json();
   if (workflow) await post("/api/refresh-data");
 }
-
-type NavLink = { href: string; label: string };
-
-// Three groups instead of eight top-level words. Each group is what the page is
-// *about*, so the bar reads at a glance and every page is one hover away.
-// A group is a label only, never a page: the mobile sheet renders it as a heading.
-const NAV_GROUPS: readonly { label: string; items: readonly NavLink[] }[] = [
-  {
-    label: "Teams",
-    items: [
-      { href: "/form", label: "Recent Form" },
-      { href: "/expected-position", label: "Value vs Table" },
-      { href: "/squad-values", label: "Squad Values" },
-      { href: "/national-teams", label: "National Teams" },
-      { href: "/injured", label: "Injury Impact" },
-    ],
-  },
-  {
-    label: "Players",
-    items: [
-      { href: "/players", label: "All Players" },
-      { href: "/value-analysis", label: "Over/Under" },
-      { href: "/biggest-movers", label: "Biggest Movers" },
-    ],
-  },
-  {
-    label: "Transfers",
-    items: [
-      { href: "/fee-vs-value", label: "Fee vs Value" },
-      { href: "/club-transfers", label: "By Club" },
-    ],
-  },
-];
 
 // The UEFA competitions ride with the leagues but stay out of lib/leagues.ts:
 // LEAGUES drives the player pool, the colour maps and /leagues/[slug], none of

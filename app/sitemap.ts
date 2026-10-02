@@ -4,27 +4,11 @@ import { extractClubIdFromLogoUrl } from "@/lib/format";
 import { LEAGUES, getLeagueLogoUrl } from "@/lib/leagues";
 import { getNationalTeams } from "@/lib/national-teams";
 import { absoluteUrl } from "@/lib/site-config";
-import { COMPETITION_LIST, compHref } from "@/lib/uefa/types";
+import { SITE_PAGES } from "@/lib/site-pages";
 
-const CORE_ROUTES = [
-  "/",
-  "/discover",
-  "/form",
-  "/expected-position",
-  "/players",
-  "/value-analysis",
-  "/injured",
-  "/biggest-movers",
-  "/squad-values",
-  "/national-teams",
-  "/fee-vs-value",
-  "/club-transfers",
-  ...COMPETITION_LIST.map(compHref),
-  "/wc-live",
-  "/wc",
-  "/wc-schedule",
-  "/how-it-works",
-];
+// Every catalogued page but the leagues, which get entries of their own below, with logos.
+const LEAGUE_PATHS = new Set(LEAGUES.map((l) => `/leagues/${l.slug}`));
+const CORE_ROUTES = SITE_PAGES.map((p) => p.href).filter((path) => !LEAGUE_PATHS.has(path));
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
