@@ -439,6 +439,23 @@ export default async function PlayerDetailPage({
     penaltyRank,
   } = data;
   const nation = player.nationalTeamId ? nations[player.nationalTeamId] : undefined;
+  // "Brazil international · 87 caps"; a capped player outside the current squad keeps
+  // the caps without the title: "Brazil · 87 caps".
+  const caps = player.intlCareerCaps;
+  const intlLead = player.isCurrentIntl
+    ? `${nation?.name ?? "Current"} international`
+    : nation?.name;
+  const intlLabel = (player.isCurrentIntl || caps > 0) && (
+    <span>
+      {intlLead}
+      {intlLead && caps > 0 && " · "}
+      {caps > 0 && (
+        <>
+          <span className="font-value">{caps}</span> {caps === 1 ? "cap" : "caps"}
+        </>
+      )}
+    </span>
+  );
   const { signalSummary } = comparisons.all;
   const fallbackMatchCount = player.recentForm?.length ?? 0;
   const peersPlayingLess = minutesBenchmark.pricier.playingLessCount;
@@ -526,16 +543,16 @@ export default async function PlayerDetailPage({
                   New signing
                 </SignalBadge>
               )}
-              {player.isCurrentIntl &&
+              {intlLabel &&
                 (nation ? (
                   <Link href={nation.href}>
                     <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary transition-colors hover:text-text-primary">
-                      {nation.name} international
+                      {intlLabel}
                     </SignalBadge>
                   </Link>
                 ) : (
                   <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
-                    Current international
+                    {intlLabel}
                   </SignalBadge>
                 ))}
               {trend && (
