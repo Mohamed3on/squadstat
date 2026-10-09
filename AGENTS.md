@@ -8,10 +8,11 @@ Don't run `bun run build` during development - the dev server is already running
 
 ## Hosting
 
-Cloudflare Workers via OpenNext (`wrangler.jsonc`, `open-next.config.ts`). Workers Builds deploys
-every push to `main`, the data workflows' commits included, and gives other branches a preview
-URL. `unstable_cache` entries and prerenders live in R2, revalidation stamps in D1. The daily
-warm-cache cron is declared in `wrangler.jsonc` and run by `custom-worker.ts`.
+Cloudflare Workers via OpenNext (`wrangler.jsonc`, `open-next.config.ts`). Workers Builds runs
+`bun run build:worker` and deploys every push to `main`, the data workflows' commits included;
+other branches get a Preview whose URL lands on the PR, on its own R2 and D1 so it never touches
+production's caches. `unstable_cache` entries and prerenders live in R2, revalidation stamps in
+D1. The daily warm-cache cron is declared in `wrangler.jsonc` and run by `custom-worker.ts`.
 
 ```bash
 bun run preview                # production build in a local workerd, on localhost:8787

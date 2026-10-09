@@ -23,11 +23,30 @@
   // Warms the Transfermarkt-backed pages before Europe wakes up (app/api/cron/warm-cache).
   "triggers": { "crons": ["0 6 * * *"] },
   "observability": { "enabled": true },
-  // Preview builds of other branches get their own URL, as on Vercel; both need workers.dev.
+  // Branch Previews are served from workers.dev, as Vercel's were from vercel.app.
   "workers_dev": true,
   "preview_urls": true,
   "routes": [
     { "pattern": "squadstat.com", "custom_domain": true },
     { "pattern": "www.squadstat.com", "custom_domain": true },
   ],
+  // Previews inherit no bindings. Their own R2 and D1 keep a branch out of production's
+  // data cache; each Preview gets its own Durable Objects. No WORKER_SELF_REFERENCE: from a
+  // Preview it would call production, so ISR pages just don't regenerate in Previews.
+  "previews": {
+    "r2_buckets": [
+      { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "squadstat-cache-preview" },
+    ],
+    "d1_databases": [
+      {
+        "binding": "NEXT_TAG_CACHE_D1",
+        "database_name": "squadstat-tag-cache-preview",
+        "database_id": "b7558f82-bd78-4bfa-be63-1613675f7064",
+      },
+    ],
+    "durable_objects": {
+      "bindings": [{ "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" }],
+    },
+    "images": { "binding": "IMAGES" },
+  },
 }

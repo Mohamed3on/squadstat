@@ -18,6 +18,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   env: { DATA_STAMPS: JSON.stringify(dataStamps) },
+  // build:worker type-checks with tsgo after the build: seconds, where this tsc pass took 18.
+  typescript: { ignoreBuildErrors: true },
   transpilePackages: ["geist"],
   images: {
     remotePatterns: [
