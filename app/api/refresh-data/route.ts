@@ -13,6 +13,8 @@ export async function POST() {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",
+        // GitHub 403s requests without one, and a Worker's fetch, unlike Node's, sends none.
+        "User-Agent": "squadstat",
       },
       body: JSON.stringify({ ref: "main", inputs: { force_refresh: "true" } }),
     },
