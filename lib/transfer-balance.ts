@@ -1,15 +1,11 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { cache } from "react";
 import type { TransferBalanceClub, TransferBalanceResult } from "@/app/types";
+import transferBalance from "@/data/transfer-balance.json";
 import { MEASURES, RANKED_DEPTH, type Measure } from "@/lib/transfer-balance-measures";
 
-/** Plain per-request read, deduped with React cache. data/transfer-balance.json only
- *  changes via a data-refresh deploy, so an unstable_cache could only serve it stale. */
-export const getTransferBalance = cache(async (): Promise<TransferBalanceResult> => {
-  const raw = await readFile(join(process.cwd(), "data", "transfer-balance.json"), "utf-8");
-  return JSON.parse(raw) as TransferBalanceResult;
-});
+/** Bundled into the build. data/transfer-balance.json only changes via a data-refresh
+ *  deploy, so an unstable_cache could only serve it stale. */
+export const getTransferBalance = async (): Promise<TransferBalanceResult> =>
+  transferBalance as unknown as TransferBalanceResult;
 
 /** A place this club is entitled to claim on one measure. */
 export interface ClubPlace {

@@ -74,8 +74,8 @@ for a single club, player or competition.
 - **Terminology:** value per player · points gap (actual − expected points) · call-up ·
   extended squad · call-up gap · outsiders · form windows (last 5/10/15/20 matches) · npG+A / G+A (excl. pens) · overpriced / bargain · missed % · biggest
   risers / fallers · Quick Views. UI copy says "football"; "soccer" appears only in SEO keywords.
-- **No accounts, no user data, no monetization.** Hosted on Vercel Hobby (non-commercial use,
-  100 GB/month bandwidth). A Cloudflare Worker relays Transfermarkt fetches in CI.
+- **No accounts, no user data, no monetization.** Hosted on Cloudflare Workers (Workers Paid,
+  shared with other projects). A second Worker relays Transfermarkt fetches in CI.
 - **Responsive:** mobile and desktop are both first-class. English only.
 
 ## Brand Commitments
@@ -102,7 +102,7 @@ for a single club, player or competition.
     Europa Leagues, and the Nations League.
 - **Methodology:** `/how-it-works` explains each formula.
 - **Assets:** `app/icon.png`, `public/og.png`, and the generated share images.
-- **Traffic:** Vercel Web Analytics is installed. The numbers live in Vercel, not in the repo.
+- **Traffic:** No analytics script. Request counts live in the Cloudflare dashboard, not in the repo.
 - **Absent:** testimonials, press, user counts, partnerships, and any Transfermarkt endorsement.
   Never invent them.
 

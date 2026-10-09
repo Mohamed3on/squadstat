@@ -1,23 +1,18 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { cache } from "react";
 import type { NationalTeamValueResult, SquadValueClub, SquadValueResult } from "@/app/types";
+import nationalTeamValues from "@/data/national-team-values.json";
+import squadValues from "@/data/squad-values.json";
 
 /** Where the squad-value ranking lives. */
 export const SQUAD_VALUES_PATH = "/squad-values";
 
-/** Plain per-request read, deduped with React cache. data/squad-values.json only
- *  changes via a data-refresh deploy, so an unstable_cache could only serve it stale. */
-export const getSquadValues = cache(async (): Promise<SquadValueResult> => {
-  const raw = await readFile(join(process.cwd(), "data", "squad-values.json"), "utf-8");
-  return JSON.parse(raw) as SquadValueResult;
-});
+/** Bundled into the build. data/squad-values.json only changes via a data-refresh
+ *  deploy, so an unstable_cache could only serve it stale. */
+export const getSquadValues = async (): Promise<SquadValueResult> =>
+  squadValues as unknown as SquadValueResult;
 
-/** The same read for the national-team table, which the same refresh writes. */
-export const getNationalTeamValues = cache(async (): Promise<NationalTeamValueResult> => {
-  const raw = await readFile(join(process.cwd(), "data", "national-team-values.json"), "utf-8");
-  return JSON.parse(raw) as NationalTeamValueResult;
-});
+/** The same for the national-team table, which the same refresh writes. */
+export const getNationalTeamValues = async (): Promise<NationalTeamValueResult> =>
+  nationalTeamValues as unknown as NationalTeamValueResult;
 
 /** Where a club stands among the hundred most valuable squads. */
 export interface SquadValuePlace {

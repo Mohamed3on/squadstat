@@ -8,7 +8,6 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { absoluteUrl, getSiteOrigin, SITE_NAME } from "@/lib/site-config";
-import { Analytics } from "@vercel/analytics/next";
 import { JsonLd } from "@/components/JsonLd";
 
 export const viewport: Viewport = {
@@ -117,7 +116,6 @@ export default function RootLayout({
           <Footer />
           <Toaster />
         </Providers>
-        <Analytics />
       </body>
     </html>
   );

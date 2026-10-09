@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "squadstat",
+  // Wraps OpenNext's .open-next/worker.js to add the cron below.
+  "main": "custom-worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "squadstat" }],
+  "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "squadstat-cache" }],
+  "d1_databases": [
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "squadstat-tag-cache",
+      "database_id": "362a20f1-80cd-4a1e-a691-aa96967f6481",
+    },
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DOQueueHandler"] }],
+  "images": { "binding": "IMAGES" },
+  // Warms the Transfermarkt-backed pages before Europe wakes up (app/api/cron/warm-cache).
+  "triggers": { "crons": ["0 6 * * *"] },
+  "observability": { "enabled": true },
+  // Preview builds of other branches get their own URL, as on Vercel; both need workers.dev.
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    { "pattern": "squadstat.com", "custom_domain": true },
+    { "pattern": "www.squadstat.com", "custom_domain": true },
+  ],
+}

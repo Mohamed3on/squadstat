@@ -1,6 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { cache } from "react";
+import fixtures from "@/data/wc/fixtures.json";
+import knockoutSchedule from "@/data/wc/knockout-schedule.json";
 
 export type GroupFixture = {
   group: string;
@@ -19,23 +18,8 @@ export type GroupFixture = {
 export type Kick = { kickoff: number; dow: string; dayLabel: string; timeLabel: string };
 
 /** Group-stage fixtures with final scores, frozen by scripts/snapshot-wc.ts. */
-export const getWcFixtures = cache(async (): Promise<GroupFixture[]> => {
-  try {
-    return JSON.parse(await readFile(join(process.cwd(), "data", "wc", "fixtures.json"), "utf-8"));
-  } catch (err) {
-    console.error("[wc] missing fixtures snapshot:", err);
-    return [];
-  }
-});
+export const getWcFixtures = async (): Promise<GroupFixture[]> => fixtures as GroupFixture[];
 
 /** Official knockout kickoff dates keyed by bracket card (`${round}-${num}`, plus "3RD"). */
-export const getWcKnockoutSchedule = cache(async (): Promise<Record<string, Kick>> => {
-  try {
-    return JSON.parse(
-      await readFile(join(process.cwd(), "data", "wc", "knockout-schedule.json"), "utf-8"),
-    );
-  } catch (err) {
-    console.error("[wc] missing knockout-schedule snapshot:", err);
-    return {};
-  }
-});
+export const getWcKnockoutSchedule = async (): Promise<Record<string, Kick>> =>
+  knockoutSchedule as Record<string, Kick>;

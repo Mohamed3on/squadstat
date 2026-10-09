@@ -1,15 +1,13 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { NextResponse } from "next/server";
+import clubs from "@/data/clubs.json";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { getNationalTeams } from "@/lib/national-teams";
 import { getClubIdsWithPages } from "@/lib/team-detail";
 
 export async function GET() {
   try {
-    const [players, clubsRaw, { teams: nations, byId }, withPages] = await Promise.all([
+    const [players, { teams: nations, byId }, withPages] = await Promise.all([
       getMinutesValueData(),
-      readFile(join(process.cwd(), "data", "clubs.json"), "utf-8").catch(() => "{}"),
       getNationalTeams(),
       getClubIdsWithPages({ tables: true }),
     ]);
@@ -23,7 +21,6 @@ export async function GET() {
       imageUrl: p.imageUrl,
       marketValue: p.marketValue,
     }));
-    const clubs: Record<string, { name: string; logoUrl: string }> = JSON.parse(clubsRaw);
     // clubs.json names every club and nation a tracked player has met. Only clubs with
     // a page of their own are offered, or ⌘K would land on one that just redirects to
     // Transfermarkt; every nation comes from the national-team table, so each appears once.

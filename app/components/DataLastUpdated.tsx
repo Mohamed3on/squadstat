@@ -1,5 +1,4 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { dataStamp } from "@/lib/data-version";
 
 export function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -14,13 +13,8 @@ export function timeAgo(date: Date): string {
 }
 
 export async function DataLastUpdated({ file = "updated-at.txt" }: { file?: string } = {}) {
-  let updatedAt: Date;
-  try {
-    const raw = await readFile(join(process.cwd(), "data", file), "utf-8");
-    updatedAt = new Date(raw.trim());
-  } catch {
-    updatedAt = new Date();
-  }
+  const stamp = dataStamp(file);
+  const updatedAt = stamp ? new Date(stamp) : new Date();
 
   const formatted = updatedAt.toLocaleDateString("en-GB", {
     day: "numeric",

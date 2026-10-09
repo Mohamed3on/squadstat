@@ -1,19 +1,21 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { cache } from "react";
 import type { MarketValueMoversResult } from "@/app/types";
+import biggestLosers from "@/data/biggest-losers.json";
+import biggestWinners from "@/data/biggest-winners.json";
 
-async function readMovers(file: string): Promise<MarketValueMoversResult> {
-  const raw = await readFile(join(process.cwd(), "data", file), "utf-8");
-  const data = JSON.parse(raw) as MarketValueMoversResult;
-  data.repeatMovers.sort(
-    (a, b) =>
-      b.reduce((s, m) => s + m.absoluteChange, 0) - a.reduce((s, m) => s + m.absoluteChange, 0),
-  );
-  return data;
+async function readMovers(json: unknown): Promise<MarketValueMoversResult> {
+  const data = json as MarketValueMoversResult;
+  return {
+    ...data,
+    repeatMovers: [...data.repeatMovers].sort(
+      (a, b) =>
+        b.reduce((s, m) => s + m.absoluteChange, 0) - a.reduce((s, m) => s + m.absoluteChange, 0),
+    ),
+  };
 }
 
-// Plain per-request reads, deduped with React cache. These JSONs only change via
-// data-refresh deploys, so a cross-deploy unstable_cache could only serve them stale.
-export const findRepeatLosers = cache(() => readMovers("biggest-losers.json"));
-export const findRepeatWinners = cache(() => readMovers("biggest-winners.json"));
+// Bundled into the build, sorted per request and deduped with React cache. These JSONs
+// only change via data-refresh deploys, so a cross-deploy unstable_cache could only
+// serve them stale.
+export const findRepeatLosers = cache(() => readMovers(biggestLosers));
+export const findRepeatWinners = cache(() => readMovers(biggestWinners));

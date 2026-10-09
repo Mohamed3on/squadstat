@@ -6,6 +6,23 @@ Use `bun` for all commands (not npm/yarn).
 
 Don't run `bun run build` during development - the dev server is already running.
 
+## Hosting
+
+Cloudflare Workers via OpenNext (`wrangler.jsonc`, `open-next.config.ts`). Workers Builds deploys
+every push to `main`, the data workflows' commits included, and gives other branches a preview
+URL. `unstable_cache` entries and prerenders live in R2, revalidation stamps in D1. The daily
+warm-cache cron is declared in `wrangler.jsonc` and run by `custom-worker.ts`.
+
+```bash
+bun run preview                # production build in a local workerd, on localhost:8787
+bunx wrangler tail squadstat   # live production logs
+bunx wrangler rollback         # back to the previous version
+```
+
+A Worker has no filesystem: `data/` is imported, so each deploy bundles its own copy, and the
+`*updated-at.txt` stamps are inlined by `next.config.ts`. Secrets (`GITHUB_TOKEN`, `CRON_SECRET`)
+are set with `bunx wrangler secret put`.
+
 ## UI Components
 
 Use [shadcn/ui](https://ui.shadcn.com) for all UI components. Install new components with `npx shadcn@latest add <component>`. Never build custom UI primitives when a shadcn component exists.
@@ -55,8 +72,9 @@ data workflow, for pages showing committed `data/*.json`). A page it doesn't lis
 and queues the workflow.
 
 **Caches over committed `data/*.json` files are different.** `unstable_cache` entries survive
-deployments, so they go stale the moment CI commits fresh data. Plain file reads (see
-`lib/biggest-movers.ts`) need no `unstable_cache` at all — they're fresh every deploy. If the
+deployments (`open-next.config.ts` keeps them out of R2's per-build prefix), so they go stale the
+moment CI commits fresh data. Plain JSON imports (see `lib/biggest-movers.ts`) need no
+`unstable_cache` at all — they're fresh every deploy. If the
 derived computation is expensive enough to cache (see `lib/player-detail.ts`), include
 `getDataVersion()` from `lib/data-version.ts` in the cache key so each data deploy misses cleanly.
 
@@ -72,8 +90,8 @@ curl -s -L -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Apple
 
 Transfermarkt's WAF blocks GitHub's Azure ranges with an HTTP 200 and an **empty body** — no
 403, and no captcha to solve. Cloudflare and AWS egress are served normally, so CI relays every
-TM fetch through `workers/tm-relay`. Local and Vercel production leave `TM_RELAY_URL` unset and
-fetch direct, which is why debugging with plain `curl` above still works.
+TM fetch through `workers/tm-relay`. Local and the production Worker leave `TM_RELAY_URL` unset
+and fetch direct, which is why debugging with plain `curl` above still works.
 
 ```bash
 cd workers/tm-relay && bunx wrangler deploy   # deployed by hand; changes ~never

@@ -1,6 +1,4 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { cache } from "react";
+import results from "@/data/wc/results.json";
 import type { Round } from "./model";
 
 export type GroupStanding = {
@@ -28,14 +26,5 @@ export type WcResults = {
   ko: KoMatch[];
 };
 
-const EMPTY: WcResults = { started: false, fetchedAt: 0, groups: {}, ko: [] };
-
 /** Final 2026 World Cup results, frozen by scripts/snapshot-wc.ts. */
-export const getWcResults = cache(async (): Promise<WcResults> => {
-  try {
-    return JSON.parse(await readFile(join(process.cwd(), "data", "wc", "results.json"), "utf-8"));
-  } catch (err) {
-    console.error("[wc] missing results snapshot, showing prediction only:", err);
-    return { ...EMPTY, fetchedAt: Date.now() };
-  }
-});
+export const getWcResults = async (): Promise<WcResults> => results as WcResults;

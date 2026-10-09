@@ -1,8 +1,7 @@
 import { parsePlayerTable } from "@/lib/transfermarkt";
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { cache } from "react";
 import type { MinutesValuePlayer } from "@/app/types";
+import minutesValue from "@/data/minutes-value.json";
 import { BASE_URL } from "./constants";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
@@ -99,16 +98,15 @@ export const fetchTopForwardsRaw = () =>
     10,
   );
 
-/** The tracked players as every surface reads them: the committed data, read once
- *  per request (React cache), with each player's major-tournament stats folded into
- *  his season totals. Folding here, not in each caller, is what makes tournaments
- *  count everywhere: a caller that forgot would show a player different npG+A than
- *  the page beside it. */
-export const getMinutesValueData = cache(async (): Promise<MinutesValuePlayer[]> => {
-  const filePath = join(process.cwd(), "data", "minutes-value.json");
-  const raw = await readFile(filePath, "utf-8");
-  return (JSON.parse(raw) as MinutesValuePlayer[]).map(includeTournamentStats);
-});
+/** The tracked players as every surface reads them: the committed data, bundled into
+ *  the build, with each player's major-tournament stats folded into his season
+ *  totals once per request (React cache). Folding here, not in each caller, is what
+ *  makes tournaments count everywhere: a caller that forgot would show a player
+ *  different npG+A than the page beside it. */
+export const getMinutesValueData = cache(
+  async (): Promise<MinutesValuePlayer[]> =>
+    (minutesValue as unknown as MinutesValuePlayer[]).map(includeTournamentStats),
+);
 
 /**
  * Strip heavy fields before serializing to client components.
