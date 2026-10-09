@@ -102,7 +102,8 @@ for a single club, player or competition.
     Europa Leagues, and the Nations League.
 - **Methodology:** `/how-it-works` explains each formula.
 - **Assets:** `app/icon.png`, `public/og.png`, and the generated share images.
-- **Traffic:** No analytics script. Request counts live in the Cloudflare dashboard, not in the repo.
+- **Traffic:** Cloudflare Web Analytics, injected at the edge (no script in the repo). The numbers
+  live in the Cloudflare dashboard, not in the repo.
 - **Absent:** testimonials, press, user counts, partnerships, and any Transfermarkt endorsement.
   Never invent them.
 
