@@ -20,6 +20,12 @@ bunx wrangler tail squadstat   # live production logs
 bunx wrangler rollback         # back to the previous version
 ```
 
+Workers Builds settings live in the dashboard, not the repo: build `bun run build:worker`, deploy
+`bunx opennextjs-cloudflare deploy`, preview `bunx wrangler preview`, build cache on, and
+`BUN_INSTALL_CACHE_DIR=/tmp/bun-install-cache` so only `.next/cache` is cached (restoring bun's
+cache took longer than a fresh install). Previews skip the prerender upload, so the root
+`/opengraph-image` (a `public/og.png` read) 500s there and only there.
+
 A Worker has no filesystem: `data/` is imported, so each deploy bundles its own copy, and the
 `*updated-at.txt` stamps are inlined by `next.config.ts`. Secrets (`GITHUB_TOKEN`, `CRON_SECRET`)
 are set with `bunx wrangler secret put`.
