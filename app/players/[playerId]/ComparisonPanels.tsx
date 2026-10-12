@@ -116,14 +116,14 @@ export function ComparisonPanels({
           title="Pricier peers he's beating"
           emptyLabel={`No pricier peers${scopeClause("pricier")} are behind him on the current value model.`}
           players={underperformers}
-          positive
+          positive={false}
           benchmarkUrl={`${underBenchmarkUrl}${benchmarkSuffix}`}
         />
         <Card
           title="Cheaper peers ahead of him"
           emptyLabel={`No cheaper peers${scopeClause("cheaper")} are ahead of him on the current value model.`}
           players={outperformers}
-          positive={false}
+          positive
           benchmarkUrl={`${overBenchmarkUrl}${benchmarkSuffix}`}
         />
       </section>
