@@ -1,10 +1,13 @@
 /**
- * Fetches www.transfermarkt.com on behalf of the GitHub Actions data-refresh scraper.
+ * Fetches www.transfermarkt.com on behalf of the GitHub Actions data-refresh scraper and the
+ * production site.
  *
  * Transfermarkt's AWS WAF blocks GitHub's Azure ranges — it answers them with HTTP 200 and
- * an empty body, so the scraper sees neither a 403 nor a captcha it could solve. Cloudflare's
- * egress is served normally, so the runner relays its fetches through here instead. Workers
- * egress is unmetered, which is the whole reason this exists rather than a residential proxy.
+ * an empty body, so the scraper sees neither a 403 nor a captcha it could solve. Since Oct 2026
+ * it also answers Cloudflare's egress with a CloudFront 403, which takes out this Worker and
+ * the production Worker alike. AWS egress is still served, so the live relay is this same
+ * handler on Lambda (lambda.ts); this Worker deployment stays as the cheaper fallback should
+ * Transfermarkt ever let Cloudflare back in.
  *
  * The endpoint is public and its name is in this repo, so RELAY_SECRET is the only thing
  * keeping it from being an open proxy. The host allowlist is enforced separately, so a leaked
@@ -15,10 +18,11 @@
 
 const ALLOWED_HOST = "www.transfermarkt.com";
 
-// Cloudflare stamps the caller's IP onto the incoming request. Forwarding those upstream would
-// hand Transfermarkt the very Azure IP this relay exists to hide, so they never get copied.
-const BLOCKED_PREFIXES = ["cf-", "x-forwarded-"];
-const BLOCKED_HEADERS = new Set(["x-relay-secret", "host", "x-real-ip"]);
+// Cloudflare and Lambda stamp the caller's IP, and Cloudflare its own identity, onto the
+// incoming request. Forwarding those upstream would hand Transfermarkt the very Azure or
+// Cloudflare origin this relay exists to hide, so they never get copied.
+const BLOCKED_PREFIXES = ["cf-", "x-forwarded-", "x-amzn-"];
+const BLOCKED_HEADERS = new Set(["x-relay-secret", "host", "x-real-ip", "cdn-loop"]);
 
 // Compares every character rather than bailing on the first mismatch. Workers offer a native
 // crypto.subtle.timingSafeEqual, but it's absent from the DOM lib this repo typechecks against

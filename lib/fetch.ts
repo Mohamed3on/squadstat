@@ -38,7 +38,11 @@ const BASE_DELAY = 1000;
 // Transfermarkt pages average ~4s, so wall time is roughly sum(latency)/maxConcurrent.
 // Measured across 12 history pages: 4 concurrent → 3.6s, 12 concurrent → 1.7s, with no
 // rate-limiting or 5xx from TM either way. 10 keeps most of that win with headroom.
-let maxConcurrent = 10;
+// Never on Workers: one isolate serves many requests, and a request queued here behind
+// another's fetch has no I/O of its own, so the runtime kills it as hung (error 1101). The
+// requests it kills can strand slots, wedging the isolate until it recycles. Workers already
+// cap each request at six open connections.
+let maxConcurrent = globalThis.navigator?.userAgent === "Cloudflare-Workers" ? Infinity : 10;
 
 /** Override the concurrency limit (e.g. for batch scripts with their own backoff).
  *  Call it inside the script's main(), never at module scope — import order

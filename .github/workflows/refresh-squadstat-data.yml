@@ -84,12 +84,12 @@ jobs:
           else
             BODY="The data refresh failed. Check the run log first — the error carries the reason."
             BODY="$BODY"$'\n\n'"**Run:** $RUN_URL"
-            BODY="$BODY"$'\n\n'"\`HTTP 403: forbidden\` → TM_RELAY_SECRET drifted from the Worker's."
-            BODY="$BODY"$'\n'"\`HTTP 403 from Transfermarkt\` → TM's WAF blocked the relay's egress IP on every retry; check the Worker log."
-            BODY="$BODY"$'\n'"\`HTTP 502\` → the relay reached Cloudflare but not Transfermarkt."
-            BODY="$BODY"$'\n'"\`Rate limited (0b)\` → Transfermarkt is now blocking Cloudflare too; repoint TM_RELAY_URL at another host."
+            BODY="$BODY"$'\n\n'"\`HTTP 403: forbidden\` → TM_RELAY_SECRET drifted from the Lambda's RELAY_SECRET."
+            BODY="$BODY"$'\n'"\`HTTP 403 from Transfermarkt\` → TM's WAF blocked the relay's egress IP on every retry; check the relay log. Every run? TM now blocks AWS too; repoint TM_RELAY_URL at another host."
+            BODY="$BODY"$'\n'"\`HTTP 502\` → the relay ran but couldn't reach Transfermarkt."
+            BODY="$BODY"$'\n'"\`Rate limited (0b)\` → Transfermarkt serves the relay's egress an empty page, as it does Azure; repoint TM_RELAY_URL at another host."
             BODY="$BODY"$'\n'"Parsed 0 players from a full page → selectors moved; check \`lib/fetch-player-minutes.ts\`."
-            BODY="$BODY"$'\n\n'"Worker logs: \`cd workers/tm-relay && bunx wrangler tail\`"
+            BODY="$BODY"$'\n\n'"Relay logs: \`aws logs tail /aws/lambda/squadstat-tm-relay --region eu-central-1 --follow\`"
             gh issue create --title "Scraper broken: data refresh failed" --label "scraper-broken" --body "$BODY"
           fi
 

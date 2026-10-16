@@ -27,8 +27,8 @@ cache took longer than a fresh install). Previews skip the prerender upload, so 
 `/opengraph-image` (a `public/og.png` read) 500s there and only there.
 
 A Worker has no filesystem: `data/` is imported, so each deploy bundles its own copy, and the
-`*updated-at.txt` stamps are inlined by `next.config.ts`. Secrets (`GITHUB_TOKEN`, `CRON_SECRET`)
-are set with `bunx wrangler secret put`.
+`*updated-at.txt` stamps are inlined by `next.config.ts`. Secrets (`GITHUB_TOKEN`, `CRON_SECRET`,
+`TM_RELAY_URL`, `TM_RELAY_SECRET`) are set with `bunx wrangler secret put`.
 
 ## UI Components
 
@@ -93,32 +93,38 @@ Use `curl` (not WebFetch) to inspect Transfermarkt HTML — match the headers fr
 curl -s -L -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" "https://www.transfermarkt.com/x/leistungsdaten/spieler/294057" | grep -A1 'content-box-headline'
 ```
 
-## Transfermarkt Relay (CI only)
+## Transfermarkt Relay
 
-Transfermarkt's WAF blocks GitHub's Azure ranges with an HTTP 200 and an **empty body** — no
-403, and no captcha to solve. Cloudflare and AWS egress are served normally, so CI relays every
-TM fetch through `workers/tm-relay`. Local and the production Worker leave `TM_RELAY_URL` unset
-and fetch direct, which is why debugging with plain `curl` above still works.
+Transfermarkt's WAF blocks GitHub's Azure ranges with an HTTP 200 and an **empty body**, and
+since Oct 2026 all of Cloudflare's egress (Workers included) with a CloudFront 403 — no
+captcha to solve either way. AWS egress is still served, so CI and the production Worker relay
+every TM fetch through `workers/tm-relay` running on Lambda (`squadstat-tm-relay` in
+eu-central-1, behind a Function URL). Local dev leaves `TM_RELAY_URL` unset and fetches
+direct, which is why debugging with plain `curl` above still works.
 
 ```bash
-cd workers/tm-relay && bunx wrangler deploy   # deployed by hand; changes ~never
-bunx wrangler tail                            # live relay traffic
+workers/tm-relay/deploy-lambda.sh   # deployed by hand; changes ~never
+aws logs tail /aws/lambda/squadstat-tm-relay --region eu-central-1 --follow   # live relay traffic
 ```
 
-Rotating the secret means setting it in **both** places, or CI 403s:
+The same handler still deploys as a Worker (`cd workers/tm-relay && bunx wrangler deploy`),
+the free home should Transfermarkt ever let Cloudflare back in.
+
+Rotating the secret means setting it in **all three** places, or CI and production 403:
 
 ```bash
 S=$(openssl rand -hex 32)
-printf %s "$S" | bunx wrangler secret put RELAY_SECRET   # in workers/tm-relay
+aws lambda update-function-configuration --region eu-central-1 \
+  --function-name squadstat-tm-relay --environment "Variables={RELAY_SECRET=$S}"
 printf %s "$S" | gh secret set TM_RELAY_SECRET
+printf %s "$S" | bunx wrangler secret put TM_RELAY_SECRET   # production Worker
 ```
 
 A bare `HTTP 403` from Transfermarkt (its AWS WAF rate block carries no body) is retried with
-backoff — Workers egress IPs rotate per request. Only the relay's own rejections (`forbidden`,
-`host not allowed`) are fatal.
+backoff. Only the relay's own rejections (`forbidden`, `host not allowed`) are fatal.
 
-If TM ever blocks Cloudflare too (`[relay] upstream 200 len=0` in the Worker log, or
-`Rate limited (0b)` in the run), point `TM_RELAY_URL` at another unblocked host — AWS works.
+If TM ever blocks AWS too (`[relay] upstream 403` in the Lambda log, or `HTTP 403 from
+Transfermarkt` on every retry in the run), point `TM_RELAY_URL` at another unblocked host.
 
 **The refresh alert skips when any `scraper-broken` issue is open.** Close it when you fix the
 thing, or you're blind to the next failure.
