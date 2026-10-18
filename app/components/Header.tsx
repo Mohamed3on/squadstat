@@ -26,24 +26,17 @@ import { NAV_GROUPS } from "@/lib/site-pages";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 import { COMPETITION_LIST, compHref, familyOf } from "@/lib/uefa/types";
 
-async function post(url: string, init?: RequestInit) {
-  const res = await fetch(url, { method: "POST", ...init });
-  if (!res.ok) {
-    console.error(`[refresh] ${res.url} returned ${res.status}`);
-    throw new Error("Refresh failed");
-  }
-  return res;
-}
-
-/** The server holds the plan of what each page reads (app/api/revalidate), so this sends
- *  only the path, and queues the data workflow when the server says the page needs it. */
-async function refreshPage(pathname: string) {
-  const res = await post("/api/revalidate", {
+/** The server holds each page's refresh plan (app/api/refresh), so this sends only the path.
+ *  It answers once the page's sources are re-scraped, or after 20 s with the ones that
+ *  weren't, whose old copies the page keeps showing. */
+async function refreshPage(pathname: string): Promise<string[]> {
+  const res = await fetch("/api/refresh", {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ path: pathname }),
   });
-  const { workflow } = await res.json();
-  if (workflow) await post("/api/refresh-data");
+  if (!res.ok) throw new Error(`/api/refresh returned ${res.status}`);
+  return (await res.json()).stale;
 }
 
 // The UEFA competitions ride with the leagues but stay out of lib/leagues.ts:
@@ -186,20 +179,26 @@ export function Header() {
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
-  const [isRevalidating, setIsRevalidating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleBustCache = async () => {
-    setIsRevalidating(true);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
     try {
-      await refreshPage(pathname);
-      toast.success("Cache cleared — refreshing page");
+      const stale = await refreshPage(pathname);
+      if (stale.length > 0) {
+        toast.warning(
+          `Couldn't refresh the ${new Intl.ListFormat("en").format(stale)}: Transfermarkt didn't answer`,
+        );
+      } else {
+        toast.success("Refreshed");
+      }
       queryClient.clear();
       router.refresh();
     } catch (error) {
-      console.error("[refresh] Cache bust failed:", error);
+      console.error("[refresh] failed:", error);
       toast.error("Failed to refresh data");
     } finally {
-      setIsRevalidating(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -263,18 +262,18 @@ export function Header() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={handleBustCache}
-                disabled={isRevalidating}
-                aria-label={isRevalidating ? "Refreshing data" : "Refresh data"}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                aria-label={isRefreshing ? "Refreshing data" : "Refresh data"}
                 variant="ghost"
                 size="sm"
                 className={iconButton}
               >
-                <RefreshCw className={cn("h-4 w-4", isRevalidating && "animate-spin")} />
+                <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
               </Button>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
-              {isRevalidating ? "Refreshing…" : "Refresh data"}
+              {isRefreshing ? "Refreshing…" : "Refresh data"}
             </TooltipContent>
           </Tooltip>
 

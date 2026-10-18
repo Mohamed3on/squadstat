@@ -3,7 +3,7 @@ import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 import { COMPETITION_LIST, compHref } from "@/lib/uefa/types";
 
 // Every page a visitor can land on by name, and the one list the header menus, the
-// ⌘K search, the sitemap, the 404 page and the warm-cache cron all read. The player
+// ⌘K search, the sitemap and the 404 page all read. The player
 // and team indexes come from data; this is the static complement, so a page that
 // exists but is missing here is simply unfindable — add it when you add a route.
 // Client components read it, so it stays clear of data and fs imports.
@@ -22,9 +22,6 @@ export interface SitePage {
   nav?: (typeof NAV)[number];
   /** Its label in that menu, where shorter than its name. */
   navLabel?: string;
-  /** Rendered by the daily warm-cache cron, so the Transfermarkt scrapes behind it are
-   *  cached before the morning's first visitor. */
-  warm?: boolean;
 }
 
 const WORLD_CUP_KEYWORDS = ["world cup", "wc", "wc 2026", "fifa"] as const;
@@ -45,7 +42,6 @@ export const SITE_PAGES: readonly SitePage[] = [
       kind: "competition",
       keywords: c.keywords,
       logoUrl: leagueLogoUrl(c.code),
-      warm: true,
     }),
   ),
   {
@@ -66,7 +62,7 @@ export const SITE_PAGES: readonly SitePage[] = [
     kind: "competition",
     keywords: [...WORLD_CUP_KEYWORDS, "fixtures", "matches"],
   },
-  { href: "/", name: "Home", kind: "page", warm: true },
+  { href: "/", name: "Home", kind: "page" },
   { href: "/discover", name: "Quick Views", kind: "page", keywords: ["discover"] },
   {
     href: "/form",
@@ -74,7 +70,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     kind: "page",
     keywords: ["form"],
     nav: "Teams",
-    warm: true,
   },
   {
     href: "/expected-position",
@@ -82,7 +77,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     kind: "page",
     keywords: ["expected position", "overperformers", "underperformers"],
     nav: "Teams",
-    warm: true,
   },
   {
     href: "/squad-values",
@@ -104,7 +98,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     kind: "page",
     keywords: ["injured", "injuries"],
     nav: "Teams",
-    warm: true,
   },
   {
     href: "/players",
@@ -113,7 +106,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     keywords: ["players"],
     nav: "Players",
     navLabel: "All Players",
-    warm: true,
   },
   {
     href: "/value-analysis",
@@ -121,7 +113,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     kind: "page",
     keywords: ["value analysis", "overrated", "underrated"],
     nav: "Players",
-    warm: true,
   },
   {
     href: "/biggest-movers",
@@ -136,7 +127,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     kind: "page",
     keywords: ["transfers", "transfer fees"],
     nav: "Transfers",
-    warm: true,
   },
   {
     href: "/club-transfers",
@@ -145,7 +135,6 @@ export const SITE_PAGES: readonly SitePage[] = [
     keywords: ["transfers", "transfer balance"],
     nav: "Transfers",
     navLabel: "By Club",
-    warm: true,
   },
   {
     href: "/how-it-works",

@@ -1,9 +1,7 @@
-import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { Matchday, MatchdayClub, MatchdayGame, TeamFormEntry } from "@/app/types";
-import { CACHE_TAG } from "./cache-tags";
 import { BASE_URL } from "./constants";
+import { getCopy } from "./copies";
 import { LEAGUES } from "./leagues";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
@@ -225,9 +223,10 @@ async function fetchLeagueData(
 }
 
 // Each league's competition page carries both its table and its matchday box, so
-// one cached fetch per league feeds getTeamFormData and getLeagueMatchday.
+// one scrape per league feeds getTeamFormData and getLeagueMatchday.
 export const teamFormSource = {
   key: "team-form",
+  label: "league tables",
   maxAge: 7200,
   scrape: async () => {
     const MAX_ATTEMPTS = 3;
@@ -270,22 +269,14 @@ export const teamFormSource = {
   },
 };
 
-const fetchLeaguePages = unstable_cache(teamFormSource.scrape, ["team-form"], {
-  revalidate: teamFormSource.maxAge,
-  tags: [CACHE_TAG.teamForm],
-});
-
-// A page calling both below shares one lookup, so a cold miss can't fetch every league twice.
-const getLeaguePages = cache(fetchLeaguePages);
-
 export async function getTeamFormData() {
-  const { allTeams } = await getLeaguePages();
+  const { allTeams } = await getCopy(teamFormSource);
   return { success: true, allTeams, leagues: LEAGUES.map((l) => l.name) };
 }
 
 /** The round a league page shows — chosen per request, so a change to the
- *  choice never waits out a stale cache entry. */
+ *  choice never waits out an old copy. */
 export async function getLeagueMatchday(leagueName: string): Promise<Matchday | null> {
-  const { rounds } = await getLeaguePages();
+  const { rounds } = await getCopy(teamFormSource);
   return latestMatchday(rounds[leagueName] ?? []);
 }

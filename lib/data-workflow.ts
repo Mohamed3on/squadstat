@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
-
-export async function POST() {
+/** Start a run of the data workflow (CONTEXT.md), re-fetching every player, as the refresh
+ *  of a page showing committed data does. Its concurrency group queues runs rather than
+ *  stacking them. */
+export async function startDataWorkflow() {
   const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    return NextResponse.json({ error: "GITHUB_TOKEN not configured" }, { status: 500 });
-  }
+  if (!token) throw new Error("GITHUB_TOKEN not configured");
 
   const res = await fetch(
     "https://api.github.com/repos/Mohamed3on/squadstat/actions/workflows/refresh-squadstat-data.yml/dispatches",
@@ -19,12 +18,5 @@ export async function POST() {
       body: JSON.stringify({ ref: "main", inputs: { force_refresh: "true" } }),
     },
   );
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("GitHub dispatch failed:", res.status, text);
-    return NextResponse.json({ error: "Failed to trigger workflow" }, { status: 502 });
-  }
-
-  return NextResponse.json({ success: true });
+  if (!res.ok) throw new Error(`GitHub dispatch failed: ${res.status} ${await res.text()}`);
 }

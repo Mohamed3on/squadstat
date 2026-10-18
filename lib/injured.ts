@@ -1,8 +1,7 @@
-import { unstable_cache } from "next/cache";
 import { parsePlayerTable } from "@/lib/transfermarkt";
 import type { InjuredPlayer } from "@/app/types";
-import { CACHE_TAG } from "@/lib/cache-tags";
 import { BASE_URL } from "@/lib/constants";
+import { getCopy } from "@/lib/copies";
 import { LEAGUES } from "@/lib/leagues";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
@@ -30,7 +29,7 @@ function parseInjuredPlayers(html: string, leagueName: string): InjuredPlayer[] 
   });
 }
 
-export async function fetchInjuredPlayersUncached(): Promise<{
+async function scrapeInjuredPlayers(): Promise<{
   success: boolean;
   players: InjuredPlayer[];
   totalPlayers: number;
@@ -41,9 +40,8 @@ export async function fetchInjuredPlayersUncached(): Promise<{
   const leagueSet = new Set<string>();
   let pending = [...LEAGUES];
 
-  // Retry leagues that fail rather than surfacing them to the client. Degrade
-  // gracefully on persistent failure: the injured data also feeds the injury
-  // map on other pages, so partial data beats throwing. (Mirrors team-form.)
+  // Retry leagues that fail, and throw if any still does: a copy has to have all five,
+  // so the old one stays until they answer. (Mirrors team-form.)
   for (let attempt = 1; attempt <= MAX_ATTEMPTS && pending.length > 0; attempt++) {
     const results = await Promise.allSettled(
       pending.map(async (league) => {
@@ -72,8 +70,8 @@ export async function fetchInjuredPlayersUncached(): Promise<{
   }
 
   if (pending.length > 0) {
-    console.warn(
-      `injured: gave up on ${pending.map((l) => l.name).join(", ")} after ${MAX_ATTEMPTS} attempts`,
+    throw new Error(
+      `[injured] no answer for ${pending.map((l) => l.name).join(", ")} after ${MAX_ATTEMPTS} attempts`,
     );
   }
 
@@ -87,21 +85,11 @@ export async function fetchInjuredPlayersUncached(): Promise<{
   };
 }
 
-/** Pages can make do with the leagues that answered; a copy has to have all five. */
 export const injuredSource = {
   key: "injured",
+  label: "injury list",
   maxAge: 7200,
-  scrape: async () => {
-    const result = await fetchInjuredPlayersUncached();
-    const missing = LEAGUES.filter((l) => !result.leagues.includes(l.name));
-    if (missing.length > 0) {
-      throw new Error(`[injured] no answer for ${missing.map((l) => l.name).join(", ")}`);
-    }
-    return result;
-  },
+  scrape: scrapeInjuredPlayers,
 };
 
-export const getInjuredPlayers = unstable_cache(fetchInjuredPlayersUncached, ["injured-players"], {
-  revalidate: 7200,
-  tags: [CACHE_TAG.injured],
-});
+export const getInjuredPlayers = () => getCopy(injuredSource);

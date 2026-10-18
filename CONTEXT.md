@@ -57,7 +57,7 @@ keeps its own three lines of cheerio.
 The async **server component** is the single data surface for internal data: a page calls the
 `lib/` function directly and passes `initialData` to its client component. There is **no
 parallel internal REST API**. `app/api/*` exists only for genuinely client-hit or operational
-endpoints — player search, manager PPG (deferred), cache revalidation, data refresh, cron.
+endpoints — player search, manager PPG (deferred), refresh, copy ages, cron.
 
 A route that merely re-wraps a `lib/` function a page already calls is **duplication, not
 surface**, and gets deleted. Domain computation (e.g. `findValueCandidates`) lives in `lib/`
@@ -98,8 +98,8 @@ _Avoid_: static data
 The scheduled GitHub Actions job that produces committed data.
 _Avoid_: refresh, data refresh (a refresh is something else)
 
-**Migration status.** Agreed 2026-10-18, not built yet: today a page that misses a source's
-cache scrapes the source itself, and the header button purges caches instead of refreshing.
+**Migration status.** Done 2026-10-18 (docs/adr/0001): every source is read through its copy,
+and the header button and the hourly scheduled refresh are the only scrapers of sources.
 
 ## National teams
 

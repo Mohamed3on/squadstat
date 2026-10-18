@@ -1,8 +1,7 @@
-import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
 import type { TeamStats, PeriodAnalysis, AnalysisResult, AggregatedTeam } from "@/app/types";
-import { CACHE_TAG } from "@/lib/cache-tags";
 import { BASE_URL } from "@/lib/constants";
+import { getCopy } from "@/lib/copies";
 import { fetchPage } from "@/lib/fetch";
 import { canonicalLeagueName, isSameLeague } from "@/lib/leagues";
 import { tmImage } from "@/lib/transfermarkt";
@@ -339,6 +338,7 @@ function analyzeFormData(allTeamsPerPeriod: TeamStats[][]): AnalysisResult {
 
 export const formAnalysisSource = {
   key: "form-analysis",
+  label: "form tables",
   maxAge: 7200,
   scrape: async (): Promise<AnalysisResult> => {
     const allTeamsPerPeriod = await fetchAllPeriodsWithRetry();
@@ -346,10 +346,7 @@ export const formAnalysisSource = {
   },
 };
 
-export const getAnalysis = unstable_cache(formAnalysisSource.scrape, ["form-analysis"], {
-  revalidate: formAnalysisSource.maxAge,
-  tags: [CACHE_TAG.formAnalysis],
-});
+export const getAnalysis = () => getCopy(formAnalysisSource);
 
 /**
  * Re-runs the form analysis scoped to a single league — leaders are computed

@@ -11,8 +11,9 @@ Don't run `bun run build` during development - the dev server is already running
 Cloudflare Workers via OpenNext (`wrangler.jsonc`, `open-next.config.ts`). Workers Builds runs
 `bun run build:worker` and deploys every push to `main`, the data workflows' commits included;
 other branches get a Preview whose URL lands on the PR, on its own R2 and D1 so it never touches
-production's caches. `unstable_cache` entries and prerenders live in R2, revalidation stamps in
-D1. The daily warm-cache cron is declared in `wrangler.jsonc` and run by `custom-worker.ts`.
+production's caches. The sources' copies, `unstable_cache` entries and prerenders live in R2,
+revalidation stamps in D1. The hourly scheduled refresh is declared in `wrangler.jsonc` and run
+by `custom-worker.ts`.
 
 ```bash
 bun run preview                # production build in a local workerd, on localhost:8787
@@ -50,33 +51,31 @@ Use [shadcn/ui](https://ui.shadcn.com) for all UI components. Install new compon
 
 - **Server-side data fetching:** Always fetch data in async server components and pass as `initialData` props to client components. Never use client-side `useQuery`/`fetch` waterfalls. Use Next.js `loading.tsx` for streaming skeletons while server fetches. See `expected-position`, `injured`, `minutes-value` pages for the pattern.
 - **Parallel fetching:** Use `Promise.all` / `Promise.allSettled` for independent data fetches.
-- **Caching:** All API routes that fetch from Transfermarkt must use `unstable_cache` (see below).
+- **Caching:** Pages read a Transfermarkt source's copy and never scrape it (see below).
 - **Retries:** Wrap external fetches with retry logic (exponential backoff, max 3 attempts) for rate-limited or flaky responses.
 - **Client:** Prefer server components. Only use `"use client"` when interactivity is required.
 
 ## Caching Strategy
 
-All API routes that fetch from Transfermarkt should use `unstable_cache` for daily caching:
+Transfermarkt data reaches pages two ways (the words are defined in `CONTEXT.md`, the decision in
+`docs/adr/0001-pages-show-copies.md`):
 
-```typescript
-import { unstable_cache } from "next/cache";
-import { CACHE_TAG } from "@/lib/cache-tags";
+- **Sources** (league tables, form tables, the injury list, top transfers, each UEFA
+  competition's values or results) each keep one copy in R2, which pages read with `getCopy`
+  from `lib/copies.ts`. Pages never scrape a source: only a refresh does, the header button's
+  (`app/api/refresh`) or the hourly scheduled one (`app/api/cron/refresh`), and only a complete
+  scrape replaces a copy. A new source is defined beside its scraper (copy key, label, maximum
+  age, and a scrape that throws unless Transfermarkt answered completely), listed in
+  `lib/sources.ts`, and added to the refresh plan of every page that shows it.
+- **On-demand scrapes** (a club's managers, a nation's squad) stay in `unstable_cache`, tagged per
+  club or nation from `lib/cache-tags.ts`; a refresh of that club's or nation's page clears only
+  its own.
 
-const getData = unstable_cache(
-  async () => {
-    // fetch logic
-  },
-  ["cache-key"],
-  { revalidate: 86400, tags: [CACHE_TAG.yourSource] }, // 24 hour cache
-);
-```
-
-**Important:** Declare every tag in `lib/cache-tags.ts`, never as a string literal, and list it in
-the refresh plan in `app/api/revalidate/route.ts` under every page that reads the source, on the
-server or through an `/api` call; a new page that reads cached data gets an entry there too. The
-plan is exactly what the header refresh button clears on a page (`workflow: true` also queues the
-data workflow, for pages showing committed `data/*.json`). A page it doesn't list clears every tag
-and queues the workflow.
+The refresh plan in `app/api/refresh/route.ts` has an entry for every page route: the sources
+its refresh re-scrapes, whose on-demand scrapes it clears, and whether it also starts the data
+workflow, for pages showing committed `data/*.json`. A page missing from it only re-renders, and
+its refresh logs a warning. `/api/copies` reports each copy's age, and the data workflow's
+`check-copies` job fails when one is twice its maximum age.
 
 **Caches over committed `data/*.json` files are different.** `unstable_cache` entries survive
 deployments (`open-next.config.ts` keeps them out of R2's per-build prefix), so they go stale the

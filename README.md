@@ -41,8 +41,8 @@ Football scouting tools built on Transfermarkt data.
 | `/api/injured`                 | `GET`  | Full injury dataset                   |
 | `/api/injured?league=<code>`   | `GET`  | League-specific injury data           |
 | `/api/manager/[clubId]`        | `GET`  | Manager profile + context             |
-| `/api/revalidate`              | `POST` | Revalidate cached tags/paths          |
-| `/api/refresh-data`            | `POST` | Trigger GitHub workflow refresh       |
+| `/api/refresh`                 | `POST` | Refresh the data a page shows         |
+| `/api/copies`                  | `GET`  | Age of each source's copy             |
 
 ## Local Development
 
@@ -69,10 +69,9 @@ bun run refresh:minutes-value
 | Variable               | Required    | Purpose                                 |
 | ---------------------- | ----------- | --------------------------------------- |
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical base URL for sitemap/metadata |
-| `GITHUB_TOKEN`         | Optional    | Required only for `/api/refresh-data`   |
+| `GITHUB_TOKEN`         | Optional    | Lets a refresh start the data workflow  |
 
 ## Caching And Refresh
 
-- Transfermarkt-backed fetches use `unstable_cache` tags.
-- `POST /api/revalidate` clears Next.js cache tags for live scraped pages.
-- `POST /api/refresh-data` dispatches `refresh-squadstat-data.yml` on GitHub for static-data pages (`/players`, `/value-analysis`), so refresh is asynchronous by design.
+- Each Transfermarkt source keeps one copy in R2, which pages read; an hourly scheduled refresh re-scrapes copies past their maximum age (see `docs/adr/0001-pages-show-copies.md`).
+- `POST /api/refresh` re-scrapes the sources a page shows, and for pages showing committed data also dispatches `refresh-squadstat-data.yml` on GitHub, whose data lands with the deploy that follows.

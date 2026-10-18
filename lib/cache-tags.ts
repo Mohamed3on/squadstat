@@ -1,12 +1,4 @@
-/** The tag on each cached source, so the header's refresh button can clear it. The plan
- *  of which page reads which lives in app/api/revalidate/route.ts, which clears all of
- *  these, and the tags declared beside their scrapers (NATIONAL_TEAM_TAG, the UEFA
- *  cacheTags), on a page it doesn't list. */
-export const CACHE_TAG = {
-  formAnalysis: "form-analysis",
-  teamForm: "team-form",
-  injured: "injured",
-  topTransfers: "top-transfers",
-  manager: "manager",
-  playerDetail: "player-detail",
-} as const;
+/** The tags on the on-demand scrapes (CONTEXT.md), one per club or nation, so the refresh of
+ *  a club's or a nation's page (app/api/refresh) clears only its own. */
+export const managerTag = (clubId: string) => `manager-${clubId}`;
+export const nationalTeamTag = (teamId: string) => `national-team-${teamId}`;

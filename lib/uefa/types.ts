@@ -98,15 +98,11 @@ export const compHref = (c: Competition) => `/leagues/${c.slug}`;
 export const familyOf = (c: Competition) =>
   COMPETITION_LIST.filter((other) => other.family === c.family);
 
-/** Squad values drift daily, results land on matchday nights, so each page caches
- *  them apart — and the header refresh button busts exactly the page it sits on.
+/** Squad values drift daily, results land on matchday nights, so each page copies
+ *  them apart — and the header refresh button renews exactly the page it sits on.
  *  The Nations League reads its values from the committed national-team data. */
-export const cacheTag = (c: Competition, kind: "values" | "results") =>
+export const copyKey = (c: Competition, kind: "values" | "results") =>
   `${c.code.toLowerCase()}-${kind}`;
-export const cacheTags = (c: Competition) =>
-  c.format === "league"
-    ? [cacheTag(c, "values"), cacheTag(c, "results")]
-    : [cacheTag(c, "results")];
 
 /** A club in the league phase, as the participants page lists it. */
 export type Club = {

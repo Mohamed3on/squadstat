@@ -1,16 +1,16 @@
 // Scraper for the UEFA competitions in COMPETITIONS: the two that run the 36-club
 // league phase, and the Nations League's top two tiers. The league-phase pages
-// read two Transfermarkt pages each, cached separately because they move at
+// read two Transfermarkt pages each, copied separately because they move at
 // different speeds: squad values drift daily, results land on matchday nights.
 // All go through fetchPage, so relay routing, the concurrency limiter and the
 // retry ladder are already handled.
 
-import { unstable_cache } from "next/cache";
 import * as cheerio from "cheerio";
+import { getCopy, type Source } from "@/lib/copies";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { tmCurrentSeasonId } from "@/lib/player-aggregation";
-import { COMPETITIONS, cacheTag } from "./types";
+import { COMPETITIONS, copyKey } from "./types";
 import type {
   Club,
   Fixture,
@@ -25,9 +25,9 @@ import type {
   NationsSeason,
 } from "./types";
 
-type Source = { tmSlug: string; code: string };
+type TmComp = { tmSlug: string; code: string };
 
-const tmUrl = (c: Source, page: string) =>
+const tmUrl = (c: TmComp, page: string) =>
   `https://www.transfermarkt.com/${c.tmSlug}/${page}/pokalwettbewerb/${c.code}/saison_id/${season()}`;
 
 // They all start in September, so TM's Aug 1 rollover always names the right
@@ -272,7 +272,7 @@ async function fetchSeason(comp: LeaguePhaseComp): Promise<Season> {
 // --- the Nations League: four groups on one page, League A's knockout on another ---
 
 // Transfermarkt files League A's quarter-finals and Finals as a competition of their own.
-const FINALS: Source = { tmSlug: "uefa-nations-league-finals", code: "UNFI" };
+const FINALS: TmComp = { tmSlug: "uefa-nations-league-finals", code: "UNFI" };
 
 /** The season a page serves, which is not always the one asked for: Transfermarkt
  *  answers a season with no edition — the Nations League's year off, a knockout
@@ -316,7 +316,7 @@ function parseNationsSeason(
 }
 
 async function fetchNationsSeason(comp: GroupsComp): Promise<NationsSeason> {
-  const load = (s: Source) =>
+  const load = (s: TmComp) =>
     fetchPage(tmUrl(s, "gesamtspielplan")).then((html) => cheerio.load(html));
   const [$, finals] = await Promise.all([load(comp), comp.finals ? load(FINALS) : null]);
   return checked(comp.code, parseNationsSeason($, finals), [16, 48]);
@@ -326,7 +326,8 @@ async function fetchNationsSeason(comp: GroupsComp): Promise<NationsSeason> {
 // source of its own (lib/copies.ts), and the header refresh button renews exactly the page
 // it sits on.
 const source = <T>(comp: Competition, kind: "values" | "results", scrape: () => Promise<T>) => ({
-  key: cacheTag(comp, kind),
+  key: copyKey(comp, kind),
+  label: `${comp.name} ${kind}`,
   maxAge: kind === "values" ? 86400 : 21600,
   scrape,
 });
@@ -351,19 +352,13 @@ export const UEFA_SOURCES = [
   ...Object.values(GROUPS),
 ];
 
-// Built once at module scope: unstable_cache memoises per wrapper, so handing out a
-// fresh one per request would throw the in-process cache away.
-const cached = <T>(s: { key: string; maxAge: number; scrape: () => Promise<T> }) =>
-  unstable_cache(s.scrape, [s.key], { revalidate: s.maxAge, tags: [s.key] });
-const CACHED = {
-  clubs: { CL: cached(CLUBS.CL), EL: cached(CLUBS.EL) },
-  seasons: { CL: cached(SEASONS.CL), EL: cached(SEASONS.EL) },
-  groups: { UNLA: cached(GROUPS.UNLA), UNLB: cached(GROUPS.UNLB) },
-};
+/** The sources a competition's page shows. */
+export const compSources = (c: Competition): Source<unknown>[] =>
+  c.format === "league" ? [CLUBS[c.code], SEASONS[c.code]] : [GROUPS[c.code]];
 
-export const getCompClubs = (code: LeaguePhaseComp["code"]) => CACHED.clubs[code]();
-export const getCompSeason = (code: LeaguePhaseComp["code"]) => CACHED.seasons[code]();
-export const getNationsSeason = (code: GroupsComp["code"]) => CACHED.groups[code]();
+export const getCompClubs = (code: LeaguePhaseComp["code"]) => getCopy(CLUBS[code]);
+export const getCompSeason = (code: LeaguePhaseComp["code"]) => getCopy(SEASONS[code]);
+export const getNationsSeason = (code: GroupsComp["code"]) => getCopy(GROUPS[code]);
 
 /** The page parses, exposed for the fixture-backed tests: saved page in, season out. */
 export const __parsers = { parseSeason, parseNationsSeason };

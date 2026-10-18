@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import type { MinutesValuePlayer, NationalTeamValue } from "@/app/types";
+import { nationalTeamTag } from "@/lib/cache-tags";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPage } from "@/lib/fetch";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
@@ -10,9 +11,6 @@ import { getNationalTeamValues } from "@/lib/squad-values";
 import { npga } from "@/lib/stats-toggles";
 import { parseNationHeader, parsePlayerTable, type NationTitle } from "@/lib/transfermarkt";
 import { landIdFromFlagUrl } from "@/lib/transfermarkt/image";
-
-/** Tag on every national-team page scrape, so the refresh button clears them. */
-export const NATIONAL_TEAM_TAG = "national-team";
 
 /** A national team with where it lives: see nationalTeamUrls. */
 export type NationalTeam = NationalTeamValue & ReturnType<typeof nationalTeamUrls>;
@@ -183,7 +181,7 @@ const getExtendedSquad = (teamId: string) =>
       return page;
     },
     ["national-team-squad", "v2", teamId],
-    { revalidate: 86_400, tags: [NATIONAL_TEAM_TAG] },
+    { revalidate: 86_400, tags: [nationalTeamTag(teamId)] },
   )();
 
 export type CallUpStatus = "recent" | "lapsed" | "uncapped";

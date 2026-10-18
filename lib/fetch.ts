@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { tmFetch } from "./tm-relay";
 
 /** The one door to www.transfermarkt.com. Everything a TM request needs —
@@ -35,6 +36,12 @@ const isWafBlock = (status: number, body: string) =>
 
 const MAX_RETRIES = 5;
 const BASE_DELAY = 1000;
+const onWorkers = globalThis.navigator?.userAgent === "Cloudflare-Workers";
+
+/** Set around a refresh's scrapes (lib/copies.ts). Anything else on a Worker is a page
+ *  render, which tries each fetch twice so a Transfermarkt outage costs its visitor seconds,
+ *  not minutes; refreshes, CI scripts and local dev keep all five attempts. */
+export const refreshing = new AsyncLocalStorage<boolean>();
 // Transfermarkt pages average ~4s, so wall time is roughly sum(latency)/maxConcurrent.
 // Measured across 12 history pages: 4 concurrent → 3.6s, 12 concurrent → 1.7s, with no
 // rate-limiting or 5xx from TM either way. 10 keeps most of that win with headroom.
@@ -42,7 +49,7 @@ const BASE_DELAY = 1000;
 // another's fetch has no I/O of its own, so the runtime kills it as hung (error 1101). The
 // requests it kills can strand slots, wedging the isolate until it recycles. Workers already
 // cap each request at six open connections.
-let maxConcurrent = globalThis.navigator?.userAgent === "Cloudflare-Workers" ? Infinity : 10;
+let maxConcurrent = onWorkers ? Infinity : 10;
 
 /** Override the concurrency limit (e.g. for batch scripts with their own backoff).
  *  Call it inside the script's main(), never at module scope — import order
@@ -91,7 +98,8 @@ async function fetchWithRetries<T>(
   check: BodyCheck<T>,
 ): Promise<T> {
   let lastReason = "";
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  const attempts = onWorkers && !refreshing.getStore() ? 2 : MAX_RETRIES;
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       const response = await tmFetch(url, init);
       if (response.status >= 400 && response.status < 500) {
@@ -99,7 +107,7 @@ async function fetchWithRetries<T>(
         if (isWafBlock(response.status, reason)) {
           lastReason = `HTTP ${response.status} from Transfermarkt`;
           console.warn(
-            `[fetch] ${lastReason} (WAF block), retry ${attempt + 1}/${MAX_RETRIES}: ${url}`,
+            `[fetch] ${lastReason} (WAF block), retry ${attempt + 1}/${attempts}: ${url}`,
           );
         } else {
           // Relay rejection or a plain 404 — retrying never helps. The relay
@@ -113,27 +121,25 @@ async function fetchWithRetries<T>(
         // "to prevent deadlock", stalling every fetch queued behind it.
         await response.body?.cancel();
         lastReason = `HTTP ${response.status}`;
-        console.warn(`[fetch] ${lastReason}, retry ${attempt + 1}/${MAX_RETRIES}: ${url}`);
+        console.warn(`[fetch] ${lastReason}, retry ${attempt + 1}/${attempts}: ${url}`);
       } else {
         const result = check(await response.text());
         if (result.ok) return result.value;
         lastReason = result.reason;
-        console.warn(`[fetch] ${lastReason}, retry ${attempt + 1}/${MAX_RETRIES}: ${url}`);
+        console.warn(`[fetch] ${lastReason}, retry ${attempt + 1}/${attempts}: ${url}`);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.startsWith("HTTP ")) throw err; // 4xx stays fatal
       lastReason = msg;
-      console.warn(`[fetch] ${msg}, retry ${attempt + 1}/${MAX_RETRIES}: ${url}`);
+      console.warn(`[fetch] ${msg}, retry ${attempt + 1}/${attempts}: ${url}`);
     }
-    if (attempt < MAX_RETRIES - 1) {
+    if (attempt < attempts - 1) {
       const jitter = Math.random() * 500;
       await new Promise((r) => setTimeout(r, BASE_DELAY * 2 ** attempt + jitter));
     }
   }
-  throw new Error(
-    `[fetch] Failed after ${MAX_RETRIES} retries (${lastReason || "unknown"}): ${url}`,
-  );
+  throw new Error(`[fetch] Failed after ${attempts} retries (${lastReason || "unknown"}): ${url}`);
 }
 
 /** Always no-store: a scrape must see Transfermarkt's current page, never Next's fetch
