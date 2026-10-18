@@ -226,8 +226,10 @@ async function fetchLeagueData(
 
 // Each league's competition page carries both its table and its matchday box, so
 // one cached fetch per league feeds getTeamFormData and getLeagueMatchday.
-const fetchLeaguePages = unstable_cache(
-  async () => {
+export const teamFormSource = {
+  key: "team-form",
+  maxAge: 7200,
+  scrape: async () => {
     const MAX_ATTEMPTS = 3;
     const allTeams: TeamFormEntry[] = [];
     const rounds: Record<string, Matchday[]> = {};
@@ -266,9 +268,12 @@ const fetchLeaguePages = unstable_cache(
 
     return { allTeams, rounds };
   },
-  ["team-form"],
-  { revalidate: 7200, tags: [CACHE_TAG.teamForm] },
-);
+};
+
+const fetchLeaguePages = unstable_cache(teamFormSource.scrape, ["team-form"], {
+  revalidate: teamFormSource.maxAge,
+  tags: [CACHE_TAG.teamForm],
+});
 
 // A page calling both below shares one lookup, so a cold miss can't fetch every league twice.
 const getLeaguePages = cache(fetchLeaguePages);

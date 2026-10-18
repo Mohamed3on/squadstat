@@ -82,7 +82,7 @@ async function fetchAllTeams(period: number): Promise<TeamStats[]> {
   });
 
   // fetchPage limits concurrency globally to avoid rate limiting
-  const pages = await Promise.all(pageUrls.map((url) => fetchPage(url, undefined, AJAX_HEADERS)));
+  const pages = await Promise.all(pageUrls.map((url) => fetchPage(url, AJAX_HEADERS)));
 
   for (const html of pages) {
     const $ = cheerio.load(html);
@@ -337,14 +337,19 @@ function analyzeFormData(allTeamsPerPeriod: TeamStats[][]): AnalysisResult {
   };
 }
 
-export const getAnalysis = unstable_cache(
-  async (): Promise<AnalysisResult> => {
+export const formAnalysisSource = {
+  key: "form-analysis",
+  maxAge: 7200,
+  scrape: async (): Promise<AnalysisResult> => {
     const allTeamsPerPeriod = await fetchAllPeriodsWithRetry();
     return analyzeFormData(allTeamsPerPeriod);
   },
-  ["form-analysis"],
-  { revalidate: 7200, tags: [CACHE_TAG.formAnalysis] },
-);
+};
+
+export const getAnalysis = unstable_cache(formAnalysisSource.scrape, ["form-analysis"], {
+  revalidate: formAnalysisSource.maxAge,
+  tags: [CACHE_TAG.formAnalysis],
+});
 
 /**
  * Re-runs the form analysis scoped to a single league — leaders are computed

@@ -63,6 +63,44 @@ A route that merely re-wraps a `lib/` function a page already calls is **duplica
 surface**, and gets deleted. Domain computation (e.g. `findValueCandidates`) lives in `lib/`
 and runs server-side once; it is not re-run in the client or behind a route.
 
+## Sources and refreshes
+
+How Transfermarkt data reaches pages without each page view scraping it.
+
+**Source**:
+A Transfermarkt dataset the site scrapes as one unit: the league tables, the form tables, the
+injury list, top transfers, and each UEFA competition's values or results.
+_Avoid_: cache, feed, tag
+
+**Copy**:
+A source's last complete scrape and the time it was taken. Pages show copies.
+_Avoid_: cache entry, snapshot
+
+**Refresh**:
+Re-scraping the sources a page shows, replacing their copies, then re-rendering the page. A
+**scheduled refresh** does the same for every source whose copy is older than that source's
+maximum age.
+_Avoid_: cache bust, revalidate, clear cache
+
+**Refresh plan**:
+For each page, the sources a refresh re-scrapes and whether it also starts the data workflow.
+
+**On-demand scrape**:
+A per-club or per-nation Transfermarkt lookup (a club's managers, a nation's squad), scraped
+when a page first needs it and reused until it expires.
+_Avoid_: source
+
+**Committed data**:
+The datasets the data workflow scrapes and commits to the repo, so each deploy carries them.
+_Avoid_: static data
+
+**Data workflow**:
+The scheduled GitHub Actions job that produces committed data.
+_Avoid_: refresh, data refresh (a refresh is something else)
+
+**Migration status.** Agreed 2026-10-18, not built yet: today a page that misses a source's
+cache scrapes the source itself, and the header button purges caches instead of refreshing.
+
 ## National teams
 
 **National team**:

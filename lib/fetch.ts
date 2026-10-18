@@ -108,7 +108,10 @@ async function fetchWithRetries<T>(
           throw new Error(`HTTP ${response.status}${reason ? `: ${reason.slice(0, 120)}` : ""}`);
         }
       } else if (response.status >= 500) {
-        // 5xx = TM outage/maintenance — transient by nature.
+        // 5xx = TM outage/maintenance — transient by nature. Cancel the unread body: on a
+        // Worker it holds one of the request's six connections until the runtime cancels it
+        // "to prevent deadlock", stalling every fetch queued behind it.
+        await response.body?.cancel();
         lastReason = `HTTP ${response.status}`;
         console.warn(`[fetch] ${lastReason}, retry ${attempt + 1}/${MAX_RETRIES}: ${url}`);
       } else {
@@ -133,18 +136,17 @@ async function fetchWithRetries<T>(
   );
 }
 
+/** Always no-store: a scrape must see Transfermarkt's current page, never Next's fetch
+ *  cache, or a refresh would replace a copy with hours-old HTML. */
 export async function fetchPage(
   url: string,
-  revalidate?: number,
   extraHeaders?: Record<string, string>,
 ): Promise<string> {
-  const cacheOpts =
-    revalidate !== undefined ? { next: { revalidate } } : { cache: "no-store" as const };
   await acquireSlot();
   try {
     return await fetchWithRetries(
       url,
-      { headers: { ...BASE_HEADERS, ...extraHeaders }, ...cacheOpts },
+      { headers: { ...BASE_HEADERS, ...extraHeaders }, cache: "no-store" },
       htmlBody,
     );
   } finally {

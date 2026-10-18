@@ -25,6 +25,12 @@ import { canonicalLeagueName } from "./leagues";
  *  value left every type satisfied and the page served the previous formula's
  *  numbers for a day. Keeping the derivation outside means a deploy cannot ship
  *  beside a stale computation, because there is no cached computation. */
+export const topTransfersSource = {
+  key: `top-transfers-${TOP_TRANSFER_LIMIT}`,
+  maxAge: 86400,
+  scrape: () => fetchTopTransfers(),
+};
+
 const fetchCached = unstable_cache(
   fetchTopTransfers,
   ["top-transfers", String(TOP_TRANSFER_LIMIT)],

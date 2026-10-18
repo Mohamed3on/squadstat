@@ -129,7 +129,7 @@ async function fetchAllPeriods(
 ): Promise<Map<string, MarketValueMover[]>> {
   const results = await Promise.allSettled(
     dates.map((d) =>
-      fetchPage(buildUrl(d, cfg), undefined, {
+      fetchPage(buildUrl(d, cfg), {
         ...AJAX_HEADERS,
         Referer: buildReferer(d, cfg),
       }).then((html) => parsePeriodMovers(html, d)),

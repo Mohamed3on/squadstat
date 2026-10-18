@@ -73,7 +73,7 @@ const cellsOf = ($: cheerio.CheerioAPI, tr: any): string[] =>
 // --- participants: the 36 clubs and what their squads are worth ---
 
 async function fetchClubs(comp: LeaguePhaseComp): Promise<Club[]> {
-  const $ = cheerio.load(await fetchPage(tmUrl(comp, "teilnehmer"), 86400));
+  const $ = cheerio.load(await fetchPage(tmUrl(comp, "teilnehmer")));
   const clubs: Club[] = [];
   $("table.items")
     .first()
@@ -265,7 +265,7 @@ function checked<S extends Pick<Season, "table" | "fixtures">>(
 }
 
 async function fetchSeason(comp: LeaguePhaseComp): Promise<Season> {
-  const $ = cheerio.load(await fetchPage(tmUrl(comp, "gesamtspielplan"), 21600));
+  const $ = cheerio.load(await fetchPage(tmUrl(comp, "gesamtspielplan")));
   return checked(comp.code, parseSeason($), [30, 100]);
 }
 
@@ -317,37 +317,53 @@ function parseNationsSeason(
 
 async function fetchNationsSeason(comp: GroupsComp): Promise<NationsSeason> {
   const load = (s: Source) =>
-    fetchPage(tmUrl(s, "gesamtspielplan"), 21600).then((html) => cheerio.load(html));
+    fetchPage(tmUrl(s, "gesamtspielplan")).then((html) => cheerio.load(html));
   const [$, finals] = await Promise.all([load(comp), comp.finals ? load(FINALS) : null]);
   return checked(comp.code, parseNationsSeason($, finals), [16, 48]);
 }
 
-// Separate tags per page, so the header refresh button busts exactly the page it
-// sits on. Built once at module scope: unstable_cache memoises per wrapper, so
-// handing out a fresh one per request would throw the in-process cache away.
-const cached = <T>(comp: Competition, kind: "values" | "results", load: () => Promise<T>) =>
-  unstable_cache(load, [cacheTag(comp, kind)], {
-    revalidate: kind === "values" ? 86400 : 21600,
-    tags: [cacheTag(comp, kind)],
-  });
+// Squad values drift daily and results land on matchday nights, so each page's data is a
+// source of its own (lib/copies.ts), and the header refresh button renews exactly the page
+// it sits on.
+const source = <T>(comp: Competition, kind: "values" | "results", scrape: () => Promise<T>) => ({
+  key: cacheTag(comp, kind),
+  maxAge: kind === "values" ? 86400 : 21600,
+  scrape,
+});
 
 const { CL, EL, UNLA, UNLB } = COMPETITIONS;
 const CLUBS = {
-  CL: cached(CL, "values", () => fetchClubs(CL)),
-  EL: cached(EL, "values", () => fetchClubs(EL)),
+  CL: source(CL, "values", () => fetchClubs(CL)),
+  EL: source(EL, "values", () => fetchClubs(EL)),
 };
 const SEASONS = {
-  CL: cached(CL, "results", () => fetchSeason(CL)),
-  EL: cached(EL, "results", () => fetchSeason(EL)),
+  CL: source(CL, "results", () => fetchSeason(CL)),
+  EL: source(EL, "results", () => fetchSeason(EL)),
 };
 const GROUPS = {
-  UNLA: cached(UNLA, "results", () => fetchNationsSeason(UNLA)),
-  UNLB: cached(UNLB, "results", () => fetchNationsSeason(UNLB)),
+  UNLA: source(UNLA, "results", () => fetchNationsSeason(UNLA)),
+  UNLB: source(UNLB, "results", () => fetchNationsSeason(UNLB)),
 };
 
-export const getCompClubs = (code: LeaguePhaseComp["code"]) => CLUBS[code]();
-export const getCompSeason = (code: LeaguePhaseComp["code"]) => SEASONS[code]();
-export const getNationsSeason = (code: GroupsComp["code"]) => GROUPS[code]();
+export const UEFA_SOURCES = [
+  ...Object.values(CLUBS),
+  ...Object.values(SEASONS),
+  ...Object.values(GROUPS),
+];
+
+// Built once at module scope: unstable_cache memoises per wrapper, so handing out a
+// fresh one per request would throw the in-process cache away.
+const cached = <T>(s: { key: string; maxAge: number; scrape: () => Promise<T> }) =>
+  unstable_cache(s.scrape, [s.key], { revalidate: s.maxAge, tags: [s.key] });
+const CACHED = {
+  clubs: { CL: cached(CLUBS.CL), EL: cached(CLUBS.EL) },
+  seasons: { CL: cached(SEASONS.CL), EL: cached(SEASONS.EL) },
+  groups: { UNLA: cached(GROUPS.UNLA), UNLB: cached(GROUPS.UNLB) },
+};
+
+export const getCompClubs = (code: LeaguePhaseComp["code"]) => CACHED.clubs[code]();
+export const getCompSeason = (code: LeaguePhaseComp["code"]) => CACHED.seasons[code]();
+export const getNationsSeason = (code: GroupsComp["code"]) => CACHED.groups[code]();
 
 /** The page parses, exposed for the fixture-backed tests: saved page in, season out. */
 export const __parsers = { parseSeason, parseNationsSeason };

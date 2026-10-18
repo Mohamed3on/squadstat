@@ -20,8 +20,10 @@
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DOQueueHandler"] }],
   "images": { "binding": "IMAGES" },
-  // Warms the Transfermarkt-backed pages before Europe wakes up (app/api/cron/warm-cache).
-  "triggers": { "crons": ["0 6 * * *"] },
+  // custom-worker.ts routes each: hourly, the scheduled refresh of the sources' copies
+  // (app/api/cron/refresh); daily, a warm of the Transfermarkt-backed pages before Europe
+  // wakes up (app/api/cron/warm-cache).
+  "triggers": { "crons": ["0 * * * *", "0 6 * * *"] },
   "observability": { "enabled": true },
   // Branch Previews are served from workers.dev, as Vercel's were from vercel.app.
   "workers_dev": true,

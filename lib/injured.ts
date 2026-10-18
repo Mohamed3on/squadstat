@@ -87,6 +87,20 @@ export async function fetchInjuredPlayersUncached(): Promise<{
   };
 }
 
+/** Pages can make do with the leagues that answered; a copy has to have all five. */
+export const injuredSource = {
+  key: "injured",
+  maxAge: 7200,
+  scrape: async () => {
+    const result = await fetchInjuredPlayersUncached();
+    const missing = LEAGUES.filter((l) => !result.leagues.includes(l.name));
+    if (missing.length > 0) {
+      throw new Error(`[injured] no answer for ${missing.map((l) => l.name).join(", ")}`);
+    }
+    return result;
+  },
+};
+
 export const getInjuredPlayers = unstable_cache(fetchInjuredPlayersUncached, ["injured-players"], {
   revalidate: 7200,
   tags: [CACHE_TAG.injured],

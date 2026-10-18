@@ -225,3 +225,17 @@ jobs:
       - name: Commit and push
         run: |
           bash scripts/ci-push.sh "chore: refresh squad-values data" $(bun run scripts/outputs.ts squad-values)
+
+  # The site's hourly scheduled refresh keeps each Transfermarkt source's copy fresh, and it
+  # can fail, or stop running, without anything else noticing. A copy twice its maximum age
+  # (or missing) fails this job, and so the run, which pings Telegram.
+  check-copies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail on stale copies
+        run: |
+          stale=$(curl -sS --fail-with-body https://squadstat.com/api/copies \
+            | jq -c '[.copies[] | select(.ageMinutes == null or .ageMinutes > 2 * .maxAgeMinutes)]')
+          echo "Stale copies: $stale"
+          [ "$stale" = "[]" ]

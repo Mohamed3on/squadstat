@@ -9,38 +9,36 @@ function fetchPlayerList(
   label: string,
   extraHeaders?: Record<string, string>,
 ): Promise<MinutesValuePlayer[]> {
-  return Promise.allSettled(urls.map((url) => fetchPage(url, undefined, extraHeaders))).then(
-    (results) => {
-      const players: MinutesValuePlayer[] = [];
-      const seen = new Set<string>();
+  return Promise.allSettled(urls.map((url) => fetchPage(url, extraHeaders))).then((results) => {
+    const players: MinutesValuePlayer[] = [];
+    const seen = new Set<string>();
 
-      for (const [index, result] of results.entries()) {
-        if (result.status !== "fulfilled") {
-          console.error(`[${label}] Failed to fetch ${urls[index]}:`, result.reason);
-          continue;
-        }
-        const pageRows = parsePlayerTable(
-          result.value,
-          (player) => {
-            if (!player.name || !player.playerId || seen.has(player.playerId)) return null;
-            seen.add(player.playerId);
-            return {
-              ...EMPTY_PLAYER_STATS,
-              name: player.name,
-              position: player.position,
-              imageUrl: player.imageUrl,
-              profileUrl: player.profileUrl,
-              playerId: player.playerId,
-            };
-          },
-          { playerColumn: 1 },
-        );
-        players.push(...pageRows);
+    for (const [index, result] of results.entries()) {
+      if (result.status !== "fulfilled") {
+        console.error(`[${label}] Failed to fetch ${urls[index]}:`, result.reason);
+        continue;
       }
+      const pageRows = parsePlayerTable(
+        result.value,
+        (player) => {
+          if (!player.name || !player.playerId || seen.has(player.playerId)) return null;
+          seen.add(player.playerId);
+          return {
+            ...EMPTY_PLAYER_STATS,
+            name: player.name,
+            position: player.position,
+            imageUrl: player.imageUrl,
+            profileUrl: player.profileUrl,
+            playerId: player.playerId,
+          };
+        },
+        { playerColumn: 1 },
+      );
+      players.push(...pageRows);
+    }
 
-      return players;
-    },
-  );
+    return players;
+  });
 }
 
 function paginateUrls(baseUrl: string, pages: number): string[] {

@@ -26,7 +26,7 @@ const HEADERS = {
 async function main() {
   // fetchPage owns the rate-limit/blocked heuristic and retries; a page that
   // never materializes throws and lands in the catch below (exit 2 = failure).
-  const html = await fetchPage(URL, undefined, HEADERS);
+  const html = await fetchPage(URL, HEADERS);
 
   const $ = cheerio.load(html);
 
