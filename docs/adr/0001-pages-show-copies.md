@@ -16,8 +16,9 @@ a source, once, and it replaces the copy only when the scrape is complete.
 - **KV for copies**: faster reads, but a write can take up to 60 s to show everywhere, so the
   person who just refreshed could see the old copy.
 - **A Durable Object per source**: it would coordinate writers, but every read would travel to
-  one location; skipping a re-scrape when the copy is under 5 minutes old covers writer races
-  well enough.
+  one location; skipping a re-scrape when the copy is under 5 minutes old is enough at this
+  traffic. It stops repeat presses once a refresh lands, but not presses during one: the
+  copy's stamp moves only when its scrape finishes, so those each scrape too.
 
 ## Consequences
 
