@@ -73,7 +73,7 @@ const AJAX_HEADERS = { "X-Requested-With": "XMLHttpRequest" };
 
 async function fetchAllTeams(period: number): Promise<TeamStats[]> {
   const teams: TeamStats[] = [];
-  const baseUrl = `${BASE_URL}/verein-statistik/formtabelle/statistik/stat/ajax/yw1/sortierung/best/letzte/${period}/continentIds%5B0%5D/6/limit/5/leagueLevels%5B0%5D/1/typeIds%5B0%5D/1/typeIds%5B1%5D/2/typeIds%5B2%5D/3/plus/1/sort/punkte.desc?ajax=yw1`;
+  const baseUrl = `${BASE_URL}/verein-statistik/formtabelle/statistik/stat/ajax/yw1/sortierung/best/letzte/${period}/continentIds%5B0%5D/6/limit/5/leagueLevels%5B0%5D/1/typeIds%5B0%5D/1/typeIds%5B1%5D/8/typeIds%5B2%5D/9/plus/1/sort/punkte.desc?ajax=yw1`;
 
   const pageUrls = Array.from({ length: 4 }, (_, i) => {
     const page = i + 1;
