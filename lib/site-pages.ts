@@ -137,6 +137,13 @@ export const SITE_PAGES: readonly SitePage[] = [
     navLabel: "By Club",
   },
   {
+    href: "/squad-profit",
+    name: "Squad Profit",
+    kind: "page",
+    keywords: ["value added", "purchase value", "recruitment"],
+    nav: "Transfers",
+  },
+  {
     href: "/how-it-works",
     name: "How It Works",
     kind: "page",

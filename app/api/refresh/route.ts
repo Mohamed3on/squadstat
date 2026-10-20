@@ -6,6 +6,7 @@ import { startDataWorkflow } from "@/lib/data-workflow";
 import { formAnalysisSource } from "@/lib/form-analysis";
 import { injuredSource } from "@/lib/injured";
 import { getNationalTeams } from "@/lib/national-teams";
+import { squadProfitSource } from "@/lib/squad-profit";
 import { teamFormSource } from "@/lib/team-form";
 import { topTransfersSource } from "@/lib/top-transfers";
 import { compSources } from "@/lib/uefa/fetch";
@@ -33,6 +34,7 @@ const PAGES: Record<string, Plan> = {
   // Both price each deal at today's value, from the committed player data.
   "/fee-vs-value": { sources: [topTransfersSource], workflow: true },
   "/club-transfers": { sources: [topTransfersSource], workflow: true },
+  "/squad-profit": { sources: [squadProfitSource] },
   "/biggest-movers": { workflow: true },
   "/squad-values": { workflow: true },
   "/national-teams": { workflow: true },
