@@ -71,6 +71,27 @@ function parseTeamRow($: cheerio.CheerioAPI, row: any): TeamStats | null {
 
 const AJAX_HEADERS = { "X-Requested-With": "XMLHttpRequest" };
 
+const COMPETITION_TYPES = ["1. Leagues", "National cups", "International cups"];
+
+/** Throws unless TM applied the filters asked for. A wrong code or an ignored parameter
+ *  still returns a plausible table, so read back the competition types TM applied, by its
+ *  own labels, and check every row covers exactly the window. */
+function assertFormTable($: cheerio.CheerioAPI, html: string, period: number, rows: TeamStats[]) {
+  const labels: Record<string, string> = JSON.parse(
+    html.match(/var typeIds = JSON\.parse\('(.+?)'\)/)?.[1].replace(/\\"/g, '"') ?? "{}",
+  );
+  const applied: number[] = JSON.parse($("tm-select-box[name='typeIds[]']").attr("value") ?? "[]");
+  const types = applied.map((id) => labels[id]).sort();
+  if (types.join() !== [...COMPETITION_TYPES].sort().join()) {
+    throw new Error(`[form] TM applied competition types [${types}], not [${COMPETITION_TYPES}]`);
+  }
+  const off = rows.find((t) => t.wins + t.draws + t.losses !== period);
+  if (off)
+    throw new Error(
+      `[form] ${off.name} has ${off.wins + off.draws + off.losses} games in the last-${period} table`,
+    );
+}
+
 async function fetchAllTeams(period: number): Promise<TeamStats[]> {
   const teams: TeamStats[] = [];
   // Top-flight clubs in Europe's top 5 countries, over all official games: typeIds are TM's
@@ -87,10 +108,13 @@ async function fetchAllTeams(period: number): Promise<TeamStats[]> {
 
   for (const html of pages) {
     const $ = cheerio.load(html);
+    const rows: TeamStats[] = [];
     $("table.items > tbody > tr").each((_, row) => {
       const team = parseTeamRow($, row);
-      if (team?.name) teams.push(team);
+      if (team?.name) rows.push(team);
     });
+    assertFormTable($, html, period, rows);
+    teams.push(...rows);
   }
   return teams;
 }
