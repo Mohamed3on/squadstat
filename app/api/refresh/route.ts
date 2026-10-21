@@ -63,6 +63,10 @@ const PAGES: Record<string, Plan> = {
   "/how-it-works": {},
 };
 
+/** A refresh expires its page's on-demand scrapes at once, so the next render re-scrapes them
+ *  ("max" would serve the old scrape once more while re-scraping behind it). */
+const EXPIRE_NOW = { expire: 0 };
+
 /** How long the button waits on its scrapes. A slower one still lands, after the response. */
 const BUDGET_MS = 20_000;
 
@@ -76,12 +80,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ stale: [] });
   }
 
-  if (plan.own === "club") revalidateTag(managerTag(id));
+  if (plan.own === "club") revalidateTag(managerTag(id), EXPIRE_NOW);
   if (plan.own === "nation") {
     const nation = (await getNationalTeams()).bySlug.get(id);
     if (nation) {
-      revalidateTag(nationalTeamTag(nation.id));
-      revalidateTag(managerTag(nation.id));
+      revalidateTag(nationalTeamTag(nation.id), EXPIRE_NOW);
+      revalidateTag(managerTag(nation.id), EXPIRE_NOW);
     }
   }
 
