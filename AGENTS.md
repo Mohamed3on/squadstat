@@ -27,6 +27,12 @@ Workers Builds settings live in the dashboard, not the repo: build `bun run buil
 cache took longer than a fresh install). Previews skip the prerender upload, so the root
 `/opengraph-image` (a `public/og.png` read) 500s there and only there.
 
+The zone (Free plan) also has two rules that live only in the dashboard: a redirect sending
+`www.squadstat.com` to the apex, and a WAF custom rule that 403s every bot except Google, Bing
+and link-preview bots (verified bots by category and UA, self-declared bots by UA), plus the
+AS132203 headless-Chrome prefetch fleet. Bots were ~87% of Worker CPU before it (Oct 2026). A
+new crawler or monitor that must get through needs an exception there.
+
 A Worker has no filesystem: `data/` is imported, so each deploy bundles its own copy, and the
 `*updated-at.txt` stamps are inlined by `next.config.ts`. Secrets (`GITHUB_TOKEN`, `CRON_SECRET`,
 `TM_RELAY_URL`, `TM_RELAY_SECRET`) are set with `bunx wrangler secret put`.
