@@ -12,6 +12,8 @@ import {
 export type ValueCandidate = PlayerStats & { count: number };
 
 export const MIN_COMPARISON_COUNT = 3;
+/** Both sides of a comparison need this much play: one cameo goal or assist is no evidence. */
+export const MIN_COMPARISON_MINUTES = 180;
 
 type ValueComparable = {
   playerId: string;
@@ -21,6 +23,9 @@ type ValueComparable = {
   position: string;
   playedPosition?: string;
 };
+
+const hasEnoughMinutes = (p: ValueComparable) =>
+  p.minutes === undefined || p.minutes >= MIN_COMPARISON_MINUTES;
 
 /** The bargain/overpriced rule, owned here and only here: `candidate` costs
  *  equal-or-more than `target` yet is strictly outperformed by it (at a
@@ -32,6 +37,8 @@ export function underperformsTarget(
 ): boolean {
   return (
     candidate.playerId !== target.playerId &&
+    hasEnoughMinutes(candidate) &&
+    hasEnoughMinutes(target) &&
     candidate.marketValue >= target.marketValue &&
     strictlyOutperforms(target, candidate) &&
     canBeUnderperformerAgainst(pos(candidate), targetPosition)
@@ -46,6 +53,8 @@ export function outperformsTarget(
 ): boolean {
   return (
     candidate.playerId !== target.playerId &&
+    hasEnoughMinutes(candidate) &&
+    hasEnoughMinutes(target) &&
     candidate.marketValue <= target.marketValue &&
     strictlyOutperforms(candidate, target) &&
     canBeOutperformerAgainst(pos(candidate), targetPosition)
@@ -73,30 +82,42 @@ export function findValueCandidates(
   players: PlayerStats[],
   {
     candidateOutperforms,
-    minMinutes,
+    allLeagues = false,
     sortAsc,
   }: {
     candidateOutperforms: boolean;
-    minMinutes?: number;
+    /** Count peers with a league edge too. Over/Under does, then narrows its counts client-side. */
+    allLeagues?: boolean;
     sortAsc: boolean;
   },
 ): ValueCandidate[] {
+  const leagueValues = buildLeagueValues(players);
+  // By default the counted peers (pricier for a bargain, cheaper for an overpriced player) drop
+  // those with a league edge, as on the player page.
+  const pools = new Map<string, PlayerStats[]>();
+  const poolFor = (league: string) => {
+    if (allLeagues) return players;
+    let pool = pools.get(league);
+    if (!pool) {
+      const peer = candidateOutperforms ? "pricier" : "cheaper";
+      pool = players.filter(noLeagueEdge(leagueValues, league, peer));
+      pools.set(league, pool);
+    }
+    return pool;
+  };
   const candidates: ValueCandidate[] = [];
 
   for (const player of players) {
     if (player.minutes === undefined) continue;
-    if (minMinutes !== undefined && player.minutes < minMinutes) continue;
     if (candidateOutperforms ? isDefensivePosition(pos(player)) : !isAttackingPosition(pos(player)))
       continue;
-    if (candidateOutperforms && player.goals - player.penaltyGoals <= 0) continue;
 
-    const count = countComparisons(player, players, candidateOutperforms);
+    const count = countComparisons(player, poolFor(player.league), candidateOutperforms);
     if (count >= MIN_COMPARISON_COUNT) candidates.push({ ...player, count });
   }
 
   // A player only hides behind a starker case that has no league edge on him — the same bar the
   // player page's badge counts peers by.
-  const leagueValues = buildLeagueValues(players);
   const undominated = candidates.filter(
     (player) =>
       !candidates.some(

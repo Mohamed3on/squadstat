@@ -497,15 +497,17 @@ function discoveryControls(
   params: { get(key: string): string | null },
   update: (patch: Record<string, string | null>) => void,
 ) {
+  const league = canonicalLeagueName(params.get(`${prefix}League`) || "all");
   return {
     sortBy: parseDiscoverySort(params.get(`${prefix}Sort`)),
     onSortChange: (value: DiscoverySortKey) =>
       update({ [`${prefix}Sort`]: value === "count" ? null : value }),
     filters: {
-      league: canonicalLeagueName(params.get(`${prefix}League`) || "all"),
+      league,
       club: params.get(`${prefix}Club`) || "",
       nationality: params.get(`${prefix}Nat`) || "all",
-      noLeagueEdge: params.get(`${prefix}Stronger`) === "1",
+      // On by default, as on the player page; a league pick replaces it.
+      noLeagueEdge: league === "all" && params.get(`${prefix}Stronger`) !== "0",
     } satisfies DiscoveryFilters,
     onFilterChange: (f: Partial<DiscoveryFilters>) =>
       update({
@@ -517,7 +519,7 @@ function discoveryControls(
           [`${prefix}Nat`]: f.nationality === "all" ? null : f.nationality,
         }),
         ...(f.noLeagueEdge !== undefined && {
-          [`${prefix}Stronger`]: f.noLeagueEdge ? "1" : null,
+          [`${prefix}Stronger`]: f.noLeagueEdge ? null : "0",
         }),
       }),
   };

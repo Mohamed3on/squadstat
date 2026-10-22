@@ -59,8 +59,6 @@ export const metadata = createPageMetadata({
   ],
 });
 
-const MIN_VALUE_ANALYSIS_MINUTES = 260;
-
 type SnapshotTone = "red" | "green";
 
 // A row's tone colours its label and nothing else: no coloured edge, and links stay blue.
@@ -571,7 +569,6 @@ async function fetchHomeData(): Promise<{
   const statsNoPen = applyStatsToggles(players.map(toPlayerStats), { includePen: false });
   const underperformerCandidates = findValueCandidates(statsNoPen, {
     candidateOutperforms: false,
-    minMinutes: MIN_VALUE_ANALYSIS_MINUTES,
     sortAsc: false,
   });
   const overperformerCandidates = findValueCandidates(statsNoPen, {

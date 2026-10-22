@@ -468,7 +468,7 @@ export const getPlayerDetailData = cache(async (playerId: string) => {
   const dataVersion = await getDataVersion();
   return unstable_cache(
     () => computePlayerDetailData(playerId),
-    [`player-detail-v8-${playerId}`, dataVersion],
+    [`player-detail-v9-${playerId}`, dataVersion],
     { revalidate: 43200 },
   )();
 });

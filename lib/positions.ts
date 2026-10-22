@@ -189,13 +189,15 @@ export function isAttackingPosition(position: string): boolean {
   return getPositionClassRank(position) >= POSITION_CLASS_RANK["attacking-midfield"];
 }
 
-/** `a` got equal or better output in equal or fewer minutes, with at least one strictly better. Falls back to strict points comparison when either side has no minutes data. */
+/** `a` got equal or better output in equal or fewer minutes, with at least one strictly better. Matching zero output in fewer minutes isn't better. Falls back to strict points comparison when either side has no minutes data. */
 export function strictlyOutperforms(
   a: { points: number; minutes?: number },
   b: { points: number; minutes?: number },
 ): boolean {
   if (a.minutes === undefined || b.minutes === undefined) return a.points > b.points;
   return (
-    a.points >= b.points && a.minutes <= b.minutes && (a.points > b.points || a.minutes < b.minutes)
+    a.points >= b.points &&
+    a.minutes <= b.minutes &&
+    (a.points > b.points || (a.points > 0 && a.minutes < b.minutes))
   );
 }

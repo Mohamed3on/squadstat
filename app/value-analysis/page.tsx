@@ -39,15 +39,15 @@ export default async function ValueAnalysisPage() {
   // Precompute discovery candidates for both penalty-toggle states so the client
   // never runs the findValueCandidates domination pass. (Comparison counts still
   // recompute client-side when the league scope narrows.)
-  const MIN_DISCOVERY_MINUTES = 260;
   const candidatesFor = (players: PlayerStats[]) => ({
     under: findValueCandidates(players, {
       candidateOutperforms: false,
-      minMinutes: MIN_DISCOVERY_MINUTES,
+      allLeagues: true,
       sortAsc: false,
     }).map(({ count, ...p }) => ({ ...p, comparisonCount: count })),
     over: findValueCandidates(players, {
       candidateOutperforms: true,
+      allLeagues: true,
       sortAsc: true,
     }).map(({ count, ...p }) => ({ ...p, comparisonCount: count })),
   });

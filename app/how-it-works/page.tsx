@@ -228,7 +228,9 @@ export default function HowItWorksPage() {
               Compares players in similar attacking positions. A player is flagged as{" "}
               <Term>overpriced</Term> if 3 or more cheaper players have produced equal or better
               non-penalty goals + assists in equal or fewer minutes. Conversely, a{" "}
-              <Term>bargain</Term> player outproduces 3+ more expensive peers.
+              <Term>bargain</Term> player outproduces 3+ more expensive peers. Both players need
+              180+ minutes, and by default a peer with a league edge doesn&apos;t count: a cheaper
+              one from a weaker league, or a pricier one from a stronger league.
             </p>
           </div>
 
