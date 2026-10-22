@@ -1,4 +1,5 @@
 import type { PlayerStats } from "@/app/types";
+import { buildLeagueValues, noLeagueEdge } from "@/lib/filter-players";
 import {
   canBeUnderperformerAgainst,
   canBeOutperformerAgainst,
@@ -93,11 +94,19 @@ export function findValueCandidates(
     if (count >= MIN_COMPARISON_COUNT) candidates.push({ ...player, count });
   }
 
+  // A player only hides behind a starker case that has no league edge on him — the same bar the
+  // player page's badge counts peers by.
+  const leagueValues = buildLeagueValues(players);
   const undominated = candidates.filter(
     (player) =>
       !candidates.some(
         (other) =>
           other.playerId !== player.playerId &&
+          noLeagueEdge(
+            leagueValues,
+            player.league,
+            candidateOutperforms ? "cheaper" : "pricier",
+          )(other) &&
           (candidateOutperforms
             ? canBeUnderperformerAgainst(pos(player), pos(other)) &&
               other.marketValue <= player.marketValue &&
