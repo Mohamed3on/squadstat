@@ -506,8 +506,8 @@ function discoveryControls(
       league,
       club: params.get(`${prefix}Club`) || "",
       nationality: params.get(`${prefix}Nat`) || "all",
-      // On by default, as on the player page; a league pick replaces it.
-      noLeagueEdge: league === "all" && params.get(`${prefix}Stronger`) !== "0",
+      // On by default, as on the player page.
+      noLeagueEdge: params.get(`${prefix}Stronger`) !== "0",
     } satisfies DiscoveryFilters,
     onFilterChange: (f: Partial<DiscoveryFilters>) =>
       update({
@@ -694,11 +694,11 @@ function DiscoverySection({
           <LeagueCombobox
             players={candidates}
             value={leagueFilter}
-            onChange={(v) => onFilterChange({ league: v || "all", noLeagueEdge: false })}
+            onChange={(v) => onFilterChange({ league: v || "all" })}
           />
           <FilterButton
             active={noLeagueEdgeOnly}
-            onClick={() => onFilterChange({ noLeagueEdge: !noLeagueEdgeOnly, league: "all" })}
+            onClick={() => onFilterChange({ noLeagueEdge: !noLeagueEdgeOnly })}
           >
             {leagueStrengthIcon}
             No league edge
