@@ -21,8 +21,9 @@ const JSON_HEADERS: Record<string, string> = {
 
 // The relay answers its own rejections with exactly these bodies
 // (workers/tm-relay/src/index.ts): a bad secret, a host outside the allowlist,
-// a bad url param. Any other 403/429 is Transfermarkt's AWS WAF — its
-// rate-based block is a bare 403 with no body — and that one is transient:
+// a bad url param. Any other 403/405/429 is Transfermarkt's AWS WAF — its
+// rate-based block is a bare 403 with no body, its CAPTCHA an HTML 405 — and
+// that one is transient:
 // Workers egress IPs rotate per request, so the retry lands on a different
 // address. Retrying a relay rejection never helps.
 const RELAY_REJECTIONS = new Set([
@@ -32,7 +33,7 @@ const RELAY_REJECTIONS = new Set([
   "malformed url param",
 ]);
 const isWafBlock = (status: number, body: string) =>
-  (status === 403 || status === 429) && !RELAY_REJECTIONS.has(body);
+  (status === 403 || status === 405 || status === 429) && !RELAY_REJECTIONS.has(body);
 
 const MAX_RETRIES = 5;
 const BASE_DELAY = 1000;

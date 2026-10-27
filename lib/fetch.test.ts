@@ -38,6 +38,12 @@ describe("fetchPage", () => {
     expect(mocked).toHaveBeenCalledTimes(2);
   });
 
+  it("retries a 405 — the WAF's CAPTCHA page — until healthy", async () => {
+    mocked.mockResolvedValueOnce(res("<!DOCTYPE html>", 405)).mockResolvedValueOnce(res(LONG_HTML));
+    await expect(withBackoff(fetchPage("https://tm/x"))).resolves.toBe(LONG_HTML);
+    expect(mocked).toHaveBeenCalledTimes(2);
+  });
+
   it("treats a relay rejection as fatal — no retries, reason carried", async () => {
     mocked.mockResolvedValueOnce(res("forbidden", 403));
     await expect(fetchPage("https://tm/x")).rejects.toThrow("HTTP 403: forbidden");
