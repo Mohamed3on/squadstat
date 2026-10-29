@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import * as cheerio from "cheerio";
 import { describe, it, expect } from "vitest";
 import { __parsers } from "./fetch";
-import { buildModel, expectedStage, poUnseeded, zoneOf } from "./model";
+import { biggestGaps, buildModel, expectedStage, poUnseeded, zoneOf } from "./model";
 import type { Club } from "./types";
 
 // The finished Champions League 2025/26 league phase, play-off, and bracket
@@ -146,6 +146,28 @@ describe("league phase", () => {
   it("leaves both gaps null for a club that has not kicked off", () => {
     const notStarted = buildModel(clubs, { ...season, table: [], fixtures: [] });
     expect(notStarted.rows.every((r) => r.ptsDelta === null && r.posDelta === null)).toBe(true);
+  });
+});
+
+describe("biggest gaps", () => {
+  const side = (id: string, mv: number, gap: number | null) => ({
+    club: { id, name: id, short: id, mv },
+    gap,
+  });
+  const of = (r: { gap: number | null }) => r.gap;
+
+  it("names every side sharing the gap either way, the richer squad first", () => {
+    const gaps = biggestGaps(
+      [side("a", 10, 6), side("b", 30, 6), side("c", 20, 2), side("d", 5, -4), side("e", 1, null)],
+      of,
+    )!;
+    expect(gaps.over).toEqual({ value: 6, sides: [side("b", 30, 6), side("a", 10, 6)] });
+    expect(gaps.under).toEqual({ value: -4, sides: [side("d", 5, -4)] });
+  });
+
+  it("calls nothing out until the table has a gap both ways", () => {
+    expect(biggestGaps([side("a", 10, 3), side("b", 5, 0)], of)).toBeNull();
+    expect(biggestGaps([side("a", 10, null)], of)).toBeNull();
   });
 });
 

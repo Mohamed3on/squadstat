@@ -194,6 +194,29 @@ export function valueGaps<R extends { club: ClubLite; pl: number; pts: number }>
   });
 }
 
+export type Gap<R> = { value: number; sides: R[] };
+
+/** The biggest gap above and below the money, each with every side sharing it,
+ *  most valuable first — what a competition page calls out and a club's page
+ *  carries. Early on several sides share it either way. Null until the table has
+ *  a gap both ways. */
+export function biggestGaps<R extends { club: ClubLite }>(
+  rows: R[],
+  of: (r: R) => number | null,
+): { over: Gap<R>; under: Gap<R> } | null {
+  const played = rows.filter((r) => of(r) !== null);
+  const gap = (r: R) => of(r)!;
+  const top = Math.max(...played.map(gap));
+  const bottom = Math.min(...played.map(gap));
+  if (!(top > 0 && bottom < 0)) return null;
+  const levelOn = (g: number) =>
+    played.filter((r) => gap(r) === g).sort((a, b) => b.club.mv - a.club.mv);
+  return {
+    over: { value: top, sides: levelOn(top) },
+    under: { value: bottom, sides: levelOn(bottom) },
+  };
+}
+
 /** How far the fixtures have got. */
 export function progress(fixtures: Fixture[], rows: { pl: number }[]) {
   const matchdays = Math.max(1, ...fixtures.map((f) => f.matchday));

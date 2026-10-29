@@ -6,10 +6,12 @@
 // retry ladder are already handled.
 
 import * as cheerio from "cheerio";
+import { cache } from "react";
 import { getCopy, type Source } from "@/lib/copies";
 import { fetchPage } from "@/lib/fetch";
 import { parseMarketValue } from "@/lib/parse-market-value";
 import { tmCurrentSeasonId } from "@/lib/player-aggregation";
+import { buildModel } from "./model";
 import { COMPETITIONS, copyKey } from "./types";
 import type {
   Club,
@@ -359,6 +361,25 @@ export const compSources = (c: Competition): Source<unknown>[] =>
 export const getCompClubs = (code: LeaguePhaseComp["code"]) => getCopy(CLUBS[code]);
 export const getCompSeason = (code: LeaguePhaseComp["code"]) => getCopy(SEASONS[code]);
 export const getNationsSeason = (code: GroupsComp["code"]) => getCopy(GROUPS[code]);
+
+const LEAGUE_PHASES = ["CL", "EL"] as const satisfies LeaguePhaseComp["code"][];
+
+/** The league phase a club plays in and where it stands there, or null for the
+ *  many clubs in neither. Both rosters are read at once: a club is in at most one
+ *  of them, and there is no cheaper way to find out which than asking. Once per
+ *  render, since the club page's hero and its signals row both ask. A failed read
+ *  counts as not playing, so it never takes out the page around it; `view` is
+ *  null when only the results are missing. */
+export const getClubLeaguePhase = cache(async (clubId: string) => {
+  const rosters = await Promise.all(LEAGUE_PHASES.map((c) => getCompClubs(c).catch(() => null)));
+  const i = rosters.findIndex((r) => r?.some((c) => c.id === clubId));
+  if (i < 0) return null;
+
+  const comp = COMPETITIONS[LEAGUE_PHASES[i]];
+  const season = await getCompSeason(comp.code).catch(() => null);
+  const view = season ? buildModel(rosters[i]!, season) : null;
+  return { comp, view, row: view?.rows.find((r) => r.club.id === clubId) ?? null };
+});
 
 /** The page parses, exposed for the fixture-backed tests: saved page in, season out. */
 export const __parsers = { parseSeason, parseNationsSeason };

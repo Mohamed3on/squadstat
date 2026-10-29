@@ -12,6 +12,7 @@ import { useManagersMap } from "@/lib/hooks/use-manager-query";
 import { crestUrl, leagueLogoUrl } from "@/lib/transfermarkt/image";
 import {
   ZONE_LABEL,
+  biggestGaps,
   type Card as Tie,
   type ClubLite,
   type Knockout,
@@ -636,8 +637,8 @@ function GroupWinners({
   );
 }
 
-/** The biggest gap above and below the money. Early on several sides share it
- *  either way, so each card lists every one of them, most valuable first. */
+/** The biggest gap above and below the money, each card listing every side that
+ *  shares it. */
 function Callouts({
   rows,
   measure,
@@ -647,24 +648,13 @@ function Callouts({
   measure: Measure;
   place: string;
 }) {
-  const played = rows.filter((r) => measure.of(r) !== null);
-  const gap = (r: StandingRow) => measure.of(r)!;
-  const top = Math.max(...played.map(gap));
-  const bottom = Math.min(...played.map(gap));
-  const levelOn = (g: number) =>
-    played.filter((r) => gap(r) === g).sort((a, b) => b.club.mv - a.club.mv);
-  const cards =
-    top > 0 && bottom < 0
-      ? [
-          { value: top, word: "Punching above its value", cls: "over", sides: levelOn(top) },
-          {
-            value: bottom,
-            word: "Falling short of its value",
-            cls: "under",
-            sides: levelOn(bottom),
-          },
-        ]
-      : [];
+  const gaps = biggestGaps(rows, measure.of);
+  const cards = gaps
+    ? [
+        { ...gaps.over, word: "Punching above its value", cls: "over" },
+        { ...gaps.under, word: "Falling short of its value", cls: "under" },
+      ]
+    : [];
   // Each side's manager loads after the page, as on Value vs Table: a scrape per side —
   // and for a nation, its record with the friendlies taken out — is too slow to hold
   // the page for.

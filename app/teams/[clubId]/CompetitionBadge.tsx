@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCompClubs, getCompSeason } from "@/lib/uefa/fetch";
-import { buildModel } from "@/lib/uefa/model";
-import { COMPETITIONS, type LeaguePhaseComp } from "@/lib/uefa/types";
+import { getClubLeaguePhase } from "@/lib/uefa/fetch";
+import type { LeaguePhaseComp } from "@/lib/uefa/types";
 import { ordinal } from "@/lib/format";
 import { leagueLogoUrl } from "@/lib/transfermarkt/image";
 
@@ -12,7 +11,6 @@ const PILL: Record<LeaguePhaseComp["code"], string> = {
   CL: "bg-[#0b1d5b] text-white",
   EL: "bg-[#ff6b00] text-black",
 };
-const CODES = Object.keys(PILL) as LeaguePhaseComp["code"][];
 
 /**
  * A mark, not a sentence: the competition crest on a coloured pill beside the
@@ -24,17 +22,10 @@ const CODES = Object.keys(PILL) as LeaguePhaseComp["code"][];
  * swallowed rather than taken out on the page around it.
  */
 export async function CompetitionBadge({ clubId }: { clubId: string }) {
-  // Both rosters at once: a club is in at most one of them, and there is no
-  // cheaper way to find out which than asking.
-  const rosters = await Promise.all(CODES.map((c) => getCompClubs(c).catch(() => null)));
-  const i = rosters.findIndex((r) => r?.some((c) => c.id === clubId));
-  if (i < 0) return null;
+  const phase = await getClubLeaguePhase(clubId);
+  if (!phase) return null;
 
-  const comp = COMPETITIONS[CODES[i]];
-  const season = await getCompSeason(comp.code).catch(() => null);
-  const row = season
-    ? buildModel(rosters[i]!, season).rows.find((r) => r.club.id === clubId)
-    : null;
+  const { comp, row } = phase;
   const place = row && row.pl > 0 ? row.pos : null;
   const label = place ? `${comp.name} · ${ordinal(place)} in league phase` : comp.name;
 
