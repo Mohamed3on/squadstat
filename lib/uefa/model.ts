@@ -194,18 +194,14 @@ export function valueGaps<R extends { club: ClubLite; pl: number; pts: number }>
   });
 }
 
-export type Gap<R> = { value: number; sides: R[] };
-
 /** The biggest gap above and below the money, each with every side sharing it,
  *  most valuable first — what a competition page calls out and a club's page
- *  carries. Early on several sides share it either way. Null until the table has
- *  a gap both ways. */
-export function biggestGaps<R extends { club: ClubLite }>(
-  rows: R[],
-  of: (r: R) => number | null,
-): { over: Gap<R>; under: Gap<R> } | null {
+ *  carries. Counted in points while the table runs, places once it has settled.
+ *  Null until the table has a gap both ways. */
+export function biggestGaps({ rows, complete }: UefaView) {
+  const of = (r: StandingRow) => (complete ? r.posDelta : r.ptsDelta);
   const played = rows.filter((r) => of(r) !== null);
-  const gap = (r: R) => of(r)!;
+  const gap = (r: StandingRow) => of(r)!;
   const top = Math.max(...played.map(gap));
   const bottom = Math.min(...played.map(gap));
   if (!(top > 0 && bottom < 0)) return null;

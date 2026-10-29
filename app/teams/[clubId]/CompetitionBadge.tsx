@@ -25,7 +25,8 @@ export async function CompetitionBadge({ clubId }: { clubId: string }) {
   const phase = await getClubLeaguePhase(clubId);
   if (!phase) return null;
 
-  const { comp, row } = phase;
+  const { comp, view } = phase;
+  const row = view?.rows.find((r) => r.club.id === clubId);
   const place = row && row.pl > 0 ? row.pos : null;
   const label = place ? `${comp.name} · ${ordinal(place)} in league phase` : comp.name;
 

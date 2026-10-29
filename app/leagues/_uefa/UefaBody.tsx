@@ -639,16 +639,8 @@ function GroupWinners({
 
 /** The biggest gap above and below the money, each card listing every side that
  *  shares it. */
-function Callouts({
-  rows,
-  measure,
-  place,
-}: {
-  rows: StandingRow[];
-  measure: Measure;
-  place: string;
-}) {
-  const gaps = biggestGaps(rows, measure.of);
+function Callouts({ view, measure, place }: { view: UefaView; measure: Measure; place: string }) {
+  const gaps = biggestGaps(view);
   const cards = gaps
     ? [
         { ...gaps.over, word: "Punching above its value", cls: "over" },
@@ -791,7 +783,7 @@ export function UefaBody({ comp, view }: { comp: Competition; view: UefaView }) 
       {view.leaders && comp.format === "groups" && (
         <GroupWinners leaders={view.leaders} prize={comp.bands[0].label} settled={view.complete} />
       )}
-      <Callouts rows={view.rows} measure={measure} place={copy.place} />
+      <Callouts view={view} measure={measure} place={copy.place} />
 
       <div className="section-title">
         {copy.section} · matchday {view.matchday} of {view.matchdays}
