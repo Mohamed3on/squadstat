@@ -29,6 +29,7 @@ import { DetailDeck } from "@/components/DetailDeck";
 import { HeroMetric } from "@/components/HeroMetric";
 import { SectionPanel } from "@/components/SectionPanel";
 import { CompetitionBadge } from "./CompetitionBadge";
+import { CompetitionGapBadge } from "./CompetitionGapBadge";
 import { ClubWindowBadges } from "./ClubWindowBadges";
 import { SquadTab } from "./SquadTab";
 import { TransfersTab } from "./TransfersTab";
@@ -481,6 +482,10 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ clu
               </Badge>
             </Link>
           ))}
+          {/* Furthest above or below its money in the CL or EL league phase. */}
+          <Suspense>
+            <CompetitionGapBadge clubId={clubId} />
+          </Suspense>
           {/* What the window came to, and any club table this club heads.
               Streamed: the hero should not wait on a transfer scrape. */}
           <Suspense>
