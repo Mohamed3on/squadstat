@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { InfoTip } from "@/app/components/InfoTip";
 import { SignalBadge } from "@/components/SignalBadge";
 import { ordinal } from "@/lib/format";
@@ -33,6 +34,11 @@ export async function CompetitionGapBadge({ clubId }: { clubId: string }) {
           : "border-accent-cold-border bg-accent-cold-glow text-accent-cold-soft"
       }
     >
+      {over ? (
+        <TrendingUp className="mr-1 h-3.5 w-3.5" />
+      ) : (
+        <TrendingDown className="mr-1 h-3.5 w-3.5" />
+      )}
       <Link href={compHref(comp)} className="hover:underline">
         Biggest {comp.name} {over ? "overperformer" : "underperformer"} ·{" "}
         <span className="font-value">
