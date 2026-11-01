@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "build:worker": "opennextjs-cloudflare build && tsgo --noEmit",
+    "build:worker": "opennextjs-cloudflare build && mkdir -p .open-next/assets/data && cp data/minutes-value.json .open-next/assets/data/ && tsgo --noEmit",
     "preview": "bun run build:worker && opennextjs-cloudflare preview",
     "deploy": "bun run build:worker && opennextjs-cloudflare deploy",
     "lint": "oxlint",

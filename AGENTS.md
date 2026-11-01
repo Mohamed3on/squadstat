@@ -34,8 +34,12 @@ AS132203 headless-Chrome prefetch fleet. Bots were ~87% of Worker CPU before it 
 new crawler or monitor that must get through needs an exception there.
 
 A Worker has no filesystem: `data/` is imported, so each deploy bundles its own copy, and the
-`*updated-at.txt` stamps are inlined by `next.config.ts`. Secrets (`GITHUB_TOKEN`, `CRON_SECRET`,
-`TM_RELAY_URL`, `TM_RELAY_SECRET`) are set with `bunx wrangler secret put`.
+`*updated-at.txt` stamps are inlined by `next.config.ts`. `data/minutes-value.json` is the
+exception: inlined, it was seven copies of 3.7 MB in the bundle, compiled on every cold start, so
+`build:worker` ships it as a static asset that `lib/fetch-minutes-value.ts` fetches once per
+isolate. `robots.txt` and `icon.png` are plain files in `public/`, served without the Worker.
+Secrets (`GITHUB_TOKEN`, `CRON_SECRET`, `TM_RELAY_URL`, `TM_RELAY_SECRET`) are set with
+`bunx wrangler secret put`.
 
 ## UI Components
 
