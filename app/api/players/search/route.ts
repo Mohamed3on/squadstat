@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
-import clubs from "@/data/clubs.json";
+import { readData } from "@/lib/data";
 import { getMinutesValueData } from "@/lib/fetch-minutes-value";
 import { getNationalTeams } from "@/lib/national-teams";
 import { getClubIdsWithPages } from "@/lib/team-detail";
 
 export async function GET() {
   try {
-    const [players, { teams: nations, byId }, withPages] = await Promise.all([
+    const [players, { teams: nations, byId }, withPages, clubs] = await Promise.all([
       getMinutesValueData(),
       getNationalTeams(),
       getClubIdsWithPages({ tables: true }),
+      readData<Record<string, { name: string; logoUrl: string }>>("clubs.json"),
     ]);
     const playerIndex = players.map((p) => ({
       id: p.playerId,

@@ -1,9 +1,10 @@
-/** The commit-set of each refresh flow — the single list ci-push receives.
- *  Everything a refresh script writes under data/ that must survive the run
- *  belongs here. The workflow shells out to this file (`bun run
- *  scripts/outputs.ts <flow>`), so the committed list can't drift from the
- *  script's write-set — the drift already cost five weeks of silently
- *  discarded clubs.json / club-types.json updates. */
+/** The publish-set of each refresh flow — the single list scripts/data-sync.sh receives.
+ *  Everything a refresh script writes under data/ that must survive the run belongs
+ *  here: the data bucket keeps it for the site (lib/data.ts) and for the next run to
+ *  start from. The workflow shells out to this file (`bun run scripts/outputs.ts
+ *  <flow>`, or `all`), so the published list can't drift from the script's
+ *  write-set — the drift already cost five weeks of silently discarded clubs.json /
+ *  club-types.json updates. */
 export const REFRESH_OUTPUTS = {
   "minutes-value": [
     "data/minutes-value.json",
@@ -33,7 +34,10 @@ export const REFRESH_OUTPUTS = {
 // (argv guard rather than import.meta.main — tsgo doesn't type the Bun-ism.)
 const flow = process.argv[2];
 if (flow) {
-  const files = REFRESH_OUTPUTS[flow as keyof typeof REFRESH_OUTPUTS];
+  const files =
+    flow === "all"
+      ? Object.values(REFRESH_OUTPUTS).flat()
+      : REFRESH_OUTPUTS[flow as keyof typeof REFRESH_OUTPUTS];
   if (!files) {
     console.error(`Unknown refresh flow: ${flow}`);
     process.exit(1);

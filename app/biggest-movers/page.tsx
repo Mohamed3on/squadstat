@@ -4,6 +4,10 @@ import { BiggestMoversUI } from "./BiggestMoversUI";
 import { DataLastUpdated } from "@/app/components/DataLastUpdated";
 import { createPageMetadata } from "@/lib/metadata";
 
+// Request-rendered: its data is published to R2 (lib/data.ts) without a deploy, so a
+// build-time prerender would freeze whatever the build checked out.
+export const dynamic = "force-dynamic";
+
 export const metadata = createPageMetadata({
   title: "Biggest Movers",
   description:

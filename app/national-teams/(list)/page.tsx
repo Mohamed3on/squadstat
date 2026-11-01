@@ -3,6 +3,10 @@ import { createPageMetadata } from "@/lib/metadata";
 import { getNationalTeamValues } from "@/lib/squad-values";
 import { NationalTeamsTable } from "../NationalTeamsTable";
 
+// Request-rendered: its data is published to R2 (lib/data.ts) without a deploy, so a
+// build-time prerender would freeze whatever the build checked out.
+export const dynamic = "force-dynamic";
+
 export const metadata = createPageMetadata({
   title: "Most Valuable National Teams",
   description:

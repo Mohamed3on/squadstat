@@ -1,11 +1,10 @@
 import type { TransferBalanceClub, TransferBalanceResult } from "@/app/types";
-import transferBalance from "@/data/transfer-balance.json";
+import { readData } from "@/lib/data";
 import { MEASURES, RANKED_DEPTH, type Measure } from "@/lib/transfer-balance-measures";
 
-/** Bundled into the build. data/transfer-balance.json only changes via a data-refresh
- *  deploy, so an unstable_cache could only serve it stale. */
-export const getTransferBalance = async (): Promise<TransferBalanceResult> =>
-  transferBalance as unknown as TransferBalanceResult;
+/** Published data (lib/data.ts). */
+export const getTransferBalance = (): Promise<TransferBalanceResult> =>
+  readData<TransferBalanceResult>("transfer-balance.json");
 
 /** A place this club is entitled to claim on one measure. */
 export interface ClubPlace {

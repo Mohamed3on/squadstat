@@ -9,7 +9,7 @@ Don't run `bun run build` during development - the dev server is already running
 ## Hosting
 
 Cloudflare Workers via OpenNext (`wrangler.jsonc`, `open-next.config.ts`). Workers Builds runs
-`bun run build:worker` and deploys every push to `main`, the data workflows' commits included;
+`bun run build:worker` and deploys every push to `main` (the data workflows push nothing);
 other branches get a Preview whose URL lands on the PR, on its own R2 and D1 so it never touches
 production's caches. The sources' copies, `unstable_cache` entries and prerenders live in R2,
 revalidation stamps in D1. The hourly scheduled refresh is declared in `wrangler.jsonc` and run
@@ -33,12 +33,18 @@ and link-preview bots (verified bots by category and UA, self-declared bots by U
 AS132203 headless-Chrome prefetch fleet. Bots were ~87% of Worker CPU before it (Oct 2026). A
 new crawler or monitor that must get through needs an exception there.
 
-A Worker has no filesystem: `data/` is imported, so each deploy bundles its own copy, and the
-`*updated-at.txt` stamps are inlined by `next.config.ts`. `data/minutes-value.json` is the
-exception: inlined, it was seven copies of 3.7 MB in the bundle, compiled on every cold start, so
-`build:worker` ships it as a static asset that `lib/fetch-minutes-value.ts` fetches once per
-isolate. `robots.txt` and `icon.png` are plain files in `public/`, served without the Worker.
-Secrets (`GITHUB_TOKEN`, `CRON_SECRET`, `TM_RELAY_URL`, `TM_RELAY_SECRET`) are set with
+**Published data.** The data workflow's files (`scripts/outputs.ts`) live in the `squadstat-data`
+R2 bucket, not in git: `scripts/data-sync.sh` pulls them into `data/` before a refresh and
+publishes what changed through `custom-worker.ts`'s `/_data/<file>` (bearer `DATA_SECRET`, set on
+the Worker and in GitHub). Pages read them with `readData` from `lib/data.ts`, once per isolate
+with a once-a-minute ETag check, so new data appears within a minute and never redeploys the site
+(a deploy cold-starts every isolate; it was 8–10 a day). Node (next dev and build, tests, scripts)
+reads `data/` instead, which is now only a dev fixture; refresh it with
+`for f in $(bun run scripts/outputs.ts all); do bunx wrangler r2 object get "squadstat-data/${f#data/}" --file "$f" --remote; done`.
+A page showing published data is request-rendered: a prerender would freeze the build's checkout.
+`bun run preview` binds the real bucket (`remote: true`); Previews bind it too and only read.
+`robots.txt` and `icon.png` are plain files in `public/`, served without the Worker.
+Secrets (`GITHUB_TOKEN`, `CRON_SECRET`, `DATA_SECRET`, `TM_RELAY_URL`, `TM_RELAY_SECRET`) are set with
 `bunx wrangler secret put`.
 
 ## UI Components
@@ -83,16 +89,16 @@ Transfermarkt data reaches pages two ways (the words are defined in `CONTEXT.md`
 
 The refresh plan in `app/api/refresh/route.ts` has an entry for every page route: the sources
 its refresh re-scrapes, whose on-demand scrapes it clears, and whether it also starts the data
-workflow, for pages showing committed `data/*.json`. A page missing from it only re-renders, and
+workflow, for pages showing published data. A page missing from it only re-renders, and
 its refresh logs a warning. `/api/copies` reports each copy's age, and the data workflow's
 `check-copies` job fails when one is twice its maximum age.
 
-**Caches over committed `data/*.json` files are different.** `unstable_cache` entries survive
-deployments (`open-next.config.ts` keeps them out of R2's per-build prefix), so they go stale the
-moment CI commits fresh data. Plain JSON imports (see `lib/biggest-movers.ts`) need no
-`unstable_cache` at all — they're fresh every deploy. If the
-derived computation is expensive enough to cache (see `lib/player-detail.ts`), include
-`getDataVersion()` from `lib/data-version.ts` in the cache key so each data deploy misses cleanly.
+**Caches over published data are different.** `unstable_cache` entries outlive a data refresh, so
+they go stale the moment CI publishes fresh data. Plain `readData` reads (see
+`lib/biggest-movers.ts`) need no `unstable_cache` at all, and nothing over them may be memoised
+per process: the data changes under a running isolate. If the derived computation is expensive
+enough to cache (see `lib/player-detail.ts`), include `getDataVersion()` from
+`lib/data-version.ts` in the cache key so each refresh misses cleanly.
 
 ## Debugging Transfermarkt Pages
 

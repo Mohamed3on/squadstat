@@ -74,4 +74,4 @@ bun run refresh:minutes-value
 ## Caching And Refresh
 
 - Each Transfermarkt source keeps one copy in R2, which pages read; an hourly scheduled refresh re-scrapes copies past their maximum age (see `docs/adr/0001-pages-show-copies.md`).
-- `POST /api/refresh` re-scrapes the sources a page shows, and for pages showing committed data also dispatches `refresh-squadstat-data.yml` on GitHub, whose data lands with the deploy that follows.
+- `POST /api/refresh` re-scrapes the sources a page shows, and for pages showing published data also dispatches `refresh-squadstat-data.yml` on GitHub, whose data the site picks up from R2 within a minute of the run, without a deploy.

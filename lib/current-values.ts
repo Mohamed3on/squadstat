@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { MinutesValuePlayer } from "@/app/types";
 import { getMinutesValueData } from "./fetch-minutes-value";
 
@@ -25,18 +26,11 @@ import { getMinutesValueData } from "./fetch-minutes-value";
  *    which caught 48% of this window's permanent signings. The rest fall back to
  *    the frozen value, so a times-value ranking mixes the two bases across rows.
  *
- * Memoised per process: committed data, read once.
+ * Built once per request (React cache): the published data can change between requests.
  */
-let byPlayerId: Map<string, number> | null = null;
-
-export async function getCurrentMarketValues(): Promise<ReadonlyMap<string, number>> {
-  if (!byPlayerId) {
-    const players: MinutesValuePlayer[] = await getMinutesValueData();
-    byPlayerId = new Map(
-      players.flatMap((p) =>
-        p.playerId && p.marketValue > 0 ? [[p.playerId, p.marketValue]] : [],
-      ),
-    );
-  }
-  return byPlayerId;
-}
+export const getCurrentMarketValues = cache(async (): Promise<ReadonlyMap<string, number>> => {
+  const players: MinutesValuePlayer[] = await getMinutesValueData();
+  return new Map(
+    players.flatMap((p) => (p.playerId && p.marketValue > 0 ? [[p.playerId, p.marketValue]] : [])),
+  );
+});

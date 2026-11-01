@@ -28,7 +28,7 @@ jobs:
     # Full cache-expiry refetches (~615 players) have exceeded 20 minutes.
     timeout-minutes: 35
     permissions:
-      contents: write
+      contents: read
       issues: write
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +39,13 @@ jobs:
 
       - name: Install dependencies
         run: bash scripts/ci-install.sh
+
+      - name: Pull the published data
+        # data/ in the checkout is a dev fixture; the bucket holds what the site shows, and
+        # each refresh reads and compares against it.
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh pull
 
       - name: Restore player cache
         uses: actions/cache/restore@v4
@@ -64,11 +71,13 @@ jobs:
           path: data/player-cache.json
           key: player-cache-${{ github.run_id }}
 
-      - name: Commit and push
+      - name: Publish the data
         # The file list lives in scripts/outputs.ts, next to the script that
-        # writes them — never enumerate data files here by hand.
-        run: |
-          bash scripts/ci-push.sh "chore: refresh minutes-value data" $(bun run scripts/outputs.ts minutes-value)
+        # writes them — never enumerate data files here by hand. Published to the
+        # site's data bucket, not committed, so a refresh never redeploys the site.
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh push minutes-value
 
       - name: Alert on failure
         # 'cancelled' covers the job hitting its timeout, which failure() does not catch.
@@ -131,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -142,15 +151,23 @@ jobs:
       - name: Install dependencies
         run: bash scripts/ci-install.sh
 
+      - name: Pull the published data
+        # data/ in the checkout is a dev fixture; the bucket holds what the site shows, and
+        # each refresh reads and compares against it.
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh pull
+
       - name: Run refresh script
         env:
           TM_RELAY_URL: ${{ secrets.TM_RELAY_URL }}
           TM_RELAY_SECRET: ${{ secrets.TM_RELAY_SECRET }}
         run: bun run scripts/refresh-biggest-movers.ts
 
-      - name: Commit and push
-        run: |
-          bash scripts/ci-push.sh "chore: refresh biggest-movers data" $(bun run scripts/outputs.ts biggest-movers)
+      - name: Publish the data
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh push biggest-movers
 
   # The workflow ticks 3-hourly for market values, but transfer balances only move
   # while a window is open — take every second tick. Manual dispatch always runs.
@@ -176,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -186,6 +203,13 @@ jobs:
 
       - name: Install dependencies
         run: bash scripts/ci-install.sh
+
+      - name: Pull the published data
+        # data/ in the checkout is a dev fixture; the bucket holds what the site shows, and
+        # each refresh reads and compares against it.
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh pull
 
       - name: Run refresh script
         env:
@@ -193,19 +217,19 @@ jobs:
           TM_RELAY_SECRET: ${{ secrets.TM_RELAY_SECRET }}
         run: bun run scripts/refresh-transfer-balance.ts
 
-      - name: Commit and push
-        run: |
-          bash scripts/ci-push.sh "chore: refresh transfer-balance data" $(bun run scripts/outputs.ts transfer-balance)
+      - name: Publish the data
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh push transfer-balance
 
   # Squad values move on any market-value update or completed transfer, so this
   # rides the plain 3-hourly tick rather than a gate. The script writes nothing
-  # when the hundred come back identical, so an unchanged run leaves no commit
-  # and triggers no deploy.
+  # when the hundred come back identical, so an unchanged run publishes nothing.
   refresh-squad-values:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -216,15 +240,23 @@ jobs:
       - name: Install dependencies
         run: bash scripts/ci-install.sh
 
+      - name: Pull the published data
+        # data/ in the checkout is a dev fixture; the bucket holds what the site shows, and
+        # each refresh reads and compares against it.
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh pull
+
       - name: Run refresh script
         env:
           TM_RELAY_URL: ${{ secrets.TM_RELAY_URL }}
           TM_RELAY_SECRET: ${{ secrets.TM_RELAY_SECRET }}
         run: bun run scripts/refresh-squad-values.ts
 
-      - name: Commit and push
-        run: |
-          bash scripts/ci-push.sh "chore: refresh squad-values data" $(bun run scripts/outputs.ts squad-values)
+      - name: Publish the data
+        env:
+          DATA_SECRET: ${{ secrets.DATA_SECRET }}
+        run: bash scripts/data-sync.sh push squad-values
 
   # The site's hourly scheduled refresh keeps each Transfermarkt source's copy fresh, and it
   # can fail, or stop running, without anything else noticing. A copy twice its maximum age

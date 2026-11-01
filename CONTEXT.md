@@ -90,12 +90,14 @@ A per-club or per-nation Transfermarkt lookup (a club's managers, a nation's squ
 when a page first needs it and reused until it expires.
 _Avoid_: source
 
-**Committed data**:
-The datasets the data workflow scrapes and commits to the repo, so each deploy carries them.
+**Published data**:
+The datasets the data workflow scrapes and publishes to the data bucket, which pages read
+without a deploy (`lib/data.ts`). Committed to the repo until Nov 2026; `data/` is now a dev
+fixture.
 _Avoid_: static data
 
 **Data workflow**:
-The scheduled GitHub Actions job that produces committed data.
+The scheduled GitHub Actions job that produces published data.
 _Avoid_: refresh, data refresh (a refresh is something else)
 
 **Migration status.** Done 2026-10-18 (docs/adr/0001): every source is read through its copy,

@@ -1,18 +1,16 @@
 import type { NationalTeamValueResult, SquadValueClub, SquadValueResult } from "@/app/types";
-import nationalTeamValues from "@/data/national-team-values.json";
-import squadValues from "@/data/squad-values.json";
+import { readData } from "@/lib/data";
 
 /** Where the squad-value ranking lives. */
 export const SQUAD_VALUES_PATH = "/squad-values";
 
-/** Bundled into the build. data/squad-values.json only changes via a data-refresh
- *  deploy, so an unstable_cache could only serve it stale. */
-export const getSquadValues = async (): Promise<SquadValueResult> =>
-  squadValues as unknown as SquadValueResult;
+/** Published data (lib/data.ts). */
+export const getSquadValues = (): Promise<SquadValueResult> =>
+  readData<SquadValueResult>("squad-values.json");
 
 /** The same for the national-team table, which the same refresh writes. */
-export const getNationalTeamValues = async (): Promise<NationalTeamValueResult> =>
-  nationalTeamValues as unknown as NationalTeamValueResult;
+export const getNationalTeamValues = (): Promise<NationalTeamValueResult> =>
+  readData<NationalTeamValueResult>("national-team-values.json");
 
 /** Where a club stands among the hundred most valuable squads. */
 export interface SquadValuePlace {

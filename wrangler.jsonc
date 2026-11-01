@@ -7,7 +7,12 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "squadstat" }],
-  "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "squadstat-cache" }],
+  "r2_buckets": [
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "squadstat-cache" },
+    // The data workflow publishes data/*.json here (lib/data.ts, custom-worker.ts). Remote in
+    // local dev too, so `bun run preview` shows production's data.
+    { "binding": "DATA_BUCKET", "bucket_name": "squadstat-data", "remote": true },
+  ],
   "d1_databases": [
     {
       "binding": "NEXT_TAG_CACHE_D1",
@@ -36,6 +41,9 @@
   "previews": {
     "r2_buckets": [
       { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "squadstat-cache-preview" },
+      // Production's data, which a Preview only reads: only custom-worker.ts writes it, and
+      // only with DATA_SECRET.
+      { "binding": "DATA_BUCKET", "bucket_name": "squadstat-data" },
     ],
     "d1_databases": [
       {

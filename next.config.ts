@@ -1,13 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
 import type { NextConfig } from "next";
-
-/** data/*updated-at.txt, inlined for lib/data-version.ts: a Worker has no filesystem to
- *  read data/ from at runtime, and the stamps only change with a data-refresh deploy. */
-const dataStamps = Object.fromEntries(
-  readdirSync("data")
-    .filter((file) => file.endsWith("updated-at.txt"))
-    .map((file) => [file, readFileSync(`data/${file}`, "utf-8").trim()]),
-);
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -17,7 +8,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  env: { DATA_STAMPS: JSON.stringify(dataStamps) },
   // build:worker type-checks with tsgo after the build: seconds, where this tsc pass took 18.
   typescript: { ignoreBuildErrors: true },
   transpilePackages: ["geist"],

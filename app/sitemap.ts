@@ -6,6 +6,9 @@ import { getNationalTeams } from "@/lib/national-teams";
 import { absoluteUrl } from "@/lib/site-config";
 import { SITE_PAGES } from "@/lib/site-pages";
 
+// Regenerated daily: the player list is published to R2 (lib/data.ts) without a deploy.
+export const revalidate = 86400;
+
 // Every catalogued page but the leagues, which get entries of their own below, with logos.
 const LEAGUE_PATHS = new Set(LEAGUES.map((l) => `/leagues/${l.slug}`));
 const CORE_ROUTES = SITE_PAGES.map((p) => p.href).filter((path) => !LEAGUE_PATHS.has(path));

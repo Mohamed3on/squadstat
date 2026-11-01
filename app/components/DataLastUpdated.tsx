@@ -13,7 +13,7 @@ export function timeAgo(date: Date): string {
 }
 
 export async function DataLastUpdated({ file = "updated-at.txt" }: { file?: string } = {}) {
-  const stamp = dataStamp(file);
+  const stamp = await dataStamp(file);
   const updatedAt = stamp ? new Date(stamp) : new Date();
 
   const formatted = updatedAt.toLocaleDateString("en-GB", {

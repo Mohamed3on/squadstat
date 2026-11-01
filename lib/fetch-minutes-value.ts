@@ -1,9 +1,8 @@
-import { join } from "node:path";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { parsePlayerTable } from "@/lib/transfermarkt";
 import { cache } from "react";
 import type { MinutesValuePlayer } from "@/app/types";
 import { BASE_URL } from "./constants";
+import { readData } from "./data";
 import { fetchPage } from "./fetch";
 import { parseMarketValue } from "./parse-market-value";
 import { includeTournamentStats } from "./stats-toggles";
@@ -99,38 +98,14 @@ export const fetchTopForwardsRaw = () =>
     10,
   );
 
-/** data/minutes-value.json, read once per isolate. Importing it inlined its 3.7 MB into
- *  every server chunk that reached it, seven copies and over half the Worker's bundle, all
- *  compiled on each cold start. So `build:worker` ships it as a static asset, which the
- *  Worker fetches when a page first needs it; Node (next dev and build, scripts) reads the
- *  file. Either way it's the copy committed with this deploy. */
-let minutesValue: Promise<MinutesValuePlayer[]> | undefined;
-
-async function readMinutesValue(): Promise<MinutesValuePlayer[]> {
-  if (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers") {
-    const { env } = await getCloudflareContext({ async: true });
-    if (!env.ASSETS) throw new Error("[minutes-value] no ASSETS bound");
-    const res = await env.ASSETS.fetch("https://assets.local/data/minutes-value.json");
-    if (!res.ok) throw new Error(`[minutes-value] assets answered ${res.status}`);
-    return res.json();
-  }
-  const { readFile } = await import("node:fs/promises");
-  return JSON.parse(await readFile(join(process.cwd(), "data", "minutes-value.json"), "utf-8"));
-}
-
-const loadMinutesValue = () =>
-  (minutesValue ??= readMinutesValue().catch((error) => {
-    minutesValue = undefined;
-    throw error;
-  }));
-
-/** The tracked players as every surface reads them: the committed data, shipped with
- *  the build, with each player's major-tournament stats folded into his season
+/** The tracked players as every surface reads them: the published data (lib/data.ts),
+ *  with each player's major-tournament stats folded into his season
  *  totals once per request (React cache). Folding here, not in each caller, is what
  *  makes tournaments count everywhere: a caller that forgot would show a player
  *  different npG+A than the page beside it. */
 export const getMinutesValueData = cache(
-  async (): Promise<MinutesValuePlayer[]> => (await loadMinutesValue()).map(includeTournamentStats),
+  async (): Promise<MinutesValuePlayer[]> =>
+    (await readData<MinutesValuePlayer[]>("minutes-value.json")).map(includeTournamentStats),
 );
 
 /**
