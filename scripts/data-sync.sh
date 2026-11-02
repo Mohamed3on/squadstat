@@ -17,7 +17,7 @@ case "${1:-}" in
   pull)
     mkdir -p data "$baseline"
     for f in $(bun run scripts/outputs.ts all); do
-      curl -sS --fail-with-body --retry 3 "${auth[@]}" -o "$f" "$url/$(basename "$f")"
+      curl -sS --fail-with-body --retry 3 --retry-all-errors "${auth[@]}" -o "$f" "$url/$(basename "$f")"
       cp "$f" "$baseline/"
     done
     echo "Pulled $(bun run scripts/outputs.ts all | wc -w | tr -d ' ') data files."
@@ -40,7 +40,7 @@ case "${1:-}" in
         echo "Refusing to shrink $f from $old_size to $new_size bytes — looks like an empty/stub write."
         exit 1
       fi
-      curl -sS --fail-with-body --retry 3 "${auth[@]}" -X PUT --data-binary "@$f" \
+      curl -sS --fail-with-body --retry 3 --retry-all-errors "${auth[@]}" -X PUT --data-binary "@$f" \
         "$url/$(basename "$f")" > /dev/null
       echo "Published $f ($new_size bytes)."
       published=$((published + 1))
