@@ -620,8 +620,10 @@ export default async function PlayerDetailPage({
       },
   ].filter((t) => t !== false);
   const broadGroup = getBroadPositionGroup(effectivePosition(player));
-  // Keepers and defenders lead with availability; everyone else with output.
-  const outputLeads = broadGroup !== "goalkeepers" && broadGroup !== "defenders";
+  // Defenders put minutes before output; keepers swap output for availability, since npG+A
+  // says nothing about a keeper.
+  const isKeeper = broadGroup === "goalkeepers";
+  const outputLeads = !isKeeper && broadGroup !== "defenders";
   const upFront =
     broadGroup === "goalkeepers" || broadGroup === "defenders"
       ? UP_FRONT_RANKINGS[broadGroup]
@@ -629,6 +631,29 @@ export default async function PlayerDetailPage({
   const upFrontMetrics = upFront.map((id) => RANKING_METRICS.find((m) => metricId(m) === id)!);
   const moreMetrics = RANKING_METRICS.filter((m) => !upFront.includes(metricId(m)));
   const { gamesMissed, gamesScheduled, availablePct } = signalSummary;
+  const npgaMetric = (
+    <HeroMetric
+      label={
+        <span className="inline-flex items-center gap-1">
+          npG+A
+          <InfoTip>
+            <p>
+              Non-penalty goals plus assists: goals − penalty goals + assists. Penalties are left
+              out so a penalty taker isn&apos;t credited for who takes them.
+            </p>
+          </InfoTip>
+        </span>
+      }
+      value={String(form.seasonNpga)}
+      subline={
+        <>
+          {form.seasonGoals}G{form.penaltyGoals > 0 && ` (${form.penaltyGoals} pen)`} ·{" "}
+          {form.seasonAssists}A · #{rankings.npgaPosition} {positionLabel.toLowerCase()}
+        </>
+      }
+      accentClass="text-accent-hot"
+    />
+  );
   const rankCounts = {
     overall: overallCount,
     league: leagueCount,
@@ -826,40 +851,19 @@ export default async function PlayerDetailPage({
               subline={`#${rankings.marketValueOverall} overall · #${rankings.marketValuePosition} ${positionLabel.toLowerCase()}`}
               accentClass="text-accent-gold"
             />
-            {outputLeads && (
-              <HeroMetric
-                label={
-                  <span className="inline-flex items-center gap-1">
-                    npG+A
-                    <InfoTip>
-                      <p>
-                        Non-penalty goals plus assists: goals − penalty goals + assists. Penalties
-                        are left out so a penalty taker isn&apos;t credited for who takes them.
-                      </p>
-                    </InfoTip>
-                  </span>
-                }
-                value={String(form.seasonNpga)}
-                subline={
-                  <>
-                    {form.seasonGoals}G{form.penaltyGoals > 0 && ` (${form.penaltyGoals} pen)`} ·{" "}
-                    {form.seasonAssists}A · #{rankings.npgaPosition} {positionLabel.toLowerCase()}
-                  </>
-                }
-                accentClass="text-accent-hot"
-              />
-            )}
+            {outputLeads && npgaMetric}
             <HeroMetric
               label="Minutes"
               value={`${player.minutes.toLocaleString()}'`}
               subline={
-                outputLeads
+                !isKeeper
                   ? `Played ${player.totalMatches} of ${displayAvailable(player)}${availablePct < 100 ? ` · ${100 - availablePct}% missed` : ""}`
                   : `Played ${player.totalMatches} of ${displayAvailable(player)} · #${rankings.minutesPosition} ${positionLabel.toLowerCase()}`
               }
               accentClass="text-accent-blue"
             />
-            {!outputLeads && (
+            {!outputLeads && !isKeeper && npgaMetric}
+            {isKeeper && (
               <HeroMetric
                 label="Available"
                 value={`${availablePct}%`}
