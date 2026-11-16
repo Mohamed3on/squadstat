@@ -4,7 +4,7 @@ import { BASE_URL } from "@/lib/constants";
 import { getCopy } from "@/lib/copies";
 import { LEAGUES } from "@/lib/leagues";
 import { fetchPage } from "@/lib/fetch";
-import { parseMarketValue } from "@/lib/parse-market-value";
+import { parseMarketValue, tidyValueText } from "@/lib/parse-market-value";
 
 function parseInjuredPlayers(html: string, leagueName: string): InjuredPlayer[] {
   return parsePlayerTable(html, (player, row) => {
@@ -20,7 +20,7 @@ function parseInjuredPlayers(html: string, leagueName: string): InjuredPlayer[] 
       returnDate: row.text(6),
       injurySince: row.text(5),
       age: parseInt(row.text(2), 10) || undefined,
-      marketValue,
+      marketValue: tidyValueText(marketValue),
       marketValueNum,
       imageUrl: player.imageUrl,
       profileUrl: player.profileUrl ? `${BASE_URL}${player.profileUrl}` : "",

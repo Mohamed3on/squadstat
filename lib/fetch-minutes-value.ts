@@ -4,7 +4,7 @@ import type { MinutesValuePlayer } from "@/app/types";
 import { BASE_URL } from "./constants";
 import { readData } from "./data";
 import { fetchPage } from "./fetch";
-import { parseMarketValue } from "./parse-market-value";
+import { parseMarketValue, tidyValueText } from "./parse-market-value";
 import { includeTournamentStats } from "./stats-toggles";
 export { toPlayerStats, applyStatsToggles } from "./stats-toggles";
 
@@ -51,7 +51,7 @@ function parseMarketValueRows(html: string): MinutesValuePlayer[] {
         nationality: row.imageTitle(3),
         nationalityFlagUrl: row.image(3),
         marketValue: parseMarketValue(mvDisplay),
-        marketValueDisplay: mvDisplay,
+        marketValueDisplay: tidyValueText(mvDisplay),
         imageUrl: player.imageUrl,
         profileUrl: player.profileUrl,
         playerId: player.playerId,

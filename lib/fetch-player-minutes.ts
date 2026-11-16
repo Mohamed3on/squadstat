@@ -1,7 +1,7 @@
 import { parseProfileHeader } from "@/lib/transfermarkt";
 import { BASE_URL } from "./constants";
 import { fetchPage, fetchJson } from "./fetch";
-import { parseMarketValue } from "./parse-market-value";
+import { parseMarketValue, tidyValueText } from "./parse-market-value";
 import {
   aggregateSeasonStats,
   currentLeagueName,
@@ -120,7 +120,7 @@ export async function fetchPlayerMinutesRaw(
   // parsed by the Transfermarkt module; only the cross-source work stays here.
   const header = parseProfileHeader(htmlContent);
   const marketValue = parseMarketValue(header.marketValueText);
-  const marketValueDisplay = header.marketValueText || "-";
+  const marketValueDisplay = tidyValueText(header.marketValueText) || "-";
 
   const games: CeapiGame[] | undefined = ceapi?.data?.performance;
   // TM occasionally returns 200 with a nullish `performance` under rate pressure.
