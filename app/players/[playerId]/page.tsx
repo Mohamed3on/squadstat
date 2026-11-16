@@ -679,9 +679,11 @@ export default async function PlayerDetailPage({
             <PlayerTransferBadges playerId={player.playerId} />
           </Suspense>
           {player.contractExpiry && (
-            <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary">
-              Contract until {player.contractExpiry}
-            </SignalBadge>
+            <Link href={`/players?contract=${encodeURIComponent(player.contractExpiry)}`}>
+              <SignalBadge className="border-border-subtle bg-card-hover text-text-secondary transition-colors hover:text-text-primary">
+                Contract until {player.contractExpiry}
+              </SignalBadge>
+            </Link>
           )}
           {trend && (
             <Link href="/biggest-movers">

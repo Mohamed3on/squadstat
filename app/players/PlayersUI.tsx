@@ -538,7 +538,8 @@ export function PlayersUI({
   const maxCaps = params.get("maxcaps") ? parseInt(params.get("maxcaps")!) : null;
   const minAge = params.get("minage") ? parseInt(params.get("minage")!) : null;
   const maxAge = params.get("maxage") ? parseInt(params.get("maxage")!) : null;
-  const contractYear = params.get("contract") ? parseInt(params.get("contract")!) : null;
+  // A year ("2028") means expiring by then; a full date ("30/06/2028") means expiring that day.
+  const contractFilter = params.get("contract");
 
   // Auto-open "More filters" when any advanced filter is active
   const advancedFilterCount = [
@@ -546,7 +547,7 @@ export function PlayersUI({
     excludeCurrentIntl,
     minCaps !== null || maxCaps !== null,
     minAge !== null || maxAge !== null,
-    contractYear !== null,
+    contractFilter !== null,
     includePen,
   ].filter(Boolean).length;
 
@@ -581,9 +582,10 @@ export function PlayersUI({
     ).sort((a, b) => a - b);
     return [
       { value: "all", label: "Contract expiry" },
+      ...(contractFilter?.includes("/") ? [{ value: contractFilter, label: contractFilter }] : []),
       ...years.map((y) => ({ value: String(y), label: `\u2264 ${y}` })),
     ];
-  }, [players]);
+  }, [players, contractFilter]);
 
   const pointsLabel = includePen ? "G+A" : "npG+A";
 
@@ -609,11 +611,12 @@ export function PlayersUI({
     if (maxCaps !== null) list = list.filter((p) => (p.intlCareerCaps ?? 0) <= maxCaps);
     if (minAge !== null) list = list.filter((p) => p.age >= minAge);
     if (maxAge !== null) list = list.filter((p) => p.age <= maxAge);
-    if (contractYear !== null)
+    if (contractFilter !== null)
       list = list.filter((p) => {
         if (p.isOnLoan) return false;
+        if (contractFilter.includes("/")) return p.contractExpiry === contractFilter;
         const y = contractExpiryYear(p.contractExpiry);
-        return y !== null && y <= contractYear;
+        return y !== null && y <= parseInt(contractFilter);
       });
     return [...list].sort((a, b) => {
       let diff: number;
@@ -655,7 +658,7 @@ export function PlayersUI({
     maxCaps,
     minAge,
     maxAge,
-    contractYear,
+    contractFilter,
     formWindow,
   ]);
 
@@ -891,7 +894,7 @@ export function PlayersUI({
                     }}
                   />
                   <Combobox
-                    value={contractYear !== null ? String(contractYear) : "all"}
+                    value={contractFilter ?? "all"}
                     onChange={(v) => {
                       setIsFiltering(true);
                       update({ contract: v === "all" ? null : v || null });
@@ -978,7 +981,7 @@ export function PlayersUI({
                   sortBy,
                   showCaps: minCaps !== null || maxCaps !== null || excludeCurrentIntl,
                   includePen,
-                  showContract: contractYear !== null,
+                  showContract: contractFilter !== null,
                   formWindow,
                   formGA: (pl) => getFormGA(pl, formWindow, includePen).total,
                   onNationality: (nat) => fadeUpdate({ nat }),
