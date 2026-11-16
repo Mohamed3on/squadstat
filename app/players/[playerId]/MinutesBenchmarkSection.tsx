@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { SectionPanel } from "@/components/SectionPanel";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { FilterButton } from "@/components/FilterButton";
 import { getPlayerDetailHref } from "@/lib/format";
 import type { MinutesValueFilter } from "@/lib/filter-players";
 import type { MinutesBenchmark } from "@/lib/player-detail";
@@ -34,20 +34,23 @@ export function MinutesBenchmarkSection({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
-          Peer value
-        </span>
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={valueFilter ?? ""}
-          onValueChange={(v) => setValueFilter(v ? (v as MinutesValueFilter) : null)}
-        >
-          <ToggleGroupItem value="pricier">Same or pricier</ToggleGroupItem>
-          <ToggleGroupItem value="cheaper">Same or cheaper</ToggleGroupItem>
-          <ToggleGroupItem value="any">Any value</ToggleGroupItem>
-        </ToggleGroup>
+      {/* The same toggles as the price comparison above: one on at a time, click again for off. */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {(
+          [
+            ["pricier", "Same or pricier"],
+            ["cheaper", "Same or cheaper"],
+            ["any", "Any value"],
+          ] as const
+        ).map(([value, label]) => (
+          <FilterButton
+            key={value}
+            active={valueFilter === value}
+            onClick={() => setValueFilter(valueFilter === value ? null : value)}
+          >
+            {label}
+          </FilterButton>
+        ))}
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <MinutesBenchmarkPanel
@@ -98,7 +101,7 @@ function MinutesBenchmarkPanel({
           href={benchmarkUrl}
           className="text-xs text-text-secondary transition-colors hover:text-text-primary"
         >
-          Full benchmark →
+          See full benchmark →
         </Link>
       }
     >

@@ -8,7 +8,7 @@ colors:
   bg-card-hover: "#1c232d"
   text-primary: "#f0f6fc"
   text-secondary: "#8b949e"
-  text-muted: "#6e7681"
+  text-muted: "#7d8590"
   border-subtle: "rgba(240, 246, 252, 0.1)"
   border-medium: "rgba(240, 246, 252, 0.15)"
   accent-hot: "#00ff87"
@@ -233,7 +233,8 @@ A near-black, blue-tinted greyscale with four signal accents, each with one job.
   menus.
 - **Cool White** (`text-primary`, #f0f6fc): names, headings, figures.
 - **Steel Grey** (`text-secondary`, #8b949e): detail lines, descriptions, inactive nav.
-- **Dim Grey** (`text-muted`, #6e7681): labels, table headers, inactive controls.
+- **Dim Grey** (`text-muted`, #7d8590): labels, table headers, inactive controls. It clears 4.5:1 on
+  every surface up to Slate Charcoal, so it can carry small text.
 - **Hairline** (`border-subtle`, white at 10%) and **Firm Hairline** (`border-medium`, 15%): every
   border. Firm is for hover and emphasis.
 

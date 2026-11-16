@@ -366,7 +366,12 @@ function RecentMatches({
               <TableCell className="hidden sm:table-cell" />
               <TableCell colSpan={2} className="text-text-secondary">
                 {total.label} <span className="opacity-40">·</span>{" "}
-                <span className="font-value text-accent-hot">{total.npga}</span> npG+A
+                <span
+                  className={`font-value ${total.npga > 0 ? "text-accent-hot" : "text-text-secondary"}`}
+                >
+                  {total.npga}
+                </span>{" "}
+                npG+A
               </TableCell>
               <TableCell className="text-right font-value text-text-primary">
                 {total.mins.toLocaleString()}&apos;
