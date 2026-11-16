@@ -32,7 +32,8 @@ import { DetailSection } from "@/components/DetailSection";
 import { readData } from "@/lib/data";
 import { seasonLabel } from "@/lib/fee-vs-value-rankings";
 import { HeroMetric } from "@/components/HeroMetric";
-import { SectionPanel } from "@/components/SectionPanel";
+import { EmptyNote } from "@/components/EmptyNote";
+import { Disclosure } from "@/components/Disclosure";
 import { SignalBadge } from "@/components/SignalBadge";
 import { TeamLogo } from "@/components/TeamLogo";
 import type { RecentGameStats } from "@/app/types";
@@ -78,7 +79,10 @@ function GoalBreakdown({ goals, penaltyGoals }: { goals: number; penaltyGoals: n
       {penaltyGoals > 0 && (
         <span className="text-text-secondary">
           {openPlay > 0 ? "+" : ""}
-          {penaltyGoals}P
+          {penaltyGoals}
+          <abbr title="penalty" className="no-underline">
+            P
+          </abbr>
         </span>
       )}
     </>
@@ -107,6 +111,8 @@ const RANKING_METRICS: Array<{
   label: string;
   shortLabel: string;
   sortKey: string | null;
+  /** Shown up front; the rest wait behind "More rankings". */
+  primary?: boolean;
 }> = [
   {
     overallKey: "marketValueOverall",
@@ -116,6 +122,7 @@ const RANKING_METRICS: Array<{
     label: "Market value",
     shortLabel: "Value",
     sortKey: "value",
+    primary: true,
   },
   {
     overallKey: "npgaOverall",
@@ -125,6 +132,7 @@ const RANKING_METRICS: Array<{
     label: "npG+A",
     shortLabel: "npG+A",
     sortKey: "ga",
+    primary: true,
   },
   {
     overallKey: "pointsOverall",
@@ -143,6 +151,7 @@ const RANKING_METRICS: Array<{
     label: "Minutes",
     shortLabel: "Mins",
     sortKey: "mins",
+    primary: true,
   },
   {
     overallKey: "goalsOverall",
@@ -170,6 +179,7 @@ const RANKING_METRICS: Array<{
     label: "Last 5 npG+A",
     shortLabel: "L5",
     sortKey: "ga&fw=5",
+    primary: true,
   },
   {
     overallKey: "form10Overall",
@@ -193,7 +203,17 @@ function formatShortDate(value: string): string {
 
 type NationLinks = Record<string, { name: string; href: string }>;
 
-function RecentMatchCard({ match, nations }: { match: RecentGameStats; nations: NationLinks }) {
+/** A footer row of the match log: a window's totals, npG+A first. */
+type FormTotal = {
+  label: string;
+  npga: number;
+  goals: number;
+  pens: number;
+  assists: number;
+  mins: number;
+};
+
+function RecentMatchRow({ match, nations }: { match: RecentGameStats; nations: NationLinks }) {
   const hasScore = match.teamGoals !== undefined && match.opponentGoals !== undefined;
   const resultLabel = hasScore
     ? match.teamGoals! > match.opponentGoals!
@@ -213,43 +233,25 @@ function RecentMatchCard({ match, nations }: { match: RecentGameStats; nations: 
   const opponentHref = match.opponentClubId
     ? (nations[match.opponentClubId]?.href ?? `/teams/${match.opponentClubId}`)
     : null;
-  const contextLabel = [
+  const date = formatShortDate(match.date);
+  const detail = [
     match.competitionName || match.competitionId,
     match.gameDay ? `MD ${match.gameDay}` : null,
+    match.positionId ? POSITION_NAMES[match.positionId] : null,
   ]
     .filter(Boolean)
     .join(" · ");
-  const venueLabel = match.venue === "away" ? "Away" : match.venue === "home" ? "Home" : null;
-  const positionLabel = match.positionId ? POSITION_NAMES[match.positionId] : null;
 
   return (
-    <div className="hover-lift flex flex-col justify-between rounded-2xl border border-border-subtle bg-[linear-gradient(180deg,rgba(22,27,34,0.98),rgba(13,17,23,0.96))] p-3.5">
-      <div>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-text-muted">
-              {formatShortDate(match.date)}
-            </p>
-            {contextLabel && (
-              <p className="mt-0.5 text-[11px] text-text-secondary">{contextLabel}</p>
-            )}
-          </div>
-          {hasScore && (
-            <div
-              className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-value ${resultTone}`}
-            >
-              <span>{resultLabel}</span>
-              <span>
-                {match.teamGoals}:{match.opponentGoals}
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-3 flex items-center gap-2.5">
+    <TableRow>
+      <TableCell className="hidden whitespace-nowrap text-text-secondary sm:table-cell">
+        {date}
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2.5">
           <TeamLogo src={match.opponentLogoUrl} alt={match.opponentName} />
           <div className="min-w-0">
-            <p className="truncate text-sm text-text-primary">
+            <p className="text-text-primary">
               {match.opponentName ? (
                 <>
                   {venuePrefix}
@@ -265,80 +267,187 @@ function RecentMatchCard({ match, nations }: { match: RecentGameStats; nations: 
                 "Opponent unavailable"
               )}
             </p>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text-secondary">
-              {venueLabel && <span>{venueLabel}</span>}
-              {venueLabel && <span className="opacity-40">·</span>}
-              <span
-                className={`font-value ${match.minutes >= 70 ? "text-accent-hot" : match.minutes >= 45 ? "text-text-primary" : "text-text-secondary"}`}
-              >
-                {match.minutes}&apos;
+            <p className="text-xs text-text-secondary">
+              <span className="sm:hidden">
+                {date}
+                {detail && " · "}
               </span>
-              {positionLabel && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span>{positionLabel}</span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className="grid grid-cols-2 gap-1.5">
-          <div className="rounded-lg border border-border-subtle/80 bg-black/20 px-2 py-1.5 text-center">
-            <p className="text-[9px] uppercase tracking-[0.16em] text-text-muted">Goals</p>
-            <p className="mt-0.5 font-value text-base">
-              <GoalBreakdown goals={match.goals} penaltyGoals={match.penaltyGoals ?? 0} />
-            </p>
-          </div>
-          <div className="rounded-lg border border-border-subtle/80 bg-black/20 px-2 py-1.5 text-center">
-            <p className="text-[9px] uppercase tracking-[0.16em] text-text-muted">Assists</p>
-            <p
-              className={`mt-0.5 font-value text-base ${match.assists > 0 ? "text-accent-hot" : "text-text-muted"}`}
-            >
-              {match.assists}
+              {detail}
             </p>
           </div>
         </div>
-
+      </TableCell>
+      <TableCell className="text-right">
+        {hasScore && (
+          <span
+            className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 font-value text-xs ${resultTone}`}
+          >
+            {resultLabel} {match.teamGoals}:{match.opponentGoals}
+          </span>
+        )}
+      </TableCell>
+      <TableCell
+        className={`text-right font-value ${match.minutes >= 70 ? "text-text-primary" : "text-text-secondary"}`}
+      >
+        {match.minutes}&apos;
+      </TableCell>
+      <TableCell className="text-right font-value">
+        <GoalBreakdown goals={match.goals} penaltyGoals={match.penaltyGoals ?? 0} />
+      </TableCell>
+      <TableCell
+        className={`text-right font-value ${match.assists > 0 ? "text-accent-hot" : "text-text-muted"}`}
+      >
+        {match.assists}
+      </TableCell>
+      <TableCell className="hidden text-right sm:table-cell">
         {match.matchReportUrl && (
           <a
             href={match.matchReportUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-1 text-[11px] text-text-secondary transition-colors hover:text-text-primary"
+            aria-label={`Match report: ${venuePrefix}${match.opponentName ?? "opponent"}, ${date}`}
+            className="inline-flex p-1 text-text-muted transition-colors hover:text-text-primary"
           >
-            Match report
-            <ArrowUpRight className="h-3 w-3" />
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
         )}
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
-function RecentMatches({ matches, nations }: { matches: RecentGameStats[]; nations: NationLinks }) {
+function RecentMatches({
+  matches,
+  nations,
+  totals,
+}: {
+  matches: RecentGameStats[];
+  nations: NationLinks;
+  totals: FormTotal[];
+}) {
   const recentMatches = enrichRecentMatches(matches);
 
   if (recentMatches.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-border-subtle bg-black/20 px-4 py-6 text-sm text-text-secondary">
-        No recent match log is stored for this player.
-      </div>
-    );
+    return <EmptyNote>No recent match log is stored for this player.</EmptyNote>;
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-      {recentMatches.map((match) => (
-        <RecentMatchCard
-          key={match.gameId || `${match.date}-${match.minutes}-${match.goals}-${match.assists}`}
-          match={match}
-          nations={nations}
-        />
-      ))}
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="hidden text-left sm:table-cell">Date</TableHead>
+          <TableHead className="text-left">Match</TableHead>
+          <TableHead className="text-right">Result</TableHead>
+          <TableHead className="text-right">Mins</TableHead>
+          <TableHead className="text-right">G</TableHead>
+          <TableHead className="text-right">A</TableHead>
+          <TableHead className="hidden sm:table-cell">
+            <span className="sr-only">Match report</span>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {recentMatches.map((match) => (
+          <RecentMatchRow
+            key={match.gameId || `${match.date}-${match.minutes}-${match.goals}-${match.assists}`}
+            match={match}
+            nations={nations}
+          />
+        ))}
+      </TableBody>
+      {totals.length > 0 && (
+        <tfoot className="border-t border-border-subtle bg-black/20">
+          {totals.map((total) => (
+            <TableRow key={total.label} className="last:border-0">
+              <TableCell className="hidden sm:table-cell" />
+              <TableCell colSpan={2} className="text-text-secondary">
+                {total.label} <span className="opacity-40">·</span>{" "}
+                <span className="font-value text-accent-hot">{total.npga}</span> npG+A
+              </TableCell>
+              <TableCell className="text-right font-value text-text-primary">
+                {total.mins.toLocaleString()}&apos;
+              </TableCell>
+              <TableCell className="text-right font-value">
+                <GoalBreakdown goals={total.goals} penaltyGoals={total.pens} />
+              </TableCell>
+              <TableCell
+                className={`text-right font-value ${total.assists > 0 ? "text-accent-hot" : "text-text-muted"}`}
+              >
+                {total.assists}
+              </TableCell>
+              <TableCell className="hidden sm:table-cell" />
+            </TableRow>
+          ))}
+        </tfoot>
+      )}
+    </Table>
+  );
+}
+
+function RankingsTable({
+  metrics,
+  player,
+  rankings,
+  counts,
+  positionHeader,
+}: {
+  metrics: typeof RANKING_METRICS;
+  player: { league: string; club: string; position: string; playedPosition?: string };
+  rankings: PlayerRankings;
+  counts: { overall: number; league: number; club: number; position: number };
+  positionHeader: string;
+}) {
+  const posFilter = getBroadPositionFilter(effectivePosition(player));
+  return (
+    <Table className="table-fixed">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-left">Metric</TableHead>
+          <TableHead className="text-right">All</TableHead>
+          <TableHead className="text-right">League</TableHead>
+          <TableHead className="hidden sm:table-cell text-right">Club</TableHead>
+          <TableHead className="text-right whitespace-nowrap">{positionHeader}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {metrics.map((m) => {
+          const base = `/players${m.sortKey ? `?sort=${m.sortKey}` : ""}`;
+          const sep = m.sortKey ? "&" : "?";
+          return (
+            <TableRow key={m.label}>
+              <TableCell className="whitespace-nowrap">
+                <Link
+                  href={base}
+                  className="text-text-secondary transition-colors hover:text-text-primary hover:underline"
+                >
+                  <span className="sm:hidden">{m.shortLabel}</span>
+                  <span className="hidden sm:inline">{m.label}</span>
+                </Link>
+              </TableCell>
+              <RankCell rank={rankings[m.overallKey]} total={counts.overall} href={base} />
+              <RankCell
+                rank={rankings[m.leagueKey]}
+                total={counts.league}
+                href={`${base}${sep}league=${encodeURIComponent(player.league)}`}
+              />
+              <TableCell className="hidden sm:table-cell text-right whitespace-nowrap">
+                <Link
+                  href={`${base}${sep}club=${encodeURIComponent(player.club)}`}
+                  className="transition-opacity hover:opacity-70"
+                >
+                  <RankBadge rank={rankings[m.clubKey]} total={counts.club} />
+                </Link>
+              </TableCell>
+              <RankCell
+                rank={rankings[m.positionKey]}
+                total={counts.position}
+                href={`${base}${sep}pos=${posFilter}`}
+              />
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -463,6 +572,33 @@ export default async function PlayerDetailPage({
   );
   const { signalSummary } = comparisons.all;
   const fallbackMatchCount = player.recentForm?.length ?? 0;
+  // Totals under the match log: the last 5 once the log holds more than five, and the last 10
+  // only when they differ from the season totals the hero already gives.
+  const formTotals = [
+    fallbackMatchCount > 5 && {
+      label: "Last 5",
+      npga: form.last5Npga,
+      goals: form.last5Goals,
+      pens: form.last5PenaltyGoals,
+      assists: form.last5Assists,
+      mins: form.last5Minutes,
+    },
+    fallbackMatchCount >= 10 &&
+      form.last10Minutes !== form.seasonMinutes && {
+        label: "Last 10",
+        npga: form.last10Npga,
+        goals: form.last10Goals,
+        pens: form.last10PenaltyGoals,
+        assists: form.last10Assists,
+        mins: form.last10Minutes,
+      },
+  ].filter((t) => t !== false);
+  const rankCounts = {
+    overall: overallCount,
+    league: leagueCount,
+    club: clubCount,
+    position: positionPeerCount,
+  };
   const peersPlayingLess = minutesBenchmark.pricier.playingLessCount;
   const peersPlayingMore = minutesBenchmark.cheaper.playingMoreCount;
   const pageUrl = absoluteUrl(`/players/${player.playerId}`);
@@ -688,167 +824,92 @@ export default async function PlayerDetailPage({
         <DetailSection
           id="form"
           title="Form"
-          description={`His season so far and his last ${fallbackMatchCount} matches, newest first.`}
+          description={`His last ${fallbackMatchCount} matches, newest first.`}
         >
-          <div className="space-y-8">
-            <div className="grid gap-4 lg:grid-cols-2">
-              <SectionPanel title="Season">
+          <div className="max-w-4xl space-y-3">
+            <RecentMatches
+              matches={player.recentForm ?? []}
+              nations={nations}
+              totals={formTotals}
+            />
+            {form.penaltyAttempts > 0 && (
+              <Link
+                href="/players?sort=pen"
+                className="block text-sm text-text-secondary transition-colors hover:text-text-primary"
+              >
+                Penalties this season:{" "}
+                <span className="font-value text-text-primary">
+                  {form.penaltyGoals}/{form.penaltyAttempts}
+                </span>{" "}
+                scored
+                {form.penaltyConversion !== null && (
+                  <>
+                    {" "}
+                    (
+                    <span
+                      className={`font-value ${form.penaltyConversion >= 80 ? "text-accent-hot" : form.penaltyConversion >= 60 ? "text-text-primary" : "text-accent-cold-soft"}`}
+                    >
+                      {form.penaltyConversion}%
+                    </span>
+                    )
+                  </>
+                )}
+                {penaltyRank && (
+                  <>
+                    {" "}
+                    · <RankBadge rank={penaltyRank.rank} total={penaltyRank.total} /> of{" "}
+                    {penaltyRank.total} takers
+                  </>
+                )}
+              </Link>
+            )}
+            {player.positionStats && player.positionStats.length > 1 && (
+              <Disclosure label="Season by position">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-left">Period</TableHead>
-                      <TableHead className="text-right">npG+A</TableHead>
+                      <TableHead className="text-left">Position</TableHead>
+                      <TableHead className="text-right">Apps</TableHead>
                       <TableHead className="text-right">G</TableHead>
                       <TableHead className="text-right">A</TableHead>
+                      <TableHead className="text-right">npG+A</TableHead>
                       <TableHead className="text-right">Mins</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {[
-                      {
-                        label: "Season",
-                        npga: form.seasonNpga,
-                        goals: form.seasonGoals,
-                        pens: form.penaltyGoals,
-                        assists: form.seasonAssists,
-                        mins: form.seasonMinutes,
-                      },
-                      {
-                        label: "Last 5",
-                        npga: form.last5Npga,
-                        goals: form.last5Goals,
-                        pens: form.last5PenaltyGoals,
-                        assists: form.last5Assists,
-                        mins: form.last5Minutes,
-                      },
-                      {
-                        label: "Last 10",
-                        npga: form.last10Npga,
-                        goals: form.last10Goals,
-                        pens: form.last10PenaltyGoals,
-                        assists: form.last10Assists,
-                        mins: form.last10Minutes,
-                      },
-                    ].map((row) => (
-                      <TableRow key={row.label}>
-                        <TableCell className="text-text-secondary">{row.label}</TableCell>
-                        <TableCell className="text-right font-value text-accent-hot">
-                          {row.npga}
-                        </TableCell>
-                        <TableCell className="text-right font-value">
-                          <GoalBreakdown goals={row.goals} penaltyGoals={row.pens} />
-                        </TableCell>
-                        <TableCell className="text-right font-value text-text-primary">
-                          {row.assists}
-                        </TableCell>
-                        <TableCell className="text-right font-value text-text-primary">
-                          {row.mins.toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {player.positionStats.map((ps) => {
+                      const npga = ps.goals - /* no penalty split per position */ 0 + ps.assists;
+                      const bestNpga = Math.max(
+                        ...player.positionStats!.map((p) => p.goals + p.assists),
+                      );
+                      const isBest = npga === bestNpga && player.positionStats!.length > 1;
+                      return (
+                        <TableRow key={ps.positionId}>
+                          <TableCell className="text-text-secondary">{ps.position}</TableCell>
+                          <TableCell className="text-right font-value text-text-primary">
+                            {ps.appearances}
+                          </TableCell>
+                          <TableCell className="text-right font-value text-text-primary">
+                            {ps.goals}
+                          </TableCell>
+                          <TableCell className="text-right font-value text-text-primary">
+                            {ps.assists}
+                          </TableCell>
+                          <TableCell
+                            className={`text-right font-value ${isBest ? "text-accent-hot" : "text-text-primary"}`}
+                          >
+                            {npga}
+                          </TableCell>
+                          <TableCell className="text-right font-value text-text-primary">
+                            {ps.minutes.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
-                {form.penaltyAttempts > 0 && (
-                  <Link
-                    href="/players?sort=pen"
-                    className="mt-2.5 block text-sm text-text-secondary transition-colors hover:text-text-primary"
-                  >
-                    Penalties:{" "}
-                    <span className="font-value text-text-primary">
-                      {form.penaltyGoals}/{form.penaltyAttempts}
-                    </span>{" "}
-                    scored
-                    {form.penaltyConversion !== null && (
-                      <>
-                        {" "}
-                        (
-                        <span
-                          className={`font-value ${form.penaltyConversion >= 80 ? "text-accent-hot" : form.penaltyConversion >= 60 ? "text-text-primary" : "text-accent-cold-soft"}`}
-                        >
-                          {form.penaltyConversion}%
-                        </span>
-                        )
-                      </>
-                    )}
-                    {penaltyRank && (
-                      <>
-                        {" "}
-                        · <RankBadge rank={penaltyRank.rank} total={penaltyRank.total} /> of{" "}
-                        {penaltyRank.total} takers
-                      </>
-                    )}
-                  </Link>
-                )}
-              </SectionPanel>
-
-              {player.positionStats && player.positionStats.length > 1 && (
-                <SectionPanel title="By position">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-left">Position</TableHead>
-                        <TableHead className="text-right">Apps</TableHead>
-                        <TableHead className="text-right">G</TableHead>
-                        <TableHead className="text-right">A</TableHead>
-                        <TableHead className="text-right">npG+A</TableHead>
-                        <TableHead className="text-right">Mins</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {player.positionStats.map((ps) => {
-                        const npga = ps.goals - /* no penalty split per position */ 0 + ps.assists;
-                        const bestNpga = Math.max(
-                          ...player.positionStats!.map((p) => p.goals + p.assists),
-                        );
-                        const isBest = npga === bestNpga && player.positionStats!.length > 1;
-                        return (
-                          <TableRow key={ps.positionId}>
-                            <TableCell className="text-text-secondary">{ps.position}</TableCell>
-                            <TableCell className="text-right font-value text-text-primary">
-                              {ps.appearances}
-                            </TableCell>
-                            <TableCell className="text-right font-value text-text-primary">
-                              {ps.goals}
-                            </TableCell>
-                            <TableCell className="text-right font-value text-text-primary">
-                              {ps.assists}
-                            </TableCell>
-                            <TableCell
-                              className={`text-right font-value ${isBest ? "text-accent-hot" : "text-text-primary"}`}
-                            >
-                              {npga}
-                            </TableCell>
-                            <TableCell className="text-right font-value text-text-primary">
-                              {ps.minutes.toLocaleString()}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </SectionPanel>
-              )}
-            </div>
-
-            <SectionPanel
-              title="Latest matches"
-              aside={
-                <div className="flex items-center gap-2 text-[11px] text-text-muted">
-                  <span className="flex items-center gap-1 whitespace-nowrap">
-                    <span className="inline-block h-2 w-2 rounded-full bg-accent-hot" />
-                    <span className="hidden sm:inline">Open play</span>
-                    <span className="sm:hidden">OP</span>
-                  </span>
-                  <span className="flex items-center gap-1 whitespace-nowrap">
-                    <span className="inline-block h-2 w-2 rounded-full border border-text-secondary" />
-                    <span className="hidden sm:inline">Penalty</span>
-                    <span className="sm:hidden">Pen</span>
-                  </span>
-                </div>
-              }
-            >
-              <RecentMatches matches={player.recentForm ?? []} nations={nations} />
-            </SectionPanel>
+              </Disclosure>
+            )}
           </div>
         </DetailSection>
 
@@ -888,61 +949,23 @@ export default async function PlayerDetailPage({
             </>
           }
         >
-          <div className="max-w-3xl">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-left">Metric</TableHead>
-                  <TableHead className="text-right">All</TableHead>
-                  <TableHead className="text-right">League</TableHead>
-                  <TableHead className="hidden sm:table-cell text-right">Club</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">
-                    {positionShortLabel || positionLabel}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {RANKING_METRICS.map((m) => {
-                  const base = `/players${m.sortKey ? `?sort=${m.sortKey}` : ""}`;
-                  const sep = m.sortKey ? "&" : "?";
-                  const posFilter = getBroadPositionFilter(effectivePosition(player));
-                  return (
-                    <TableRow key={m.label}>
-                      <TableCell className="whitespace-nowrap">
-                        <Link
-                          href={base}
-                          className="text-text-secondary transition-colors hover:text-text-primary hover:underline"
-                        >
-                          <span className="sm:hidden">{m.shortLabel}</span>
-                          <span className="hidden sm:inline">{m.label}</span>
-                        </Link>
-                      </TableCell>
-                      <RankCell rank={rankings[m.overallKey]} total={overallCount} href={base} />
-                      <RankCell
-                        rank={rankings[m.leagueKey]}
-                        total={leagueCount}
-                        href={`${base}${sep}league=${encodeURIComponent(player.league)}`}
-                      />
-                      <TableCell className="hidden sm:table-cell text-right whitespace-nowrap">
-                        <Link
-                          href={`${base}${sep}club=${encodeURIComponent(player.club)}`}
-                          className="transition-opacity hover:opacity-70"
-                        >
-                          <RankBadge rank={rankings[m.clubKey]} total={clubCount} />
-                        </Link>
-                      </TableCell>
-                      <RankCell
-                        rank={rankings[m.positionKey]}
-                        total={positionPeerCount}
-                        href={`${base}${sep}pos=${posFilter}`}
-                      />
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-            {subgroupRankings.length > 0 && (
-              <div className="mt-4 space-y-3">
+          <div className="max-w-4xl space-y-3">
+            <RankingsTable
+              metrics={RANKING_METRICS.filter((m) => m.primary)}
+              player={player}
+              rankings={rankings}
+              counts={rankCounts}
+              positionHeader={positionShortLabel || positionLabel}
+            />
+            <Disclosure label="More rankings">
+              <div className="space-y-3">
+                <RankingsTable
+                  metrics={RANKING_METRICS.filter((m) => !m.primary)}
+                  player={player}
+                  rankings={rankings}
+                  counts={rankCounts}
+                  positionHeader={positionShortLabel || positionLabel}
+                />
                 {subgroupRankings.map((group) => (
                   <Table key={group.label}>
                     <TableHeader>
@@ -978,7 +1001,7 @@ export default async function PlayerDetailPage({
                   </Table>
                 ))}
               </div>
-            )}
+            </Disclosure>
           </div>
         </DetailSection>
       </div>

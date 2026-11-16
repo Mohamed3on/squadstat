@@ -2,15 +2,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DetailHeroSkeleton, DetailPageShellSkeleton } from "@/components/DetailHero";
 import { TableSkeleton } from "@/components/TableSkeleton";
 
-// A row of the Season table: the label, then its figures on the right.
-function StatRowSkeleton({ cells }: { cells: number }) {
+// A row of the match log: crest and opponent, then the result and figures on the right.
+function MatchRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 px-3 py-2.5">
-      <Skeleton className="h-5 w-24" />
-      <div className="ml-auto flex gap-6">
-        {Array.from({ length: cells }).map((_, i) => (
-          <Skeleton key={i} className="h-5 w-8" />
-        ))}
+    <div className="flex items-center gap-2.5 px-3 py-2.5">
+      <Skeleton className="h-7 w-7 shrink-0 rounded-lg" />
+      <div className="space-y-1">
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+      <div className="ml-auto flex items-center gap-4">
+        <Skeleton className="h-5 w-12 rounded-full" />
+        <Skeleton className="h-5 w-8" />
+        <Skeleton className="h-5 w-4" />
+        <Skeleton className="h-5 w-4" />
       </div>
     </div>
   );
@@ -53,30 +58,17 @@ export default function PlayerDetailLoading() {
         </div>
       </DetailHeroSkeleton>
 
-      {/* Form: section head, the Season table, then the latest matches */}
-      <div className="mt-12 space-y-5 sm:mt-16">
+      {/* Form: section head, then the match log */}
+      <div className="mt-12 max-w-4xl space-y-5 sm:mt-16">
         <div className="space-y-2">
           <Skeleton className="h-7 w-24" />
-          <Skeleton className="h-4 w-80 max-w-full" />
+          <Skeleton className="h-4 w-56 max-w-full" />
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-16" />
-            <TableSkeleton>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <StatRowSkeleton key={i} cells={4} />
-              ))}
-            </TableSkeleton>
-          </div>
-        </div>
-        <div className="space-y-3 pt-3">
-          <Skeleton className="h-4 w-28" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-36 rounded-2xl" />
-            ))}
-          </div>
-        </div>
+        <TableSkeleton>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <MatchRowSkeleton key={i} />
+          ))}
+        </TableSkeleton>
       </div>
     </DetailPageShellSkeleton>
   );

@@ -5,8 +5,7 @@ import type { ReactNode } from "react";
  *
  * Nine places had written this exact class string out by hand — four in one
  * club page alone — which is how an empty state ends up subtly different on the
- * tab next door. The one on a player's match log keeps its own darker surface
- * and stays out of this deliberately; it sits on a different background.
+ * tab next door.
  */
 export function EmptyNote({ children }: { children: ReactNode }) {
   return (
