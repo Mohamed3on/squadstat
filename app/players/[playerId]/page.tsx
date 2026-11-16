@@ -40,7 +40,7 @@ import type { RecentGameStats } from "@/app/types";
 import { POSITION_NAMES } from "@/lib/player-aggregation";
 import { PlayerInjuryBadge } from "./PlayerInjuryBadge";
 import { PlayerTransferBadges } from "./PlayerTransferBadges";
-import { effectivePosition, getBroadPositionFilter } from "@/lib/positions";
+import { effectivePosition, getBroadPositionFilter, getBroadPositionGroup } from "@/lib/positions";
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl } from "@/lib/site-config";
 
@@ -111,8 +111,6 @@ const RANKING_METRICS: Array<{
   label: string;
   shortLabel: string;
   sortKey: string | null;
-  /** Shown up front; the rest wait behind "More rankings". */
-  primary?: boolean;
 }> = [
   {
     overallKey: "marketValueOverall",
@@ -122,7 +120,6 @@ const RANKING_METRICS: Array<{
     label: "Market value",
     shortLabel: "Value",
     sortKey: "value",
-    primary: true,
   },
   {
     overallKey: "npgaOverall",
@@ -132,7 +129,6 @@ const RANKING_METRICS: Array<{
     label: "npG+A",
     shortLabel: "npG+A",
     sortKey: "ga",
-    primary: true,
   },
   {
     overallKey: "pointsOverall",
@@ -151,7 +147,6 @@ const RANKING_METRICS: Array<{
     label: "Minutes",
     shortLabel: "Mins",
     sortKey: "mins",
-    primary: true,
   },
   {
     overallKey: "goalsOverall",
@@ -179,7 +174,6 @@ const RANKING_METRICS: Array<{
     label: "Last 5 npG+A",
     shortLabel: "L5",
     sortKey: "ga&fw=5",
-    primary: true,
   },
   {
     overallKey: "form10Overall",
@@ -191,6 +185,16 @@ const RANKING_METRICS: Array<{
     sortKey: "ga&fw=10",
   },
 ];
+
+const metricId = (m: (typeof RANKING_METRICS)[number]) => m.overallKey.replace(/Overall$/, "");
+
+/** The rankings shown up front, by role; the rest wait behind "More rankings". Goals and assists
+ *  aren't a keeper's or a defender's job, so their pages lead with value and minutes. */
+const UP_FRONT_RANKINGS = {
+  goalkeepers: ["marketValue", "minutes"],
+  defenders: ["marketValue", "minutes", "npga", "form5"],
+  outfield: ["marketValue", "npga", "minutes", "form5"],
+};
 
 function formatShortDate(value: string): string {
   if (!value) return "Unknown";
@@ -384,6 +388,23 @@ function RecentMatches({
   );
 }
 
+function RankHead({
+  label,
+  count,
+  className = "",
+}: {
+  label: string;
+  count: number;
+  className?: string;
+}) {
+  return (
+    <TableHead className={`text-right whitespace-nowrap ${className}`}>
+      {label}
+      <span className="block font-value normal-case tracking-normal">of {count}</span>
+    </TableHead>
+  );
+}
+
 function RankingsTable({
   metrics,
   player,
@@ -403,10 +424,10 @@ function RankingsTable({
       <TableHeader>
         <TableRow>
           <TableHead className="text-left">Metric</TableHead>
-          <TableHead className="text-right">All</TableHead>
-          <TableHead className="text-right">League</TableHead>
-          <TableHead className="hidden sm:table-cell text-right">Club</TableHead>
-          <TableHead className="text-right whitespace-nowrap">{positionHeader}</TableHead>
+          <RankHead label="All" count={counts.overall} />
+          <RankHead label="League" count={counts.league} />
+          <RankHead label="Club" count={counts.club} className="hidden sm:table-cell" />
+          <RankHead label={positionHeader} count={counts.position} />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -593,6 +614,16 @@ export default async function PlayerDetailPage({
         mins: form.last10Minutes,
       },
   ].filter((t) => t !== false);
+  const broadGroup = getBroadPositionGroup(effectivePosition(player));
+  // Keepers and defenders lead with availability; everyone else with output.
+  const outputLeads = broadGroup !== "goalkeepers" && broadGroup !== "defenders";
+  const upFront =
+    broadGroup === "goalkeepers" || broadGroup === "defenders"
+      ? UP_FRONT_RANKINGS[broadGroup]
+      : UP_FRONT_RANKINGS.outfield;
+  const upFrontMetrics = upFront.map((id) => RANKING_METRICS.find((m) => metricId(m) === id)!);
+  const moreMetrics = RANKING_METRICS.filter((m) => !upFront.includes(metricId(m)));
+  const { gamesMissed, gamesScheduled, availablePct } = signalSummary;
   const rankCounts = {
     overall: overallCount,
     league: leagueCount,
@@ -790,33 +821,70 @@ export default async function PlayerDetailPage({
               subline={`#${rankings.marketValueOverall} overall · #${rankings.marketValuePosition} ${positionLabel.toLowerCase()}`}
               accentClass="text-accent-gold"
             />
-            <HeroMetric
-              label="npG+A"
-              value={String(form.seasonNpga)}
-              subline={
-                <>
-                  {form.seasonGoals}G{form.penaltyGoals > 0 && ` (${form.penaltyGoals} pen)`} ·{" "}
-                  {form.seasonAssists}A · #{rankings.npgaPosition} {positionLabel.toLowerCase()}
-                </>
-              }
-              accentClass="text-accent-hot"
-            />
+            {outputLeads && (
+              <HeroMetric
+                label={
+                  <span className="inline-flex items-center gap-1">
+                    npG+A
+                    <InfoTip>
+                      <p>
+                        Non-penalty goals plus assists: goals − penalty goals + assists. Penalties
+                        are left out so a penalty taker isn&apos;t credited for who takes them.
+                      </p>
+                    </InfoTip>
+                  </span>
+                }
+                value={String(form.seasonNpga)}
+                subline={
+                  <>
+                    {form.seasonGoals}G{form.penaltyGoals > 0 && ` (${form.penaltyGoals} pen)`} ·{" "}
+                    {form.seasonAssists}A · #{rankings.npgaPosition} {positionLabel.toLowerCase()}
+                  </>
+                }
+                accentClass="text-accent-hot"
+              />
+            )}
             <HeroMetric
               label="Minutes"
               value={`${player.minutes.toLocaleString()}'`}
-              subline={`Played ${player.totalMatches} of ${displayAvailable(player)}${signalSummary.availablePct < 100 ? ` · ${100 - signalSummary.availablePct}% missed` : ""}`}
+              subline={
+                outputLeads
+                  ? `Played ${player.totalMatches} of ${displayAvailable(player)}${availablePct < 100 ? ` · ${100 - availablePct}% missed` : ""}`
+                  : `Played ${player.totalMatches} of ${displayAvailable(player)} · #${rankings.minutesPosition} ${positionLabel.toLowerCase()}`
+              }
               accentClass="text-accent-blue"
             />
+            {!outputLeads && (
+              <HeroMetric
+                label="Available"
+                value={`${availablePct}%`}
+                subline={
+                  gamesMissed > 0
+                    ? `Missed ${gamesMissed} of ${gamesScheduled} games`
+                    : `Missed none of ${gamesScheduled} games`
+                }
+                accentClass={
+                  availablePct >= 90
+                    ? "text-accent-hot"
+                    : availablePct < 70
+                      ? "text-accent-cold-soft"
+                      : "text-text-primary"
+                }
+              />
+            )}
           </div>
-          <HeroVerdict
-            signalSummaries={{
-              all: comparisons.all.signalSummary,
-              league: comparisons.league.signalSummary,
-              noLeagueEdge: comparisons.noLeagueEdge.signalSummary,
-              top5: comparisons.top5.signalSummary,
-            }}
-            leagueLabel={player.league}
-          />
+          {/* The verdict weighs npG+A, which says nothing about a keeper. */}
+          {broadGroup !== "goalkeepers" && (
+            <HeroVerdict
+              signalSummaries={{
+                all: comparisons.all.signalSummary,
+                league: comparisons.league.signalSummary,
+                noLeagueEdge: comparisons.noLeagueEdge.signalSummary,
+                top5: comparisons.top5.signalSummary,
+              }}
+              leagueLabel={player.league}
+            />
+          )}
         </div>
       </DetailHero>
 
@@ -872,17 +940,18 @@ export default async function PlayerDetailPage({
                       <TableHead className="text-right">Apps</TableHead>
                       <TableHead className="text-right">G</TableHead>
                       <TableHead className="text-right">A</TableHead>
-                      <TableHead className="text-right">npG+A</TableHead>
+                      <TableHead className="text-right">G+A</TableHead>
                       <TableHead className="text-right">Mins</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {player.positionStats.map((ps) => {
-                      const npga = ps.goals - /* no penalty split per position */ 0 + ps.assists;
-                      const bestNpga = Math.max(
+                      // No penalty split per position, so this is G+A, not npG+A.
+                      const ga = ps.goals + ps.assists;
+                      const bestGa = Math.max(
                         ...player.positionStats!.map((p) => p.goals + p.assists),
                       );
-                      const isBest = npga === bestNpga && player.positionStats!.length > 1;
+                      const isBest = ga > 0 && ga === bestGa;
                       return (
                         <TableRow key={ps.positionId}>
                           <TableCell className="text-text-secondary">{ps.position}</TableCell>
@@ -898,7 +967,7 @@ export default async function PlayerDetailPage({
                           <TableCell
                             className={`text-right font-value ${isBest ? "text-accent-hot" : "text-text-primary"}`}
                           >
-                            {npga}
+                            {ga}
                           </TableCell>
                           <TableCell className="text-right font-value text-text-primary">
                             {ps.minutes.toLocaleString()}
@@ -916,7 +985,7 @@ export default async function PlayerDetailPage({
         <DetailSection
           id="comparisons"
           title="Price vs output"
-          description="His npG+A against players valued above and below him."
+          description="His npG+A (goals − penalty goals + assists) against players valued above and below him."
         >
           <ComparisonPanels
             comparisons={comparisons}
@@ -951,7 +1020,7 @@ export default async function PlayerDetailPage({
         >
           <div className="max-w-4xl space-y-3">
             <RankingsTable
-              metrics={RANKING_METRICS.filter((m) => m.primary)}
+              metrics={upFrontMetrics}
               player={player}
               rankings={rankings}
               counts={rankCounts}
@@ -960,7 +1029,7 @@ export default async function PlayerDetailPage({
             <Disclosure label="More rankings">
               <div className="space-y-3">
                 <RankingsTable
-                  metrics={RANKING_METRICS.filter((m) => !m.primary)}
+                  metrics={moreMetrics}
                   player={player}
                   rankings={rankings}
                   counts={rankCounts}

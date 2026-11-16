@@ -8,7 +8,7 @@ export function HeroMetric({
   accentClass,
   children,
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   subline?: ReactNode;
   accentClass: string;
