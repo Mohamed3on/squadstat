@@ -941,7 +941,8 @@ export default async function PlayerDetailPage({
               </Link>
             )}
             {player.positionStats && player.positionStats.length > 1 && (
-              <Disclosure label="Season by position" defaultOpen>
+              <div className="space-y-3 pt-1">
+                <p className="text-sm text-text-secondary">Season by position</p>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -986,7 +987,7 @@ export default async function PlayerDetailPage({
                     })}
                   </TableBody>
                 </Table>
-              </Disclosure>
+              </div>
             )}
           </div>
         </DetailSection>
