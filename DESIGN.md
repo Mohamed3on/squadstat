@@ -367,8 +367,8 @@ never show, so set their offset colour to `background`, or a light band leaks th
 - **Context chips:** 6px corners with a hairline, in greyscale for categories: contract, on loan,
   new signing, current international. A chip takes a tint only when it signals, e.g. green or red
   for the best or worst points-per-game figure, or blue when it links to a manager. The player
-  hero sets contract, loan, new signing and international as a plain dotted text line instead,
-  so its chip row holds only signals.
+  hero sets contract, loan, new signing and international as a text line with a muted icon or
+  flag per fact instead, so its chip row holds only signals.
 - **Rank chips:** 28–32px squares with mono digits. The top three lift to Lifted Slate with Cool
   White digits and a firm hairline, because a rank alone is neither good nor bad (the priciest
   injury is #1 too). A list whose direction is known passes green or red instead, as the
@@ -426,7 +426,11 @@ never show, so set their offset colour to `background`, or a light band leaks th
 
 A label (10px uppercase at 0.18em, Dim Grey), then a figure (Geist Mono at 24px in one accent),
 then a sub-line (12px Steel Grey). Three to a row. It is the terminal's readout, and it opens
-every league, club and player page.
+every league, club and player page. On a player page a figure can carry a cell strip under its
+sub-line (`CellBar`, 8px cells in the figure's accent): one cell per unit, filled for what counts,
+Firm Hairline grey for the rest. Minutes fill a cell per game played, npG+A draws a solid block per goal
+and an outlined one per assist, and the price-vs-output verdict splits green beaten against red
+ahead.
 
 ### Detail hero (signature)
 

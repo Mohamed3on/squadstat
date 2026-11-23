@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { CellBar } from "@/components/CellBar";
 import { paramsToScope, type ComparisonScope } from "@/lib/comparison-scope";
 import type { PlayerSignalSummary } from "@/lib/player-detail";
 
@@ -65,6 +66,17 @@ export function HeroVerdict({
           </>
         )}
       </p>
+      {/* The verdict as a tug of war: a cell per pricier peer beaten, then per cheaper one ahead. */}
+      {beaten + ahead > 0 && (
+        <div className="mt-2.5">
+          <CellBar
+            segments={[
+              { count: beaten, className: "bg-accent-hot" },
+              { count: ahead, className: "bg-accent-cold" },
+            ]}
+          />
+        </div>
+      )}
     </div>
   );
 }

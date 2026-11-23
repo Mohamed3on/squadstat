@@ -1,8 +1,17 @@
-import { Fragment, Suspense } from "react";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Crown, Medal, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ArrowUpRight,
+  CalendarClock,
+  Crown,
+  Medal,
+  TrendingDown,
+  TrendingUp,
+  UserPlus,
+} from "lucide-react";
 import { DetailHero, DetailPageShell } from "@/components/DetailHero";
 import { createPageMetadata } from "@/lib/metadata";
 import { getLeistungsdatenUrl } from "@/lib/format";
@@ -32,6 +41,8 @@ import { DetailSection } from "@/components/DetailSection";
 import { readData } from "@/lib/data";
 import { seasonLabel } from "@/lib/fee-vs-value-rankings";
 import { HeroMetric } from "@/components/HeroMetric";
+import { CellBar } from "@/components/CellBar";
+import { NationalityFlag } from "@/components/NationalityFlag";
 import { EmptyNote } from "@/components/EmptyNote";
 import { Disclosure } from "@/components/Disclosure";
 import { SignalBadge } from "@/components/SignalBadge";
@@ -652,7 +663,19 @@ export default async function PlayerDetailPage({
         </>
       }
       accentClass="text-accent-hot"
-    />
+    >
+      {/* One block per contribution: solid for a non-penalty goal, outlined for an assist. */}
+      {form.seasonNpga > 0 && (
+        <div aria-hidden className="mt-2.5 flex flex-wrap gap-0.5">
+          {Array.from({ length: form.seasonGoals - form.penaltyGoals }, (_, i) => (
+            <span key={`g${i}`} className="h-2 w-2 rounded-xs bg-accent-hot" />
+          ))}
+          {Array.from({ length: form.seasonAssists }, (_, i) => (
+            <span key={`a${i}`} className="h-2 w-2 rounded-xs border border-accent-hot" />
+          ))}
+        </div>
+      )}
+    </HeroMetric>
   );
   const rankCounts = {
     overall: overallCount,
@@ -719,21 +742,37 @@ export default async function PlayerDetailPage({
     ],
   };
 
-  const factLink = "transition-colors hover:text-text-primary";
+  const fact = "inline-flex items-center gap-1.5";
+  const factLink = `${fact} transition-colors hover:text-text-primary`;
+  const factIcon = "h-3.5 w-3.5 text-text-muted";
   const facts = [
-    player.isOnLoan ? "On loan" : player.isNewSigning && "New signing",
+    (player.isOnLoan || player.isNewSigning) && (
+      <span key="status" className={fact}>
+        {player.isOnLoan ? (
+          <ArrowLeftRight className={factIcon} />
+        ) : (
+          <UserPlus className={factIcon} />
+        )}
+        {player.isOnLoan ? "On loan" : "New signing"}
+      </span>
+    ),
     player.contractExpiry && (
       <Link
         key="contract"
         href={`/players?contract=${encodeURIComponent(player.contractExpiry)}`}
         className={factLink}
       >
+        <CalendarClock className={factIcon} />
         Contract until {player.contractExpiry}
       </Link>
     ),
     intlLabel &&
       (nation ? (
         <Link key="intl" href={nation.href} className={factLink}>
+          {/* The flag only when it's the nation he plays for, not a second nationality. */}
+          {nation.name === player.nationality && (
+            <NationalityFlag url={player.nationalityFlagUrl} name={nation.name} />
+          )}
           {intlLabel}
         </Link>
       ) : (
@@ -774,15 +813,10 @@ export default async function PlayerDetailPage({
           </div>
 
           <div className="col-span-2 min-w-0 sm:col-span-1">
-            {/* Neutral context reads as a plain line, so the chips below are all signal. */}
+            {/* Neutral context reads as an iconed line, so the chips below are all signal. */}
             {facts.length > 0 && (
-              <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary">
-                {facts.map((fact, i) => (
-                  <Fragment key={i}>
-                    {i > 0 && <span className="opacity-40">·</span>}
-                    {fact}
-                  </Fragment>
-                ))}
+              <p className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-text-secondary">
+                {facts}
               </p>
             )}
 
@@ -877,7 +911,20 @@ export default async function PlayerDetailPage({
                   : `Played ${player.totalMatches} of ${displayAvailable(player)} · #${rankings.minutesPosition} ${positionLabel.toLowerCase()}`
               }
               accentClass="text-accent-blue"
-            />
+            >
+              {/* One cell per available game, played ones filled. */}
+              <div className="mt-2.5">
+                <CellBar
+                  segments={[
+                    { count: player.totalMatches, className: "bg-accent-blue" },
+                    {
+                      count: Math.max(0, displayAvailable(player) - player.totalMatches),
+                      className: "bg-border-medium",
+                    },
+                  ]}
+                />
+              </div>
+            </HeroMetric>
             {!outputLeads && !isKeeper && npgaMetric}
             {isKeeper && (
               <HeroMetric
