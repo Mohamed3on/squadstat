@@ -426,11 +426,9 @@ never show, so set their offset colour to `background`, or a light band leaks th
 
 A label (10px uppercase at 0.18em, Dim Grey), then a figure (Geist Mono at 24px in one accent),
 then a sub-line (12px Steel Grey). Three to a row. It is the terminal's readout, and it opens
-every league, club and player page. On a player page a figure can carry a cell strip under its
-sub-line (`CellBar`, 8px cells in the figure's accent): one cell per unit, filled for what counts,
-Firm Hairline grey for the rest. Minutes fill a cell per game played, npG+A draws a solid block per goal
-and an outlined one per assist, and the price-vs-output verdict splits green beaten against red
-ahead.
+every league, club and player page. A figure never repeats itself as a graphic: the player
+hero's one strip is the price-vs-output verdict's `CellBar`, a green cell per pricier peer beaten
+then a red one per cheaper peer ahead, because it reads faster than its sentence.
 
 ### Detail hero (signature)
 

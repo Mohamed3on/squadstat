@@ -41,7 +41,6 @@ import { DetailSection } from "@/components/DetailSection";
 import { readData } from "@/lib/data";
 import { seasonLabel } from "@/lib/fee-vs-value-rankings";
 import { HeroMetric } from "@/components/HeroMetric";
-import { CellBar } from "@/components/CellBar";
 import { NationalityFlag } from "@/components/NationalityFlag";
 import { EmptyNote } from "@/components/EmptyNote";
 import { Disclosure } from "@/components/Disclosure";
@@ -663,19 +662,7 @@ export default async function PlayerDetailPage({
         </>
       }
       accentClass="text-accent-hot"
-    >
-      {/* One block per contribution: solid for a non-penalty goal, outlined for an assist. */}
-      {form.seasonNpga > 0 && (
-        <div aria-hidden className="mt-2.5 flex flex-wrap gap-0.5">
-          {Array.from({ length: form.seasonGoals - form.penaltyGoals }, (_, i) => (
-            <span key={`g${i}`} className="h-2 w-2 rounded-xs bg-accent-hot" />
-          ))}
-          {Array.from({ length: form.seasonAssists }, (_, i) => (
-            <span key={`a${i}`} className="h-2 w-2 rounded-xs border border-accent-hot" />
-          ))}
-        </div>
-      )}
-    </HeroMetric>
+    />
   );
   const rankCounts = {
     overall: overallCount,
@@ -911,20 +898,7 @@ export default async function PlayerDetailPage({
                   : `Played ${player.totalMatches} of ${displayAvailable(player)} · #${rankings.minutesPosition} ${positionLabel.toLowerCase()}`
               }
               accentClass="text-accent-blue"
-            >
-              {/* One cell per available game, played ones filled. */}
-              <div className="mt-2.5">
-                <CellBar
-                  segments={[
-                    { count: player.totalMatches, className: "bg-accent-blue" },
-                    {
-                      count: Math.max(0, displayAvailable(player) - player.totalMatches),
-                      className: "bg-border-medium",
-                    },
-                  ]}
-                />
-              </div>
-            </HeroMetric>
+            />
             {!outputLeads && !isKeeper && npgaMetric}
             {isKeeper && (
               <HeroMetric
