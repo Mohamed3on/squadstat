@@ -25,16 +25,18 @@ export default function PlayerDetailLoading() {
   return (
     <DetailPageShellSkeleton>
       <DetailHeroSkeleton>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-          <Skeleton className="h-24 w-24 shrink-0 rounded-[1.5rem] sm:h-28 sm:w-28" />
-          <div className="min-w-0 flex-1">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 sm:items-start sm:gap-x-5">
+          <Skeleton className="h-16 w-16 rounded-2xl sm:row-span-2 sm:h-28 sm:w-28 sm:rounded-[1.5rem]" />
+          <div className="min-w-0">
             <Skeleton className="h-9 w-64 max-w-full sm:h-10" />
-            <Skeleton className="mt-2 h-5 w-48" />
-            {/* Status chips */}
-            <div className="mt-4 flex flex-wrap gap-2">
+            <Skeleton className="mt-1 h-5 w-48 max-w-full sm:mt-2" />
+          </div>
+          <div className="col-span-2 min-w-0 sm:col-span-1">
+            {/* Context line, then signal chips */}
+            <Skeleton className="mb-3 h-5 w-72 max-w-full" />
+            <div className="flex flex-wrap gap-2">
               <Skeleton className="h-6 w-28 rounded-md" />
               <Skeleton className="h-6 w-40 rounded-full" />
-              <Skeleton className="h-6 w-36 rounded-full" />
             </div>
             <Skeleton className="mt-4 h-4 w-56" />
           </div>

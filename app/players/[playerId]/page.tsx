@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -719,26 +719,47 @@ export default async function PlayerDetailPage({
     ],
   };
 
-  const statusChip = "border-border-subtle bg-card-hover text-text-secondary";
-  const linkedChip = `${statusChip} transition-colors hover:text-text-primary`;
+  const factLink = "transition-colors hover:text-text-primary";
+  const facts = [
+    player.isOnLoan ? "On loan" : player.isNewSigning && "New signing",
+    player.contractExpiry && (
+      <Link
+        key="contract"
+        href={`/players?contract=${encodeURIComponent(player.contractExpiry)}`}
+        className={factLink}
+      >
+        Contract until {player.contractExpiry}
+      </Link>
+    ),
+    intlLabel &&
+      (nation ? (
+        <Link key="intl" href={nation.href} className={factLink}>
+          {intlLabel}
+        </Link>
+      ) : (
+        intlLabel
+      )),
+  ].filter(Boolean);
 
   return (
     <DetailPageShell backHref="/players" backLabel="All players">
       <JsonLd data={jsonLd} />
       <DetailHero>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+        {/* Phones put the avatar beside the name and run the rest full width; from sm the
+            avatar holds the left column as before. */}
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 sm:items-start sm:gap-x-5">
           <PlayerAvatar
             imageUrl={player.imageUrl}
             name={player.name}
             size="lg"
-            className="h-24 w-24 rounded-[1.5rem] border border-border-medium sm:h-28 sm:w-28"
+            className="h-16 w-16 rounded-2xl border border-border-medium sm:row-span-2 sm:h-28 sm:w-28 sm:rounded-[1.5rem]"
           />
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <h1 className="text-3xl font-pixel leading-tight text-text-primary sm:text-4xl">
               {player.name}
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-secondary sm:mt-2">
               <PlayerSubtitle
                 position={player.position}
                 playedPosition={player.playedPosition}
@@ -750,32 +771,27 @@ export default async function PlayerDetailPage({
                 nationality={player.nationality}
               />
             </div>
+          </div>
 
-            {/* Status, fitness first. Context chips stay neutral; only signals take a colour. */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="col-span-2 min-w-0 sm:col-span-1">
+            {/* Neutral context reads as a plain line, so the chips below are all signal. */}
+            {facts.length > 0 && (
+              <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary">
+                {facts.map((fact, i) => (
+                  <Fragment key={i}>
+                    {i > 0 && <span className="opacity-40">·</span>}
+                    {fact}
+                  </Fragment>
+                ))}
+              </p>
+            )}
+
+            {/* Signals, fitness first. */}
+            <div className="flex flex-wrap items-center gap-2">
               <LeagueBadge league={player.league} />
               <Suspense>
                 <PlayerInjuryBadge playerId={player.playerId} />
               </Suspense>
-              {player.isOnLoan && <SignalBadge className={statusChip}>On loan</SignalBadge>}
-              {!player.isOnLoan && player.isNewSigning && (
-                <SignalBadge className={statusChip}>New signing</SignalBadge>
-              )}
-              {player.contractExpiry && (
-                <Link href={`/players?contract=${encodeURIComponent(player.contractExpiry)}`}>
-                  <SignalBadge className={linkedChip}>
-                    Contract until {player.contractExpiry}
-                  </SignalBadge>
-                </Link>
-              )}
-              {intlLabel &&
-                (nation ? (
-                  <Link href={nation.href}>
-                    <SignalBadge className={linkedChip}>{intlLabel}</SignalBadge>
-                  </Link>
-                ) : (
-                  <SignalBadge className={statusChip}>{intlLabel}</SignalBadge>
-                ))}
               {trend && (
                 <Link href="/biggest-movers">
                   <SignalBadge

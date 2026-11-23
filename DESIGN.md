@@ -366,7 +366,9 @@ never show, so set their offset colour to `background`, or a light band leaks th
   bare arrow below 640px.
 - **Context chips:** 6px corners with a hairline, in greyscale for categories: contract, on loan,
   new signing, current international. A chip takes a tint only when it signals, e.g. green or red
-  for the best or worst points-per-game figure, or blue when it links to a manager.
+  for the best or worst points-per-game figure, or blue when it links to a manager. The player
+  hero sets contract, loan, new signing and international as a plain dotted text line instead,
+  so its chip row holds only signals.
 - **Rank chips:** 28–32px squares with mono digits. The top three lift to Lifted Slate with Cool
   White digits and a firm hairline, because a rank alone is neither good nor bad (the priciest
   injury is #1 too). A list whose direction is known passes green or red instead, as the
