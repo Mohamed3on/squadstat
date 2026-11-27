@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   // build:worker type-checks with tsgo after the build: seconds, where this tsc pass took 18.
   typescript: { ignoreBuildErrors: true },
   transpilePackages: ["geist"],
+  // Dev only: without it Next refuses HMR from a quick tunnel and the page never hydrates.
+  allowedDevOrigins: ["*.trycloudflare.com"],
   images: {
     remotePatterns: [
       {
